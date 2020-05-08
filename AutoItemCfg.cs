@@ -56,6 +56,10 @@ namespace TILER2 {
                         }
                         return subDict.Value.index.ToString();
                     case "DictKeyProp":
+                        if(!subDict.HasValue) {
+                            Debug.LogWarning("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" (DictKeyProp tag used on non-BindDict).");
+                            return m.Value;
+                        }
                         if(strParams.Length < 3){
                             Debug.LogWarning("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" (not enough params for Prop tag).");
                             return m.Value;
