@@ -24,6 +24,9 @@ namespace TILER2 {
         internal FilingDictionary<ItemBoilerplate> masterItemList = new FilingDictionary<ItemBoilerplate>();
 
         public void Awake() {
+            //this doesn't seem to fire until the title screen is up, which is good because config file changes shouldn't immediately be read during startup; watch for regression (or just implement a check anyways?)
+            On.RoR2.RoR2Application.Update += AutoItemConfigContainer.FilePollUpdateHook;
+
             CommandHelper.AddToConsoleWhenReady();
 
             nodeRefType = typeof(DirectorCore).GetNestedTypes(BindingFlags.NonPublic).First(t=>t.Name == "NodeReference");

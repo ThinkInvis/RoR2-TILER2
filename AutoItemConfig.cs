@@ -23,6 +23,27 @@ namespace TILER2 {
             ConfigEntryChanged?.Invoke(this, e);
         }
 
+        private static readonly Dictionary<ConfigFile, DateTime> observedFiles = new Dictionary<ConfigFile, DateTime>();
+        private const float filePollingRate = 5f; //increase for release build?
+        private static float filePollingStopwatch = 0f;
+
+        internal static void FilePollUpdateHook(On.RoR2.RoR2Application.orig_Update orig, RoR2Application self) {
+            orig(self);
+            filePollingStopwatch += Time.unscaledDeltaTime;
+            if(filePollingStopwatch >= filePollingRate) {
+                filePollingStopwatch = 0;
+                Debug.LogWarning("Polling " + observedFiles.Count + " config files...");
+                foreach(ConfigFile cfl in observedFiles.Keys.ToList()) {
+                    var thisup = System.IO.File.GetLastWriteTime(cfl.ConfigFilePath);
+                    if(observedFiles[cfl] < thisup) {
+                        observedFiles[cfl] = thisup;
+                        Debug.Log("Updating " + cfl.Count + " entries in " + cfl.ConfigFilePath);
+                        cfl.Reload();
+                    }
+                }
+            }
+        }
+
         /// <summary>Stores information about an item of a reflected dictionary during iteration.</summary>
         public struct BindSubDictInfo {
             /// <summary>The key of the current element.</summary>
@@ -157,6 +178,8 @@ namespace TILER2 {
                 subDict.HasValue ? subDict.Value.val : prop.GetValue(this),
                 new ConfigDescription(cfgDesc,attrib.avb)});
 
+            observedFiles[cfl] = System.IO.File.GetLastWriteTime(cfl.ConfigFilePath);
+
             if(subDict.HasValue)
                 this.autoItemConfigDicts[prop.Name].Add(subDict.Value.key, cfe);
             else
@@ -195,15 +218,15 @@ namespace TILER2 {
                 var evh = gtyp.GetEvent("SettingChanged");
                 
                 evh.ReflAddEventHandler(cfe, (object obj,EventArgs evtArgs) => {
-                    Debug.Log("AutoItemCfg: SettingChanged event fired for " + categoryName + "." + cfgName);
-                    Debug.Log("Obj type: " + obj.GetType());
-                    Debug.Log("Args type: " + evtArgs.GetType());
-                    Debug.Log("New BoxedValue: " + cfe.BoxedValue);
-                    Debug.Log("RIE: " + Run.instance?.enabled);
-                    if(!doCache || !Run.instance || !Run.instance.enabled) {
+                    Debug.Log("AutoItemCfg: SettingChanged event fired for " + categoryName + "." + cfgName + " of type " + propType + (subDict.HasValue ? " (in dictionary)" : ""));
+                    Debug.Log("RunInstanceEnabled: " + (Run.instance?.enabled.ToString() ?? "no instance"));
+                    if(subDict.HasValue) Debug.Log(subDict.Value.key);
+                    if(!doCache || Run.instance == null || !Run.instance.enabled) {
+                        Debug.Log("Updating value from " + propGetter.Invoke(propObj, subDict.HasValue ? new[] { subDict.Value.key } : new object[]{ }) + " to " + cfe.BoxedValue);
                         propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
                         OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
                     } else {
+                        Debug.Log("Deferring update; would be from " + propGetter.Invoke(propObj, subDict.HasValue ? new[] { subDict.Value.key } : new object[]{ }) + " to " + cfe.BoxedValue);
                         //TODO: replace/simplify RoR2.Run event hooks by marking as dirty somehow?
                     }
                 });
