@@ -193,7 +193,7 @@ namespace TILER2 {
                     Debug.Log("Run OnDisable fired, updating cval " + categoryName + "." + prop.Name);
                     if(propGetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key} : new object[]{}) != cfe.BoxedValue) {
                         propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
-                        OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
+                        OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr?.flags ?? AutoUpdateEventFlags.None));
                     }
                 };
             }
@@ -204,7 +204,7 @@ namespace TILER2 {
                     Debug.Log("Run EndStage fired, updating cval " + categoryName + "." + prop.Name);
                     if(propGetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key} : new object[]{}) != cfe.BoxedValue) {
                         propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
-                        OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
+                        OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr?.flags ?? AutoUpdateEventFlags.None));
                     }
                 };
             }
@@ -224,7 +224,7 @@ namespace TILER2 {
                     if(!doCache || Run.instance == null || !Run.instance.enabled) {
                         Debug.Log("Updating value from " + propGetter.Invoke(propObj, subDict.HasValue ? new[] { subDict.Value.key } : new object[]{ }) + " to " + cfe.BoxedValue);
                         propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
-                        OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
+                        OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr?.flags ?? AutoUpdateEventFlags.None));
                     } else {
                         Debug.Log("Deferring update; would be from " + propGetter.Invoke(propObj, subDict.HasValue ? new[] { subDict.Value.key } : new object[]{ }) + " to " + cfe.BoxedValue);
                         //TODO: replace/simplify RoR2.Run event hooks by marking as dirty somehow?
