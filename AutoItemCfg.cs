@@ -319,7 +319,7 @@ namespace TILER2 {
         }
     }
 
-    //TODO: AutoItemCfgCollectionAttribute, for e.g. dictionaries
+    //TODO: AutoItemCfgCollectionAttribute, for e.g. dictionaries (dictionaries are handled as a special case atm)
 
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class AutoItemCfgAttribute : Attribute {
