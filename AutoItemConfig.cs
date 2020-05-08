@@ -120,158 +120,101 @@ namespace TILER2 {
                 Debug.LogError("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": property and AcceptableValue types must match (received " + prop.PropertyType.Name + " and " + attrib.avbType.Name + ").");
                 return;
             }
+            
+            object propObj = subDict.HasValue ? prop.GetValue(this) : this;
+            var dict = subDict.HasValue ? (System.Collections.IDictionary)propObj : null;
+            var propGetter = subDict.HasValue ? dict.GetType().GetProperty("Item").GetGetMethod(true)
+                : (prop.GetGetMethod(true) ?? prop.DeclaringType.GetProperty(prop.Name)?.GetGetMethod(true));
+            var propSetter = subDict.HasValue ? dict.GetType().GetProperty("Item").GetSetMethod(true)
+                : (prop.GetSetMethod(true) ?? prop.DeclaringType.GetProperty(prop.Name)?.GetSetMethod(true));
+            var propType = subDict.HasValue ? subDict.Value.keyType : prop.PropertyType;
 
-            var propSetter = prop.GetSetMethod(true) ?? prop.DeclaringType.GetProperty(prop.Name)?.GetSetMethod(true);
-            if(propSetter == null) {
-                Debug.LogError("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": property must have a setter unless using BindDict flag.");
+            if(propGetter == null || propSetter == null) {
+                Debug.LogError("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": property (or dictionary Item property, if using BindDict flag) must have both a getter and a setter.");
                 return;
             }
 
+            string cfgName = attrib.name;
+            if(cfgName != null) {
+                cfgName = ReplaceTags(cfgName, prop, categoryName, subDict);
+            } else cfgName = char.ToUpperInvariant(prop.Name[0]) + prop.Name.Substring(1) + (subDict.HasValue ? ":" + subDict.Value.index : "");
+
+            string cfgDesc = attrib.desc;
+            if(cfgDesc != null) {
+                cfgDesc = ReplaceTags(cfgDesc, prop, categoryName, subDict);
+            } else cfgDesc = "Automatically generated from a C# " + (subDict.HasValue ? "dictionary " : "") + "property.";
+            
+            //Matches ConfigFile.Bind<T>(ConfigDefinition configDefinition, T defaultValue, ConfigDescription configDescription)
             var genm = typeof(ConfigFile).GetMethods().First(
                     x=>x.Name == nameof(ConfigFile.Bind)
-                    && x.GetParameters().Length > 0
+                    && x.GetParameters().Length == 3
                     && x.GetParameters()[0].ParameterType == typeof(ConfigDefinition)
-                ).MakeGenericMethod(prop.PropertyType);
+                    && x.GetParameters()[2].ParameterType == typeof(ConfigDescription)
+                ).MakeGenericMethod(propType);
 
+            var cfe = (ConfigEntryBase)genm.Invoke(cfl, new[] {
+                new ConfigDefinition(categoryName, cfgName),
+                subDict.HasValue ? subDict.Value.val : prop.GetValue(this),
+                new ConfigDescription(cfgDesc,attrib.avb)});
 
-            if(subDict.HasValue) {
-                var dict = (System.Collections.IDictionary)prop.GetValue(this);
-                
-                string cfgName = attrib.name;
-                if(cfgName != null) {
-                    cfgName = ReplaceTags(cfgName, prop, categoryName, subDict);
-                } else cfgName = char.ToUpperInvariant(prop.Name[0]) + prop.Name.Substring(1) + ":" + subDict.Value.index;
-
-                string cfgDesc = attrib.desc;
-                if(cfgDesc != null) {
-                    cfgDesc = ReplaceTags(cfgDesc, prop, categoryName, subDict);
-                } else cfgDesc = "Automatically generated from a C# dictionary property.";
-
-                var cfe = (ConfigEntryBase)genm.MakeGenericMethod(subDict.Value.keyType).Invoke(cfl,
-                    new[] {new ConfigDefinition(categoryName, cfgName), subDict.Value.val, new ConfigDescription(cfgDesc,attrib.avb)});
-
+            if(subDict.HasValue)
                 this.autoItemConfigDicts[prop.Name].Add(subDict.Value.key, cfe);
-
-                bool doCache = false;
-                if((attrib.flags & AICFlags.DeferUntilNextStage) == AICFlags.DeferUntilNextStage) {
-                    doCache = true;
-                    On.RoR2.Run.OnDisable += (orig, self) => {
-                        orig(self);
-                        Debug.Log("Run OnDisable fired, updating dict cval " + categoryName + "/" + cfgName + " (property " + prop.Name + ")");
-                        if(dict[subDict.Value.key] != cfe.BoxedValue) {
-                            dict[subDict.Value.key] = cfe.BoxedValue;
-                            OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
-                        }
-                    };
-                }
-                if((attrib.flags & AICFlags.DeferUntilEndGame) == AICFlags.DeferUntilEndGame) {
-                    doCache = true;
-                    On.RoR2.Run.EndStage += (orig, self) => {
-                        orig(self);
-                        Debug.Log("Run EndStage fired, updating dict cval " + categoryName + "/" + cfgName + " (property " + prop.Name + ")");
-                        if(dict[subDict.Value.key] != cfe.BoxedValue) {
-                            dict[subDict.Value.key] = cfe.BoxedValue;
-                            OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
-                        }
-                    };
-                }
-
-                if((attrib.flags & AICFlags.AllowNetMismatch) == AICFlags.AllowNetMismatch) { //!=
-                    throw new NotImplementedException("AICFlags.AllowNetMismatch");
-                }
-
-                if((attrib.flags & AICFlags.DeferForever) != AICFlags.DeferForever) {
-                    var evh = typeof(ConfigEntry<>).MakeGenericType(subDict.Value.keyType).GetEvent("SettingChanged");
-                
-                    evh.ReflAddEventHandler(cfe, (object obj,EventArgs evtArgs) => {
-                        Debug.Log("AutoItemCfg: SettingChanged event fired for dict " + categoryName + "/" + cfgName + " (property " + prop.Name + ")");
-                        Debug.Log("Obj type: " + obj.GetType());
-                        Debug.Log("Args type: " + evtArgs.GetType());
-                        Debug.Log("New BoxedValue: " + cfe.BoxedValue);
-                        Debug.Log("RIE: " + Run.instance?.enabled);
-                        if(!doCache || !Run.instance || !Run.instance.enabled) {
-                            dict[subDict.Value.key] = cfe.BoxedValue;
-                            OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
-                        }
-                    });
-                }
-
-                if((attrib.flags & AICFlags.ExposeAsConVar) == AICFlags.ExposeAsConVar) {
-                    throw new NotImplementedException("AICFlags.ExposeAsConVar");
-                }
-
-                if((attrib.flags & AICFlags.NoInitialRead) != AICFlags.NoInitialRead)
-                    dict[subDict.Value.key] = cfe.BoxedValue;
-            } else {
-                string cfgName = attrib.name;
-                if(cfgName != null) {
-                    cfgName = ReplaceTags(cfgName, prop, categoryName, subDict);
-                } else cfgName = char.ToUpperInvariant(prop.Name[0]) + prop.Name.Substring(1);
-
-                string cfgDesc = attrib.desc;
-                if(cfgDesc != null) {
-                    cfgDesc = ReplaceTags(cfgDesc, prop, categoryName, subDict);
-                } else cfgDesc = "Automatically generated from a C# property.";
-
-                var cfe = (ConfigEntryBase)genm.MakeGenericMethod(prop.PropertyType).Invoke(cfl,
-                    new[] {new ConfigDefinition(categoryName, cfgName), prop.GetValue(this), new ConfigDescription(cfgDesc,attrib.avb)});
-
+            else
                 this.autoItemConfigs.Add(prop.Name, cfe);
-
-                bool doCache = false;
-                if((attrib.flags & AICFlags.DeferUntilNextStage) == AICFlags.DeferUntilNextStage) {
-                    doCache = true;
-                    On.RoR2.Run.OnDisable += (orig, self) => {
-                        orig(self);
-                        Debug.Log("Run OnDisable fired, updating cval " + categoryName + "." + prop.Name);
-                        if(prop.GetValue(this) != cfe.BoxedValue) {
-                            propSetter.Invoke(this, new[]{cfe.BoxedValue});
-                            OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
-                        }
-                    };
-                }
-                if((attrib.flags & AICFlags.DeferUntilEndGame) == AICFlags.DeferUntilEndGame) {
-                    doCache = true;
-                    On.RoR2.Run.EndStage += (orig, self) => {
-                        orig(self);
-                        Debug.Log("Run EndStage fired, updating cval " + categoryName + "." + prop.Name);
-                        if(prop.GetValue(this) != cfe.BoxedValue) {
-                            propSetter.Invoke(this, new[]{cfe.BoxedValue});
-                            OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
-                        }
-                    };
-                }
-
-                if((attrib.flags & AICFlags.AllowNetMismatch) == AICFlags.AllowNetMismatch) { //!=
-                    throw new NotImplementedException("AICFlags.AllowNetMismatch");
-                }
-
-                if((attrib.flags & AICFlags.DeferForever) != AICFlags.DeferForever) {
-                    var gtyp = typeof(ConfigEntry<>).MakeGenericType(prop.PropertyType);
-                    var evh = gtyp.GetEvent("SettingChanged");
-                
-                    evh.ReflAddEventHandler(cfe, (object obj,EventArgs evtArgs) => {
-                        Debug.Log("AutoItemCfg: SettingChanged event fired for " + categoryName + "." + cfgName);
-                        Debug.Log("Obj type: " + obj.GetType());
-                        Debug.Log("Args type: " + evtArgs.GetType());
-                        Debug.Log("New BoxedValue: " + cfe.BoxedValue);
-                        Debug.Log("RIE: " + Run.instance?.enabled);
-                        if(!doCache || !Run.instance || !Run.instance.enabled) {
-                            propSetter.Invoke(this, new[]{cfe.BoxedValue});
-                            OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
-                        } else {
-                            //TODO: replace/simplify RoR2.Run event hooks by marking as dirty somehow?
-                        }
-                    });
-                }
-
-                if((attrib.flags & AICFlags.ExposeAsConVar) == AICFlags.ExposeAsConVar) {
-                    throw new NotImplementedException("AICFlags.ExposeAsConVar");
-                }
-
-                if((attrib.flags & AICFlags.NoInitialRead) != AICFlags.NoInitialRead)
-                    propSetter.Invoke(this, new[]{cfe.BoxedValue});
+            
+            bool doCache = false;
+            if((attrib.flags & AICFlags.DeferUntilNextStage) == AICFlags.DeferUntilNextStage) {
+                doCache = true;
+                On.RoR2.Run.OnDisable += (orig, self) => {
+                    orig(self);
+                    Debug.Log("Run OnDisable fired, updating cval " + categoryName + "." + prop.Name);
+                    if(propGetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key} : new object[]{}) != cfe.BoxedValue) {
+                        propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
+                        OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
+                    }
+                };
             }
+            if((attrib.flags & AICFlags.DeferUntilEndGame) == AICFlags.DeferUntilEndGame) {
+                doCache = true;
+                On.RoR2.Run.EndStage += (orig, self) => {
+                    orig(self);
+                    Debug.Log("Run EndStage fired, updating cval " + categoryName + "." + prop.Name);
+                    if(propGetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key} : new object[]{}) != cfe.BoxedValue) {
+                        propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
+                        OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
+                    }
+                };
+            }
+
+            if((attrib.flags & AICFlags.AllowNetMismatch) == AICFlags.AllowNetMismatch) { //!=
+                throw new NotImplementedException("AICFlags.AllowNetMismatch");
+            }
+
+            if((attrib.flags & AICFlags.DeferForever) != AICFlags.DeferForever) {
+                var gtyp = typeof(ConfigEntry<>).MakeGenericType(propType);
+                var evh = gtyp.GetEvent("SettingChanged");
+                
+                evh.ReflAddEventHandler(cfe, (object obj,EventArgs evtArgs) => {
+                    Debug.Log("AutoItemCfg: SettingChanged event fired for " + categoryName + "." + cfgName);
+                    Debug.Log("Obj type: " + obj.GetType());
+                    Debug.Log("Args type: " + evtArgs.GetType());
+                    Debug.Log("New BoxedValue: " + cfe.BoxedValue);
+                    Debug.Log("RIE: " + Run.instance?.enabled);
+                    if(!doCache || !Run.instance || !Run.instance.enabled) {
+                        propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
+                        OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr.flags));
+                    } else {
+                        //TODO: replace/simplify RoR2.Run event hooks by marking as dirty somehow?
+                    }
+                });
+            }
+
+            if((attrib.flags & AICFlags.ExposeAsConVar) == AICFlags.ExposeAsConVar) {
+                throw new NotImplementedException("AICFlags.ExposeAsConVar");
+            }
+
+            if((attrib.flags & AICFlags.NoInitialRead) != AICFlags.NoInitialRead)
+                propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
         }
 
         public void BindAll(ConfigFile cfl, string categoryName) {
