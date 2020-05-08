@@ -235,7 +235,7 @@ namespace TILER2 {
                 throw new NotImplementedException("AICFlags.AllowNetMismatch");
             }
 
-            if((attrib.flags & AICFlags.DeferForever) != AICFlags.DeferForever) { //!doCache && -- moved down temporarily. also change in dict mode
+            if((attrib.flags & AICFlags.DeferForever) != AICFlags.DeferForever) {
                 var gtyp = typeof(ConfigEntry<>).MakeGenericType(prop.PropertyType);
                 var evh = gtyp.GetEvent("SettingChanged");
                 
@@ -248,6 +248,8 @@ namespace TILER2 {
                     if(!doCache || !Run.instance || !Run.instance.enabled) {
                         propSetter.Invoke(this, new[]{cfe.BoxedValue});
                         OnConfigEntryChanged(new AICAUEventArgs(eiattr.flags));
+                    } else {
+                        //TODO: replace/simplify RoR2.Run event hooks by marking as dirty somehow?
                     }
                 });
             }
@@ -267,6 +269,8 @@ namespace TILER2 {
                 if(attrib != null)
                     this.Bind(prop, cfl, categoryName, attrib);
             }
+
+            //TODO: inject file watcher, SettingChanged doesn't fire on its own when the file changes
         }
     }
 
