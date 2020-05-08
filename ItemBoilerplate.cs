@@ -38,7 +38,7 @@ namespace TILER2 {
 
         public abstract ItemTier itemTier {get;}
 
-        [AutoItemCfg("If true, the item will not be given to enemies by Evolution nor in the arena map, and it will not be found by Scavengers.")]
+        [AutoItemConfig("If true, the item will not be given to enemies by Evolution nor in the arena map, and it will not be found by Scavengers.")]
         public virtual bool itemAIB {get;protected set;} = false;
 
         public virtual ReadOnlyCollection<ItemTag> itemTags {get; private set;}
@@ -61,12 +61,12 @@ namespace TILER2 {
 
             postConfig?.Invoke(cfl);
 
-            ((ConfigEntry<bool>)autoItemCfgs[nameof(enabled)]).SettingChanged += (obj,args)=>{
+            ((ConfigEntry<bool>)autoItemConfigs[nameof(enabled)]).SettingChanged += (obj,args)=>{
                 if(Run.instance?.enabled == true) {
                     Run.instance.BuildDropTable();
                 }
             };
-            ((ConfigEntry<bool>)autoItemCfgs[nameof(itemAIB)]).SettingChanged += (obj,args)=>{
+            ((ConfigEntry<bool>)autoItemConfigs[nameof(itemAIB)]).SettingChanged += (obj,args)=>{
                 var hasAIB = regDef.tags.Contains(ItemTag.AIBlacklist);
                 if(hasAIB && !itemAIB) {
                     regDef.tags = regDef.tags.Where(tag => tag != ItemTag.AIBlacklist).ToArray();
@@ -174,7 +174,7 @@ namespace TILER2 {
 
             postConfig?.Invoke(cfl);
 
-            ((ConfigEntry<bool>)autoItemCfgs[nameof(enabled)]).SettingChanged += (obj,args)=>{
+            ((ConfigEntry<bool>)autoItemConfigs[nameof(enabled)]).SettingChanged += (obj,args)=>{
                 if(Run.instance?.enabled == true) {
                     Run.instance.BuildDropTable();
                 }
@@ -246,7 +246,7 @@ namespace TILER2 {
         }
     }
 
-    public abstract class ItemBoilerplate : AICContainer {
+    public abstract class ItemBoilerplate : AutoItemConfigContainer {
         public string nameToken {get; private protected set;}
         public string pickupToken {get; private protected set;}
         public string descToken {get; private protected set;}
@@ -265,7 +265,7 @@ namespace TILER2 {
             return null;
         }
 
-        [AutoItemCfg("If false, this item/equipment will not drop ingame, and it will not work if you somehow get a copy (all IL patches and hooks will be disabled for compatibility).")]
+        [AutoItemConfig("If false, this item/equipment will not drop ingame, and it will not work if you somehow get a copy (all IL patches and hooks will be disabled for compatibility).")]
         public bool enabled {get; protected set;} = true;
 
         ///<summary>A resource string pointing to the item's model.</summary>
@@ -304,27 +304,27 @@ namespace TILER2 {
         }
         
         //private Dictionary allRegisteredLanguages; todo; RegLang is never called with a langid!=null param for now
-        protected override void OnConfigEntryChanged(AICAUEventArgs e) {
+        protected override void OnConfigEntryChanged(AutoUpdateEventArgs e) {
             base.OnConfigEntryChanged(e);
 
-            if((e.flags & AICAUEventFlags.InvalidateNameToken) == AICAUEventFlags.InvalidateNameToken) {
+            if((e.flags & AutoUpdateEventFlags.InvalidateNameToken) == AutoUpdateEventFlags.InvalidateNameToken) {
                 Debug.Log("nametoken invalidated");
                 LanguageAPI.Add(nameToken, NewLangName());
             }
-            if((e.flags & AICAUEventFlags.InvalidatePickupToken) == AICAUEventFlags.InvalidatePickupToken) {
+            if((e.flags & AutoUpdateEventFlags.InvalidatePickupToken) == AutoUpdateEventFlags.InvalidatePickupToken) {
                 Debug.Log("pickuptoken invalidated");
                 LanguageAPI.Add(pickupToken, NewLangPickup());
             }
-            if((e.flags & AICAUEventFlags.InvalidateDescToken) == AICAUEventFlags.InvalidateDescToken) {
+            if((e.flags & AutoUpdateEventFlags.InvalidateDescToken) == AutoUpdateEventFlags.InvalidateDescToken) {
                 Debug.Log("desctoken invalidated");
                 LanguageAPI.Add(descToken, NewLangDesc());
             }
-            if((e.flags & AICAUEventFlags.InvalidateLoreToken) == AICAUEventFlags.InvalidateLoreToken) {
+            if((e.flags & AutoUpdateEventFlags.InvalidateLoreToken) == AutoUpdateEventFlags.InvalidateLoreToken) {
                 Debug.Log("loretoken invalidated");
                 LanguageAPI.Add(loreToken, NewLangLore());
             }
             
-            if((e.flags & AICAUEventFlags.InvalidateModel) == AICAUEventFlags.InvalidateModel) {
+            if((e.flags & AutoUpdateEventFlags.InvalidateModel) == AutoUpdateEventFlags.InvalidateModel) {
                 Debug.Log("model invalidated; NYI");
             }
         }
