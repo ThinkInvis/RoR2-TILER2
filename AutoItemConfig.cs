@@ -21,6 +21,10 @@ namespace TILER2 {
         /// <summary>Internal handler for ConfigEntryChanged event.</summary>
         protected virtual void OnConfigEntryChanged(AutoUpdateEventArgs e) {
             ConfigEntryChanged?.Invoke(this, e);
+            if((e.flags & AutoUpdateEventFlags.InvalidateStats) == AutoUpdateEventFlags.InvalidateStats && (Run.instance?.isActiveAndEnabled ?? false)) {
+                Debug.Log("Invalidating stats on " + MiscUtil.AliveList().Count + " CharacterMasters");
+                MiscUtil.AliveList().ForEach(cm => {if(cm.hasBody) cm.GetBody().RecalculateStats();});
+            }
         }
 
         private static readonly Dictionary<ConfigFile, DateTime> observedFiles = new Dictionary<ConfigFile, DateTime>();
@@ -245,7 +249,7 @@ namespace TILER2 {
             foreach(var prop in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
                 var attrib = prop.GetCustomAttribute<AutoItemConfigAttribute>(true);
                 if(attrib != null)
-                    this.Bind(prop, cfl, categoryName, attrib);
+                    this.Bind(prop, cfl, categoryName, attrib, prop.GetCustomAttribute<AutoUpdateEventInfoAttribute>(true));
             }
         }
     }
@@ -274,11 +278,18 @@ namespace TILER2 {
     [Flags]
     public enum AutoUpdateEventFlags {
         None = 0,
+        ///<summary>Causes an update to the linked item's language registry.</summary>
         InvalidateNameToken = 1,
+        ///<summary>Causes an update to the linked item's language registry.</summary>
         InvalidatePickupToken = 2,
+        ///<summary>Causes an update to the linked item's language registry.</summary>
         InvalidateDescToken = 4,
+        ///<summary>Causes an update to the linked item's language registry.</summary>
         InvalidateLoreToken = 8,
-        InvalidateModel = 16
+        ///<summary>Causes an update to the linked item's pickup model.</summary>
+        InvalidateModel = 16,
+        ///<summary>Causes RecalculateStats on all copies of CharacterMaster which are alive and have a CharacterBody.</summary>
+        InvalidateStats = 32
     }
 
     public class AutoUpdateEventArgs : EventArgs {
