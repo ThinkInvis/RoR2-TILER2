@@ -316,11 +316,17 @@ namespace TILER2 {
     }
 
     public class AutoUpdateEventArgs : EventArgs {
+        ///<summary>Any flags passed to the event by an AutoUpdateEventInfoAttribute.</summary>
         public AutoUpdateEventFlags flags;
+        ///<summary>The value that the property had before being set.</summary>
         public object oldValue;
+        ///<summary>The value that the property has been set to.</summary>
         public object newValue;
+        ///<summary>The dictionary key which received an automatic update (null unless the target AutoItemConfig entry is using BindDict mode).</summary>
         public object changedKey;
+        ///<summary>The property which received an automatic update.</summary>
         public PropertyInfo changedProperty;
+        ///<summary>The ConfigEntryBase which was tied to the property by AutoItemConfig.</summary>
         public ConfigEntryBase changedEntry;
     }
     
