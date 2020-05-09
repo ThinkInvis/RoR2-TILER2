@@ -28,7 +28,7 @@ namespace TILER2 {
         }
 
         private static readonly Dictionary<ConfigFile, DateTime> observedFiles = new Dictionary<ConfigFile, DateTime>();
-        private const float filePollingRate = 5f; //increase for release build?
+        private const float filePollingRate = 10f;
         private static float filePollingStopwatch = 0f;
 
         internal static void FilePollUpdateHook(On.RoR2.RoR2Application.orig_Update orig, RoR2Application self) {
@@ -36,7 +36,6 @@ namespace TILER2 {
             filePollingStopwatch += Time.unscaledDeltaTime;
             if(filePollingStopwatch >= filePollingRate) {
                 filePollingStopwatch = 0;
-                Debug.LogWarning("Polling " + observedFiles.Count + " config files...");
                 foreach(ConfigFile cfl in observedFiles.Keys.ToList()) {
                     var thisup = System.IO.File.GetLastWriteTime(cfl.ConfigFilePath);
                     if(observedFiles[cfl] < thisup) {
