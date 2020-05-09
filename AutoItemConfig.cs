@@ -322,8 +322,8 @@ namespace TILER2 {
     ///<summary>Causes some actions to be automatically performed when a property's config entry is updated.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class AutoUpdateEventInfoAttribute : Attribute {
-        public AutoUpdateEventFlags flags {get; private set;}
         public AutoUpdateEventInfoAttribute(AutoUpdateEventFlags flags) {
+        public readonly AutoUpdateEventFlags flags;
             this.flags = flags;
         }
     }
@@ -331,12 +331,11 @@ namespace TILER2 {
     ///<summary>Properties in an AutoItemConfigContainer that have this attribute will be automatically bound to a BepInEx config file when AutoItemConfigContainer.BindAll is called.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class AutoItemConfigAttribute : Attribute {
-
-        public string name {get; private set;} = null;
-        public string desc {get; private set;} = null;
-        public AcceptableValueBase avb {get; private set;} = null;
-        public Type avbType {get; private set;} = null;
-        public AutoItemConfigFlags flags {get; private set;}
+        public readonly string name = null;
+        public readonly string desc = null;
+        public readonly AcceptableValueBase avb = null;
+        public readonly Type avbType = null;
+        public readonly AutoItemConfigFlags flags;
         public AutoItemConfigAttribute(string name, string desc, AutoItemConfigFlags flags = AutoItemConfigFlags.None, params object[] acceptableValues) : this(desc, flags, acceptableValues) {
             this.name = name;
         }
