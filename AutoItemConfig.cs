@@ -325,8 +325,8 @@ namespace TILER2 {
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class AutoItemConfigAttribute : Attribute {
 
-        public string name {get; private set;}
-        public string desc {get; private set;} = "";
+        public string name {get; private set;} = null;
+        public string desc {get; private set;} = null;
         public AcceptableValueBase avb {get; private set;} = null;
         public Type avbType {get; private set;} = null;
         public AutoItemConfigFlags flags {get; private set;}
@@ -334,7 +334,11 @@ namespace TILER2 {
             this.name = name;
         }
 
-        public AutoItemConfigAttribute(string desc, AutoItemConfigFlags flags = AutoItemConfigFlags.None, params object[] acceptableValues) {
+        public AutoItemConfigAttribute(string desc, AutoItemConfigFlags flags = AutoItemConfigFlags.None, params object[] acceptableValues) : this(flags, acceptableValues) {
+            this.desc = desc;
+        }
+        
+        public AutoItemConfigAttribute(AutoItemConfigFlags flags = AutoItemConfigFlags.None, params object[] acceptableValues) {
             if(acceptableValues.Length > 0) {
                 var avList = (flags & AutoItemConfigFlags.AVIsList) == AutoItemConfigFlags.AVIsList;
                 if(!avList && acceptableValues.Length != 2) throw new ArgumentException("Range mode for acceptableValues (flag AVIsList not set) requires either 0 or 2 params; received " + acceptableValues.Length + ".\nThe description provided was: \"" + desc + "\".");
@@ -346,7 +350,6 @@ namespace TILER2 {
                 this.avb = (AcceptableValueBase)Activator.CreateInstance(avbVariety, acceptableValues);
                 this.avbType = iType;
             }
-            this.desc = desc;
             this.flags = flags;
         }
     }
