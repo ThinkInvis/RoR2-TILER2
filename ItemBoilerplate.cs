@@ -60,20 +60,32 @@ namespace TILER2 {
             this.BindAll(cfl, "Items." + itemCodeName);
 
             postConfig?.Invoke(cfl);
-
-            ((ConfigEntry<bool>)autoItemConfigs[nameof(enabled)]).SettingChanged += (obj,args)=>{
-                if(Run.instance?.enabled == true) {
-                    Run.instance.BuildDropTable();
-                }
-            };
-            ((ConfigEntry<bool>)autoItemConfigs[nameof(itemAIB)]).SettingChanged += (obj,args)=>{
-                var hasAIB = regDef.tags.Contains(ItemTag.AIBlacklist);
-                if(hasAIB && !itemAIB) {
-                    regDef.tags = regDef.tags.Where(tag => tag != ItemTag.AIBlacklist).ToArray();
-                } else if(!hasAIB && itemAIB) {
-                    var nl = regDef.tags.ToList();
-                    nl.Add(ItemTag.AIBlacklist);
-                    regDef.tags = nl.ToArray();
+            
+            ConfigEntryChanged += (sender, args) => {
+                if(args.changedProperty.Name == nameof(enabled)) {
+                    if(Run.instance?.enabled == true) {
+                        Run.instance.BuildDropTable();
+                    }
+                    if(args.oldValue != args.newValue) {
+                        if((bool)args.newValue == true) {
+                            LoadBehavior();
+                            if(Run.instance?.enabled == true) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
+                        } else {
+                            if(Run.instance?.enabled == true) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
+                            UnloadBehavior();
+                        }
+                    }
+                } else if(args.changedProperty.Name == nameof(itemAIB)) {
+                    var hasAIB = regDef.tags.Contains(ItemTag.AIBlacklist);
+                    if(hasAIB && !itemAIB) {
+                        Debug.Log("removing from AIB");
+                        regDef.tags = regDef.tags.Where(tag => tag != ItemTag.AIBlacklist).ToArray();
+                    } else if(!hasAIB && itemAIB) {
+                        Debug.Log("adding to AIB");
+                        var nl = regDef.tags.ToList();
+                        nl.Add(ItemTag.AIBlacklist);
+                        regDef.tags = nl.ToArray();
+                    }
                 }
             };
         }
@@ -173,10 +185,21 @@ namespace TILER2 {
             this.BindAll(cfl, "Items." + itemCodeName);
 
             postConfig?.Invoke(cfl);
-
-            ((ConfigEntry<bool>)autoItemConfigs[nameof(enabled)]).SettingChanged += (obj,args)=>{
-                if(Run.instance?.enabled == true) {
-                    Run.instance.BuildDropTable();
+            
+            ConfigEntryChanged += (sender, args) => {
+                if(args.changedProperty.Name == nameof(enabled)) {
+                    if(Run.instance?.enabled == true) {
+                        Run.instance.BuildDropTable();
+                    }
+                    if(args.oldValue != args.newValue) {
+                        if((bool)args.newValue == true) {
+                            LoadBehavior();
+                            if(Run.instance?.enabled == true) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
+                        } else {
+                            if(Run.instance?.enabled == true) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
+                            UnloadBehavior();
+                        }
+                    }
                 }
             };
         }
