@@ -109,7 +109,8 @@ namespace TILER2 {
                 return m.Value;
             });
         }
-
+        
+        /// <summary>Binds a property to a BepInEx config file, using reflection and attributes to automatically generate much of the necessary information.</summary>
         public void Bind(PropertyInfo prop, ConfigFile cfl, string categoryName, AutoItemConfigAttribute attrib, AutoUpdateEventInfoAttribute eiattr = null, BindSubDictInfo? subDict = null) {
             if(this.autoItemConfigs.ContainsKey(prop.Name)) {
                 Debug.LogError("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": this property has already been bound.");
@@ -239,6 +240,7 @@ namespace TILER2 {
                 propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
         }
 
+        /// <summary>Calls Bind on all properties in this AutoItemConfigContainer which have an AutoItemConfigAttribute.</summary>
         public void BindAll(ConfigFile cfl, string categoryName) {
             Debug.Log("BindAll on " + this.GetType().Name);
             foreach(var prop in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
@@ -261,6 +263,7 @@ namespace TILER2 {
     }
 
 
+    /// <summary>Used in AutoItemConfigAttribute to modify the behavior of AutoItemConfig.</summary>
     [Flags]
     public enum AutoItemConfigFlags {
         None = 0,
@@ -282,6 +285,8 @@ namespace TILER2 {
         BindDict = 128
     }
 
+    ///<summary>Used in AutoUpdateEventInfoAttribute to determine which actions should be performed when the property's config entry is updated.</summary>
+    ///<remarks>Implementation of these flags is left to classes that inherit AutoItemConfig, except for InvalidateStats.</remarks>
     [Flags]
     public enum AutoUpdateEventFlags {
         None = 0,
@@ -316,6 +321,7 @@ namespace TILER2 {
         }
     }
 
+    ///<summary>Properties in an AutoItemConfigContainer that have this attribute will be automatically bound to a BepInEx config file when AutoItemConfigContainer.BindAll is called.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class AutoItemConfigAttribute : Attribute {
 
