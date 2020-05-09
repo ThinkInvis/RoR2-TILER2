@@ -196,8 +196,7 @@ namespace TILER2 {
                     orig(self);
                     Debug.Log("Run OnDisable fired, updating cval " + categoryName + "." + prop.Name);
                     if(propGetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key} : new object[]{}) != cfe.BoxedValue) {
-                        propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
-                        OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr?.flags ?? AutoUpdateEventFlags.None));
+                        UpdateProperty(prop, propObj, cfe.BoxedValue, propGetter, propSetter, eiattr, subDict.HasValue ? subDict.Value.key : null);
                     }
                 };
             }
@@ -207,8 +206,7 @@ namespace TILER2 {
                     orig(self);
                     Debug.Log("Run EndStage fired, updating cval " + categoryName + "." + prop.Name);
                     if(propGetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key} : new object[]{}) != cfe.BoxedValue) {
-                        propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
-                        OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr?.flags ?? AutoUpdateEventFlags.None));
+                        UpdateProperty(prop, propObj, cfe.BoxedValue, propGetter, propSetter, eiattr, subDict.HasValue ? subDict.Value.key : null);
                     }
                 };
             }
@@ -226,9 +224,7 @@ namespace TILER2 {
                     Debug.Log("RunInstanceEnabled: " + (Run.instance?.enabled.ToString() ?? "no instance"));
                     if(subDict.HasValue) Debug.Log(subDict.Value.key);
                     if(!doCache || Run.instance == null || !Run.instance.enabled) {
-                        Debug.Log("Updating value from " + propGetter.Invoke(propObj, subDict.HasValue ? new[] { subDict.Value.key } : new object[]{ }) + " to " + cfe.BoxedValue);
-                        propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
-                        OnConfigEntryChanged(new AutoUpdateEventArgs(eiattr?.flags ?? AutoUpdateEventFlags.None));
+                        UpdateProperty(prop, propObj, cfe.BoxedValue, propGetter, propSetter, eiattr, subDict.HasValue ? subDict.Value.key : null);
                     } else {
                         Debug.Log("Deferring update; would be from " + propGetter.Invoke(propObj, subDict.HasValue ? new[] { subDict.Value.key } : new object[]{ }) + " to " + cfe.BoxedValue);
                         //TODO: replace/simplify RoR2.Run event hooks by marking as dirty somehow?
@@ -252,7 +248,19 @@ namespace TILER2 {
                     this.Bind(prop, cfl, categoryName, attrib, prop.GetCustomAttribute<AutoUpdateEventInfoAttribute>(true));
             }
         }
+
+        private void UpdateProperty(PropertyInfo targetProp, object target, object newValue, MethodInfo getter, MethodInfo setter, AutoUpdateEventInfoAttribute eiattr, object dictKey = null) {
+            var oldValue = getter.Invoke(target, (dictKey != null) ? new[] {dictKey} : new object[]{ });
+            setter.Invoke(target, (dictKey != null) ? new[]{dictKey, newValue} : new[]{newValue});
+            OnConfigEntryChanged(new AutoUpdateEventArgs{
+                flags = eiattr?.flags ?? AutoUpdateEventFlags.None,
+                oldValue = oldValue,
+                newValue = newValue,
+                changedProperty = targetProp,
+                changedKey = dictKey});
+        }
     }
+
 
     [Flags]
     public enum AutoItemConfigFlags {
@@ -293,10 +301,11 @@ namespace TILER2 {
     }
 
     public class AutoUpdateEventArgs : EventArgs {
-        public AutoUpdateEventFlags flags {get; set;}
-        public AutoUpdateEventArgs(AutoUpdateEventFlags flags) {
-            this.flags = flags;
-        }
+        public AutoUpdateEventFlags flags;
+        public object oldValue;
+        public object newValue;
+        public object changedKey;
+        public PropertyInfo changedProperty;
     }
     
     ///<summary>Causes some actions to be automatically performed when a property's config entry is updated.</summary>
