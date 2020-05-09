@@ -57,12 +57,12 @@ namespace TILER2 {
 
             preConfig?.Invoke(cfl);
 
-            this.BindAll(cfl, "Items." + itemCodeName);
+            this.BindAll(cfl, modName, "Items." + itemCodeName);
 
             postConfig?.Invoke(cfl);
             
             ConfigEntryChanged += (sender, args) => {
-                if(args.changedProperty.Name == nameof(enabled)) {
+                if(args.target.boundProperty.Name == nameof(enabled)) {
                     if(Run.instance?.enabled == true) {
                         Run.instance.BuildDropTable();
                     }
@@ -75,7 +75,7 @@ namespace TILER2 {
                             UnloadBehavior();
                         }
                     }
-                } else if(args.changedProperty.Name == nameof(itemAIB)) {
+                } else if(args.target.boundProperty.Name == nameof(itemAIB)) {
                     var hasAIB = regDef.tags.Contains(ItemTag.AIBlacklist);
                     if(hasAIB && !itemAIB) {
                         Debug.Log("removing from AIB");
@@ -182,12 +182,12 @@ namespace TILER2 {
 
             preConfig?.Invoke(cfl);
 
-            this.BindAll(cfl, "Items." + itemCodeName);
+            this.BindAll(cfl, modName, "Items." + itemCodeName);
 
             postConfig?.Invoke(cfl);
             
             ConfigEntryChanged += (sender, args) => {
-                if(args.changedProperty.Name == nameof(enabled)) {
+                if(args.target.boundProperty.Name == nameof(enabled)) {
                     if(Run.instance?.enabled == true) {
                         Run.instance.BuildDropTable();
                     }
@@ -274,6 +274,8 @@ namespace TILER2 {
         public string pickupToken {get; private protected set;}
         public string descToken {get; private protected set;}
         public string loreToken {get; private protected set;}
+
+        public string modName {get; private protected set;}
 
         /// <summary>Used by TILER2 to request language token value updates (item name). If langID is null, the request is for the invariant token.</summary>
         protected abstract string NewLangName(string langID = null);
@@ -368,10 +370,12 @@ namespace TILER2 {
         protected abstract void LoadBehavior();
         protected abstract void UnloadBehavior();
 
-        public static FilingDictionary<ItemBoilerplate> InitAll() {
+        public static FilingDictionary<ItemBoilerplate> InitAll(string modDisplayName) {
             FilingDictionary<ItemBoilerplate> f = new FilingDictionary<ItemBoilerplate>();
             foreach(Type type in Assembly.GetCallingAssembly().GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(ItemBoilerplate)))) {
-                f.Add((ItemBoilerplate)Activator.CreateInstance(type));
+                var newBpl = (ItemBoilerplate)Activator.CreateInstance(type);
+                newBpl.modName = modDisplayName;
+                f.Add(newBpl);
             }
             return f; //:regional_indicator_f:
         }
