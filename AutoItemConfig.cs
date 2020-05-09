@@ -25,6 +25,9 @@ namespace TILER2 {
                 Debug.Log("Invalidating stats on " + MiscUtil.AliveList().Count + " CharacterMasters");
                 MiscUtil.AliveList().ForEach(cm => {if(cm.hasBody) cm.GetBody().RecalculateStats();});
             }
+            if((e.flags & AutoUpdateEventFlags.AnnounceToRun) == AutoUpdateEventFlags.AnnounceToRun) {
+                Chat.AddMessage("The setting <color=#ffffaa>" + e.changedEntry.Definition.Section + "/" + e.changedEntry.Definition.Key + "</color> has been changed from <color=#ffaaaa>" + e.oldValue.ToString() + "</color> to <color=#aaffaa>" + e.newValue.ToString() + "</color>.");
+            }
         }
 
         private static readonly Dictionary<ConfigFile, DateTime> observedFiles = new Dictionary<ConfigFile, DateTime>();
@@ -286,7 +289,7 @@ namespace TILER2 {
     }
 
     ///<summary>Used in AutoUpdateEventInfoAttribute to determine which actions should be performed when the property's config entry is updated.</summary>
-    ///<remarks>Implementation of these flags is left to classes that inherit AutoItemConfig, except for InvalidateStats.</remarks>
+    ///<remarks>Implementation of these flags is left to classes that inherit AutoItemConfig, except for InvalidateStats and AnnounceToRun.</remarks>
     [Flags]
     public enum AutoUpdateEventFlags {
         None = 0,
@@ -301,7 +304,9 @@ namespace TILER2 {
         ///<summary>Causes an update to the linked item's pickup model.</summary>
         InvalidateModel = 16,
         ///<summary>Causes RecalculateStats on all copies of CharacterMaster which are alive and have a CharacterBody.</summary>
-        InvalidateStats = 32
+        InvalidateStats = 32,
+        ///<summary>Causes a chat message to be printed informing all players of the updated setting.</summary>
+        AnnounceToRun = 64
     }
 
     public class AutoUpdateEventArgs : EventArgs {
