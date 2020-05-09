@@ -190,7 +190,7 @@ namespace TILER2 {
                 this.autoItemConfigs.Add(prop.Name, cfe);
             
             bool doCache = false;
-            if((attrib.flags & AutoItemConfigFlags.DeferUntilNextStage) == AutoItemConfigFlags.DeferUntilNextStage) {
+            if((attrib.flags & AutoItemConfigFlags.DeferUntilEndGame) == AutoItemConfigFlags.DeferUntilEndGame) {
                 doCache = true;
                 On.RoR2.Run.OnDisable += (orig, self) => {
                     orig(self);
@@ -200,7 +200,7 @@ namespace TILER2 {
                     }
                 };
             }
-            if((attrib.flags & AutoItemConfigFlags.DeferUntilEndGame) == AutoItemConfigFlags.DeferUntilEndGame) {
+            if((attrib.flags & AutoItemConfigFlags.DeferUntilNextStage) == AutoItemConfigFlags.DeferUntilNextStage) {
                 doCache = true;
                 On.RoR2.Run.EndStage += (orig, self) => {
                     orig(self);
