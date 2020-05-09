@@ -252,12 +252,17 @@ namespace TILER2 {
                     this.Bind(prop, cfl, categoryName, attrib, prop.GetCustomAttribute<AutoUpdateEventInfoAttribute>(true));
             }
         }
+        
+        /// <summary>All flags that are set here will override unset flags in AutoUpdateEventInfoAttribute, unless attribute.ignoreDefault is true.</summary>
+        protected AutoUpdateEventFlags defaultEnabledUpdateFlags = AutoUpdateEventFlags.None;
 
         private void UpdateProperty(PropertyInfo targetProp, ConfigEntryBase targetCfgEntry, object target, object newValue, MethodInfo getter, MethodInfo setter, AutoUpdateEventInfoAttribute eiattr, object dictKey = null) {
             var oldValue = getter.Invoke(target, (dictKey != null) ? new[] {dictKey} : new object[]{ });
             setter.Invoke(target, (dictKey != null) ? new[]{dictKey, newValue} : new[]{newValue});
+            var flags = eiattr?.flags ?? AutoUpdateEventFlags.None;
+            if(eiattr?.ignoreDefault == false) flags |= defaultEnabledUpdateFlags;
             OnConfigEntryChanged(new AutoUpdateEventArgs{
-                flags = eiattr?.flags ?? AutoUpdateEventFlags.None,
+                flags = flags,
                 oldValue = oldValue,
                 newValue = newValue,
                 changedProperty = targetProp,
@@ -322,9 +327,11 @@ namespace TILER2 {
     ///<summary>Causes some actions to be automatically performed when a property's config entry is updated.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class AutoUpdateEventInfoAttribute : Attribute {
-        public AutoUpdateEventInfoAttribute(AutoUpdateEventFlags flags) {
         public readonly AutoUpdateEventFlags flags;
+        public readonly bool ignoreDefault;
+        public AutoUpdateEventInfoAttribute(AutoUpdateEventFlags flags, bool ignoreDefault = false) {
             this.flags = flags;
+            this.ignoreDefault = ignoreDefault;
         }
     }
 

@@ -266,6 +266,8 @@ namespace TILER2 {
         }
 
         public ItemBoilerplate() {
+            defaultEnabledUpdateFlags = AutoUpdateEventFlags.AnnounceToRun;
+
             TILER2Plugin.masterItemList.Add(this);
             //private Dictionary allRegisteredLanguages; todo; RegLang is never called with a langid!=null param for now
             ConfigEntryChanged += (sender, args) => {
