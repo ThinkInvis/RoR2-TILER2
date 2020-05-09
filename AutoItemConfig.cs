@@ -68,47 +68,48 @@ namespace TILER2 {
             return Regex.Replace(orig, @"<AIC.([a-zA-Z\.]+)>", (m)=>{
                 string[] strParams = Regex.Split(m.Groups[0].Value.Substring(1, m.Groups[0].Value.Length - 2), @"(?<!\\)\.");;
                 if(strParams.Length < 2) return m.Value;
+                var errorStr = "TILER2: AutoItemConfig.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" ";
                 switch(strParams[1]) {
                     case "Prop":
                         if(strParams.Length < 3){
-                            Debug.LogWarning("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" (not enough params for Prop tag).");
+                            Debug.LogWarning(errorStr + "(not enough params for Prop tag).");
                             return m.Value;
                         }
                         var iprop = prop.DeclaringType.GetProperty(strParams[2], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                         if(iprop == null) {
-                            Debug.LogWarning("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" (could not find Prop \"" + strParams[2] + "\").");
+                            Debug.LogWarning(errorStr + "(could not find Prop \"" + strParams[2] + "\").");
                             return m.Value;
                         }
                         return iprop.GetValue(this).ToString();
                     case "DictKey":
                         if(!subDict.HasValue) {
-                            Debug.LogWarning("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" (DictKey tag used on non-BindDict).");
+                            Debug.LogWarning(errorStr + "(DictKey tag used on non-BindDict).");
                             return m.Value;
                         }
                         return subDict.Value.key.ToString();
                     case "DictInd":
                         if(!subDict.HasValue) {
-                            Debug.LogWarning("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" (DictInd tag used on non-BindDict).");
+                            Debug.LogWarning(errorStr + "(DictInd tag used on non-BindDict).");
                             return m.Value;
                         }
                         return subDict.Value.index.ToString();
                     case "DictKeyProp":
                         if(!subDict.HasValue) {
-                            Debug.LogWarning("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" (DictKeyProp tag used on non-BindDict).");
+                            Debug.LogWarning(errorStr + "(DictKeyProp tag used on non-BindDict).");
                             return m.Value;
                         }
                         if(strParams.Length < 3){
-                            Debug.LogWarning("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" (not enough params for Prop tag).");
+                            Debug.LogWarning(errorStr + "(not enough params for Prop tag).");
                             return m.Value;
                         }
                         PropertyInfo kprop = subDict.Value.key.GetType().GetProperty(strParams[2], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                         if(kprop == null) {
-                            Debug.LogWarning("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" (could not find DictKeyProp \"" + strParams[2] + "\").");
+                            Debug.LogWarning(errorStr + "(could not find DictKeyProp \"" + strParams[2] + "\").");
                             return m.Value;
                         }
                         return kprop.GetValue(subDict.Value.key).ToString();
                 }
-                Debug.LogWarning("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" (unknown tag \"" + strParams[1] + "\").");
+                Debug.LogWarning(errorStr + "(unknown tag \"" + strParams[1] + "\").");
                 return m.Value;
             });
         }
