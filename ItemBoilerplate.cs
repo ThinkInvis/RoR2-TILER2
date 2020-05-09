@@ -265,6 +265,14 @@ namespace TILER2 {
             return null;
         }
 
+        public ItemBoilerplate() {
+            TILER2Plugin.masterItemList.Add(this);
+        }
+
+        public PickupDef pickupDef {get; internal set;}
+        public PickupIndex pickupIndex {get; internal set;}
+        public RoR2.UI.LogBook.Entry logbookEntry {get; internal set;}
+
         [AutoItemConfig("If false, this item/equipment will not drop ingame, and it will not work if you somehow get a copy (all IL patches and hooks will be disabled for compatibility).")]
         public bool enabled {get; protected set;} = true;
 
@@ -325,7 +333,12 @@ namespace TILER2 {
             }
             
             if((e.flags & AutoUpdateEventFlags.InvalidateModel) == AutoUpdateEventFlags.InvalidateModel) {
-                Debug.Log("model invalidated; NYI");
+                Debug.Log("model invalidated");
+                var newModel = NewPickupModel();
+                if(newModel != null) {
+                    if(pickupDef != null) pickupDef.displayPrefab = newModel;
+                    if(logbookEntry != null) logbookEntry.modelPrefab = newModel;
+                }
             }
         }
 

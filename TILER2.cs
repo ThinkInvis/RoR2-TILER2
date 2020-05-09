@@ -21,11 +21,13 @@ namespace TILER2 {
         internal static Type nodeRefType;
         internal static Type nodeRefTypeArr;
 
-        internal FilingDictionary<ItemBoilerplate> masterItemList = new FilingDictionary<ItemBoilerplate>();
+        internal static FilingDictionary<ItemBoilerplate> masterItemList = new FilingDictionary<ItemBoilerplate>();
 
         public void Awake() {
             //this doesn't seem to fire until the title screen is up, which is good because config file changes shouldn't immediately be read during startup; watch for regression (or just implement a check anyways?)
             On.RoR2.RoR2Application.Update += AutoItemConfigContainer.FilePollUpdateHook;
+            On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
+            On.RoR2.UI.LogBook.LogBookController.BuildPickupEntries += On_LogbookBuildPickupEntries;
 
             CommandHelper.AddToConsoleWhenReady();
 
@@ -53,7 +55,40 @@ namespace TILER2 {
                 return retv;
             };*/
         }
+        
+        private void On_PickupCatalogInit(On.RoR2.PickupCatalog.orig_Init orig) {
+            orig();
 
+            foreach(ItemBoilerplate bpl in masterItemList) {
+                PickupIndex pind;
+                if(bpl is Equipment) pind = PickupCatalog.FindPickupIndex(((Equipment)bpl).regIndex);
+                else pind = PickupCatalog.FindPickupIndex(((Item)bpl).regIndex);
+                var pickup = PickupCatalog.GetPickupDef(pind);
+
+                bpl.pickupDef = pickup;
+                bpl.pickupIndex = pind;
+            }
+        }
+
+        private RoR2.UI.LogBook.Entry[] On_LogbookBuildPickupEntries(On.RoR2.UI.LogBook.LogBookController.orig_BuildPickupEntries orig) {
+            var retv = orig();
+            var bplsLeft = masterItemList.ToList();
+            foreach(var entry in retv) {
+                if(!(entry.extraData is PickupIndex)) continue;
+                ItemBoilerplate matchedBpl = null;
+                foreach(ItemBoilerplate bpl in bplsLeft) {
+                    if((PickupIndex)entry.extraData == bpl.pickupIndex) {
+                        matchedBpl = bpl;
+                        break;
+                    }
+                }
+                if(matchedBpl != null) {
+                    matchedBpl.logbookEntry = entry;
+                    bplsLeft.Remove(matchedBpl);
+                }
+            }
+            return retv;
+        }
     }
 
 }
