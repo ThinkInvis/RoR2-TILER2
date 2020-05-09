@@ -116,7 +116,7 @@ namespace TILER2 {
                 Debug.LogError("TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": this property has already been bound.");
                 return;
             }
-            if((attrib.flags & AICFlags.BindDict) == AICFlags.BindDict && !subDict.HasValue) {
+            if((attrib.flags & AutoItemConfigFlags.BindDict) == AutoItemConfigFlags.BindDict && !subDict.HasValue) {
                 if(!prop.PropertyType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDictionary<,>))) {
                     Debug.LogError("TILER2: AutoItemCfg.Bind on BindDict property " + prop.Name + " in category " + categoryName + ": BindDict flag cannot be used on property types which don't implement IDictionary.");
                     return;
@@ -190,7 +190,7 @@ namespace TILER2 {
                 this.autoItemConfigs.Add(prop.Name, cfe);
             
             bool doCache = false;
-            if((attrib.flags & AICFlags.DeferUntilNextStage) == AICFlags.DeferUntilNextStage) {
+            if((attrib.flags & AutoItemConfigFlags.DeferUntilNextStage) == AutoItemConfigFlags.DeferUntilNextStage) {
                 doCache = true;
                 On.RoR2.Run.OnDisable += (orig, self) => {
                     orig(self);
@@ -201,7 +201,7 @@ namespace TILER2 {
                     }
                 };
             }
-            if((attrib.flags & AICFlags.DeferUntilEndGame) == AICFlags.DeferUntilEndGame) {
+            if((attrib.flags & AutoItemConfigFlags.DeferUntilEndGame) == AutoItemConfigFlags.DeferUntilEndGame) {
                 doCache = true;
                 On.RoR2.Run.EndStage += (orig, self) => {
                     orig(self);
@@ -213,11 +213,11 @@ namespace TILER2 {
                 };
             }
 
-            if((attrib.flags & AICFlags.AllowNetMismatch) == AICFlags.AllowNetMismatch) { //!=
-                throw new NotImplementedException("AICFlags.AllowNetMismatch");
+            if((attrib.flags & AutoItemConfigFlags.AllowNetMismatch) == AutoItemConfigFlags.AllowNetMismatch) { //!=
+                throw new NotImplementedException("AutoItemConfigFlags.AllowNetMismatch");
             }
 
-            if((attrib.flags & AICFlags.DeferForever) != AICFlags.DeferForever) {
+            if((attrib.flags & AutoItemConfigFlags.DeferForever) != AutoItemConfigFlags.DeferForever) {
                 var gtyp = typeof(ConfigEntry<>).MakeGenericType(propType);
                 var evh = gtyp.GetEvent("SettingChanged");
                 
@@ -236,11 +236,11 @@ namespace TILER2 {
                 });
             }
 
-            if((attrib.flags & AICFlags.ExposeAsConVar) == AICFlags.ExposeAsConVar) {
-                throw new NotImplementedException("AICFlags.ExposeAsConVar");
+            if((attrib.flags & AutoItemConfigFlags.ExposeAsConVar) == AutoItemConfigFlags.ExposeAsConVar) {
+                throw new NotImplementedException("AutoItemConfigFlags.ExposeAsConVar");
             }
 
-            if((attrib.flags & AICFlags.NoInitialRead) != AICFlags.NoInitialRead)
+            if((attrib.flags & AutoItemConfigFlags.NoInitialRead) != AutoItemConfigFlags.NoInitialRead)
                 propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
         }
 
@@ -255,7 +255,7 @@ namespace TILER2 {
     }
 
     [Flags]
-    public enum AICFlags {
+    public enum AutoItemConfigFlags {
         None = 0,
         ///<summary>If UNSET (default): expects acceptableValues to contain 0 or 2 values, which will be added to an AcceptableValueRange. If SET: an AcceptableValueList will be used instead.</summary>
         AVIsList = 1,
@@ -299,6 +299,7 @@ namespace TILER2 {
         }
     }
     
+    ///<summary>Causes some actions to be automatically performed when a property's config entry is updated.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class AutoUpdateEventInfoAttribute : Attribute {
         public AutoUpdateEventFlags flags {get; private set;}
@@ -314,14 +315,14 @@ namespace TILER2 {
         public string desc {get; private set;} = "";
         public AcceptableValueBase avb {get; private set;} = null;
         public Type avbType {get; private set;} = null;
-        public AICFlags flags {get; private set;}
-        public AutoItemConfigAttribute(string name, string desc, AICFlags flags = AICFlags.None, params object[] acceptableValues) : this(desc, flags, acceptableValues) {
+        public AutoItemConfigFlags flags {get; private set;}
+        public AutoItemConfigAttribute(string name, string desc, AutoItemConfigFlags flags = AutoItemConfigFlags.None, params object[] acceptableValues) : this(desc, flags, acceptableValues) {
             this.name = name;
         }
 
-        public AutoItemConfigAttribute(string desc, AICFlags flags = AICFlags.None, params object[] acceptableValues) {
+        public AutoItemConfigAttribute(string desc, AutoItemConfigFlags flags = AutoItemConfigFlags.None, params object[] acceptableValues) {
             if(acceptableValues.Length > 0) {
-                var avList = (flags & AICFlags.AVIsList) == AICFlags.AVIsList;
+                var avList = (flags & AutoItemConfigFlags.AVIsList) == AutoItemConfigFlags.AVIsList;
                 if(!avList && acceptableValues.Length != 2) throw new ArgumentException("Range mode for acceptableValues (flag AVIsList not set) requires either 0 or 2 params; received " + acceptableValues.Length + ".\nThe description provided was: \"" + desc + "\".");
                 var iType = acceptableValues[0].GetType();
                 for(var i = 1; i < acceptableValues.Length; i++) {
