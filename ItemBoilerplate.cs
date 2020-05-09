@@ -267,6 +267,34 @@ namespace TILER2 {
 
         public ItemBoilerplate() {
             TILER2Plugin.masterItemList.Add(this);
+            //private Dictionary allRegisteredLanguages; todo; RegLang is never called with a langid!=null param for now
+            ConfigEntryChanged += (sender, args) => {
+                if((args.flags & AutoUpdateEventFlags.InvalidateNameToken) == AutoUpdateEventFlags.InvalidateNameToken) {
+                    Debug.Log("nametoken invalidated");
+                    LanguageAPI.Add(nameToken, NewLangName());
+                }
+                if((args.flags & AutoUpdateEventFlags.InvalidatePickupToken) == AutoUpdateEventFlags.InvalidatePickupToken) {
+                    Debug.Log("pickuptoken invalidated");
+                    LanguageAPI.Add(pickupToken, NewLangPickup());
+                }
+                if((args.flags & AutoUpdateEventFlags.InvalidateDescToken) == AutoUpdateEventFlags.InvalidateDescToken) {
+                    Debug.Log("desctoken invalidated");
+                    LanguageAPI.Add(descToken, NewLangDesc());
+                }
+                if((args.flags & AutoUpdateEventFlags.InvalidateLoreToken) == AutoUpdateEventFlags.InvalidateLoreToken) {
+                    Debug.Log("loretoken invalidated");
+                    LanguageAPI.Add(loreToken, NewLangLore());
+                }
+            
+                if((args.flags & AutoUpdateEventFlags.InvalidateModel) == AutoUpdateEventFlags.InvalidateModel) {
+                    Debug.Log("model invalidated");
+                    var newModel = NewPickupModel();
+                    if(newModel != null) {
+                        if(pickupDef != null) pickupDef.displayPrefab = newModel;
+                        if(logbookEntry != null) logbookEntry.modelPrefab = newModel;
+                    }
+                }
+            };
         }
 
         public PickupDef pickupDef {get; internal set;}
@@ -311,37 +339,6 @@ namespace TILER2 {
             }
         }
         
-        //private Dictionary allRegisteredLanguages; todo; RegLang is never called with a langid!=null param for now
-        protected override void OnConfigEntryChanged(AutoUpdateEventArgs e) {
-            base.OnConfigEntryChanged(e);
-
-            if((e.flags & AutoUpdateEventFlags.InvalidateNameToken) == AutoUpdateEventFlags.InvalidateNameToken) {
-                Debug.Log("nametoken invalidated");
-                LanguageAPI.Add(nameToken, NewLangName());
-            }
-            if((e.flags & AutoUpdateEventFlags.InvalidatePickupToken) == AutoUpdateEventFlags.InvalidatePickupToken) {
-                Debug.Log("pickuptoken invalidated");
-                LanguageAPI.Add(pickupToken, NewLangPickup());
-            }
-            if((e.flags & AutoUpdateEventFlags.InvalidateDescToken) == AutoUpdateEventFlags.InvalidateDescToken) {
-                Debug.Log("desctoken invalidated");
-                LanguageAPI.Add(descToken, NewLangDesc());
-            }
-            if((e.flags & AutoUpdateEventFlags.InvalidateLoreToken) == AutoUpdateEventFlags.InvalidateLoreToken) {
-                Debug.Log("loretoken invalidated");
-                LanguageAPI.Add(loreToken, NewLangLore());
-            }
-            
-            if((e.flags & AutoUpdateEventFlags.InvalidateModel) == AutoUpdateEventFlags.InvalidateModel) {
-                Debug.Log("model invalidated");
-                var newModel = NewPickupModel();
-                if(newModel != null) {
-                    if(pickupDef != null) pickupDef.displayPrefab = newModel;
-                    if(logbookEntry != null) logbookEntry.modelPrefab = newModel;
-                }
-            }
-        }
-
         public abstract void SetupBehavior(); 
         protected abstract void LoadBehavior();
         protected abstract void UnloadBehavior();

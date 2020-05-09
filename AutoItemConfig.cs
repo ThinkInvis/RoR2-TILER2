@@ -19,7 +19,7 @@ namespace TILER2 {
         /// <summary>Fired when any of the config entries tracked by this AutoItemConfigContainer change.</summary>
         public event EventHandler<AutoUpdateEventArgs> ConfigEntryChanged;
         /// <summary>Internal handler for ConfigEntryChanged event.</summary>
-        protected virtual void OnConfigEntryChanged(AutoUpdateEventArgs e) {
+        private void OnConfigEntryChanged(AutoUpdateEventArgs e) {
             ConfigEntryChanged?.Invoke(this, e);
             if((e.flags & AutoUpdateEventFlags.InvalidateStats) == AutoUpdateEventFlags.InvalidateStats && (Run.instance?.isActiveAndEnabled ?? false)) {
                 Debug.Log("Invalidating stats on " + MiscUtil.AliveList().Count + " CharacterMasters");
