@@ -33,6 +33,24 @@ namespace TILER2 {
 
             nodeRefType = typeof(DirectorCore).GetNestedTypes(BindingFlags.NonPublic).First(t=>t.Name == "NodeReference");
             nodeRefTypeArr = nodeRefType.MakeArrayType();
+
+            On.RoR2.Run.BuildDropTable += (orig, self) => {
+                foreach(ItemBoilerplate bpl in masterItemList) {
+                    if(!bpl.enabled) {
+                        Debug.Log("Removing " + bpl.itemCodeName);
+                        if(bpl is Equipment) self.availableEquipment.RemoveEquipment(((Equipment)bpl).regIndex);
+                        else if(bpl is Item) self.availableItems.RemoveItem(((Item)bpl).regIndex);
+                    }
+                }
+                orig(self);
+                var pickerOptions = typeof(PickupPickerController).GetFieldCached("options");
+                foreach(var picker in FindObjectsOfType<PickupPickerController>()) {
+                    var oldOpt = ((PickupPickerController.Option[])pickerOptions.GetValue(picker))[0];
+                    picker.SetOptionsFromPickupForCommandArtifact(oldOpt.pickupIndex);
+                }
+                //TODO: reroll (removed) items in choice boxes
+            };
+
             /*On.RoR2.RuleBook.GenerateItemMask += (orig, self) => {
                 var retv = orig(self);
 
