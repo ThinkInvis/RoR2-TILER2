@@ -46,6 +46,10 @@ namespace TILER2 {
 
         internal bool runDeferOnce = false;
 
+        internal AutoItemConfig() {
+            instances.Add(this);
+        }
+
         ~AutoItemConfig() {
             if(instances.Contains(this))
                 instances.Remove(this);
@@ -80,6 +84,7 @@ namespace TILER2 {
         /// <summary>Internal handler for ConfigEntryChanged event.</summary>
         internal void OnConfigEntryChanged(AutoUpdateEventArgs e) {
             ConfigEntryChanged?.Invoke(this, e);
+            Debug.Log(e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + ": " + e.oldValue.ToString() + " > " + e.newValue.ToString());
             if((e.flags & AutoUpdateEventFlags.InvalidateStats) == AutoUpdateEventFlags.InvalidateStats && (Run.instance?.isActiveAndEnabled ?? false)) {
                 Debug.Log("Invalidating stats on " + MiscUtil.AliveList().Count + " CharacterMasters");
                 MiscUtil.AliveList().ForEach(cm => {if(cm.hasBody) cm.GetBody().RecalculateStats();});
