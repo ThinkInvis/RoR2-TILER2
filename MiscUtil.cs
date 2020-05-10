@@ -17,64 +17,6 @@ namespace TILER2 {
             evt.AddEventHandler(o, h);
         }
 
-        public class ObservableDictionary<K,V> : IDictionary<K,V>, INotifyCollectionChanged {
-            private readonly Dictionary<K,V> _dict;
-            private readonly ICollection<KeyValuePair<K,V>> _dictAsColl;
-            
-            public ObservableDictionary() {
-                _dict = new Dictionary<K,V>();
-                _dictAsColl = _dict;
-            }
-
-            public ICollection<K> Keys => _dict.Keys;
-            public ICollection<V> Values => _dict.Values;
-            public int Count => _dictAsColl.Count;
-            public bool IsReadOnly => false;
-            public IEnumerator<KeyValuePair<K,V>> GetEnumerator() => _dict.GetEnumerator();
-            IEnumerator IEnumerable.GetEnumerator() => _dict.GetEnumerator();
-            public bool Contains(KeyValuePair<K,V> p) => _dict.Contains(p);
-            public bool TryGetValue(K k, out V v) => _dict.TryGetValue(k, out v);
-            public bool ContainsKey(K k) => _dict.ContainsKey(k);
-            public void CopyTo(KeyValuePair<K,V>[] pArr, int i) => ((IDictionary<K,V>)_dict).CopyTo(pArr, i);
-
-            public void Add(K k, V v) {
-                _dict.Add(k, v);
-                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new KeyValuePair<K, V>(k, v)));
-            }
-            public void Add(KeyValuePair<K,V> p) {
-                _dictAsColl.Add(p);
-                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, p));
-            }
-            public bool Remove(K k) {
-                if(!_dict.ContainsKey(k)) return false;
-                var remV = _dict[k];
-                _dict.Remove(k);
-                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new KeyValuePair<K, V>(k,remV)));
-                return true;
-            }
-            public bool Remove(KeyValuePair<K,V> p) {
-                var retv = _dictAsColl.Remove(p);
-                if(retv) CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, p));
-                return retv;
-            }
-
-            public void Clear() {
-                _dict.Clear();
-                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-            }
-
-            public V this[K k] {
-                get {return _dict[k];}
-                set {
-                    var oldv = new KeyValuePair<K,V>(k,_dict[k]);
-                    _dict[k] = value;
-                    CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, new KeyValuePair<K,V>(k,value), oldv));
-                }
-            }
-
-            public event NotifyCollectionChangedEventHandler CollectionChanged;
-        }
-
         //Collection of unique class instances which all inherit the same type
         public class FilingDictionary<T> : IEnumerable<T> {
             private readonly Dictionary<Type, T> _dict = new Dictionary<Type, T>();
