@@ -216,11 +216,13 @@ namespace TILER2 {
         public static void ConCmdAICSetTemp(ConCommandArgs args) {
             EnsureOrchestrator();
 
+            #if !DEBUG
             if((!args.sender.hasAuthority) && !allowClientAICSet.value) {
                 Debug.LogWarning("TILER2: Client " + args.sender.userName + " tried to use ConCmd aic_settemp, but ConVar aic_allowclientset is set to false. DO NOT change this convar to true, unless you trust everyone who is in or may later join the server; doing so will allow them to temporarily change some config settings.");
                 NetConfigOrchestrator.SendConMsg(args.sender, "TILER2: ConCmd aic_settemp cannot be used on this server by anyone other than the host.", 1);
                 return;
             }
+            #endif
 
             AICSet(args, true);
         }
