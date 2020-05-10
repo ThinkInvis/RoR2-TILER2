@@ -76,8 +76,8 @@ namespace TILER2 {
 			return (num4 + num7 * num2) * num9 - Run.instance.difficultyCoefficient;
         }
         public static List<CharacterMaster> AliveList(bool playersOnly = false) {
-            if(playersOnly) return PlayerCharacterMasterController.instances.Where(x=>x.isConnected && x.master && !x.master.IsDeadAndOutOfLivesServer()).Select(x=>x.master).ToList();
-            else return CharacterMaster.readOnlyInstancesList.Where(x=>!x.IsDeadAndOutOfLivesServer()).ToList();
+            if(playersOnly) return PlayerCharacterMasterController.instances.Where(x=>x.isConnected && x.master && x.master.hasBody && x.master.GetBody().healthComponent.alive).Select(x=>x.master).ToList();
+            else return CharacterMaster.readOnlyInstancesList.Where(x=>x.hasBody && x.GetBody().healthComponent.alive).ToList();
         }
         public static void SpawnItemFromBody(CharacterBody src, int tier) {
             List<PickupIndex> spawnList;
