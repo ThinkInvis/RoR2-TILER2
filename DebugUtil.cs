@@ -7,7 +7,7 @@ using R2API.Utils;
 
 namespace TILER2 {
     internal static class DebugUtil {
-        [ConCommand(commandName = "evo_setitem", flags = ConVarFlags.ExecuteOnServer, helpText = "Sets the count of an item in the monster team's Artifact of Evolution bank. Argument 1: item name/ID. Argument 2: count of item (dft. 1).")]
+        [ConCommand(commandName = "evo_setitem", flags = ConVarFlags.ExecuteOnServer | ConVarFlags.Cheat, helpText = "Sets the count of an item in the monster team's Artifact of Evolution bank. Argument 1: item name/ID. Argument 2: count of item (dft. 1).")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private static void CCEvoSetItem(ConCommandArgs args) {
             if(args.Count < 1) {
