@@ -325,7 +325,8 @@ namespace TILER2 {
         public RoR2.UI.LogBook.Entry logbookEntry {get; internal set;}
 
         [AutoUpdateEventInfo(AutoUpdateEventFlags.InvalidateDescToken | AutoUpdateEventFlags.InvalidatePickupToken | AutoUpdateEventFlags.InvalidateStats)]
-        [AutoItemConfig("If false, this item/equipment will not drop ingame, and it will not work if you somehow get a copy (all IL patches and hooks will be disabled for compatibility).")]
+        [AutoItemConfig("If false, this item/equipment will not drop ingame, and it will not work if you somehow get a copy (all IL patches and hooks will be disabled for compatibility).",
+            AutoItemConfigFlags.PreventNetMismatch | AutoItemConfigFlags.DeferUntilNextStage)]
         public bool enabled {get; protected set;} = true;
 
         ///<summary>A resource string pointing to the item's model.</summary>

@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Reflection;
 using RoR2;
 using System.Text.RegularExpressions;
+using UnityEngine.Networking;
 
 namespace TILER2 {
     public class AutoItemConfig {
@@ -15,20 +16,28 @@ namespace TILER2 {
         internal readonly static Dictionary<AutoItemConfig, object> runDirtyInstances = new Dictionary<AutoItemConfig, object>();
 
         internal static void CleanupDirty(bool isRunEnd) {
-            if(isRunEnd) {
-                foreach(AutoItemConfig k in runDirtyInstances.Keys) {
-                    k.UpdateProperty(runDirtyInstances[k]);
-                    if(k.runDeferOnce) k.runDeferOnce = false;
-                }
-                runDirtyInstances.Clear();
-            }
             foreach(AutoItemConfig k in stageDirtyInstances.Keys) {
                 k.UpdateProperty(stageDirtyInstances[k]);
             }
             stageDirtyInstances.Clear();
+            if(isRunEnd) {
+                int unOverrides = 0;
+                foreach(AutoItemConfig k in runDirtyInstances.Keys) {
+                    k.UpdateProperty(runDirtyInstances[k], true);
+                    if(k.runDeferOnce) {
+                        k.runDeferOnce = false;
+                        unOverrides++;
+                    }
+                }
+                runDirtyInstances.Clear();
+                if(unOverrides > 0) {
+                    Debug.Log("TILER2: Run ended; reverted " + unOverrides + " temporary config changes. See above list for details.");
+                }
+            }
         }
 
         public AutoItemConfigContainer owner {get; internal set;}
+        public object target {get; internal set;}
         public ConfigEntryBase configEntry {get; internal set;}
         public PropertyInfo boundProperty {get; internal set;}
         public string modName {get; internal set;}
@@ -43,8 +52,16 @@ namespace TILER2 {
         public bool onDict {get; internal set;}
 
         public bool allowConCmd {get; internal set;}
+        public bool allowNetMismatch {get; internal set;}
+        public bool netMismatchCritical {get; internal set;}
+
+        public object cachedValue {get; internal set;}
 
         internal bool runDeferOnce = false;
+
+        public string pathString {
+            get {return modName + "/" + configEntry.Definition.Section + "/" + configEntry.Definition.Key;}
+        }
 
         internal AutoItemConfig() {
             instances.Add(this);
@@ -55,16 +72,28 @@ namespace TILER2 {
                 instances.Remove(this);
         }
 
-        internal void UpdateProperty(object newValue) {
-            var oldValue = propGetter.Invoke(owner, (boundKey != null) ? new[] {boundKey} : new object[]{ });
-            propSetter.Invoke(owner, (boundKey != null) ? new[]{boundKey, newValue} : new[]{newValue});
+        internal void ManualUpdateProperty(object newValue, bool silent = false) {
+            runDeferOnce = true;
+            runDirtyInstances[this] = cachedValue;
+            UpdateProperty(newValue, silent);
+        }
+
+        internal void UpdateProperty(object newValue, bool silent = false) {
+            var oldValue = propGetter.Invoke(target, onDict ? new[] {boundKey} : new object[]{ });
+            propSetter.Invoke(target, onDict ? new[]{boundKey, newValue} : new[]{newValue});
             var flags = updateEventAttribute?.flags ?? AutoUpdateEventFlags.None;
             if(updateEventAttribute?.ignoreDefault == false) flags |= owner.defaultEnabledUpdateFlags;
+            cachedValue = newValue;
             owner.OnConfigEntryChanged(new AutoUpdateEventArgs{
                 flags = flags,
                 oldValue = oldValue,
                 newValue = newValue,
-                target = this});
+                target = this,
+                silent = silent});
+            if(NetworkServer.active && !this.allowNetMismatch) {
+                NetConfig.EnsureOrchestrator();
+                NetConfigOrchestrator.instance.ServerAICSyncOneToAll(this);
+            }
         }
     }
 
@@ -89,7 +118,7 @@ namespace TILER2 {
                 Debug.Log("Invalidating stats on " + MiscUtil.AliveList().Count + " CharacterMasters");
                 MiscUtil.AliveList().ForEach(cm => {if(cm.hasBody) cm.GetBody().RecalculateStats();});
             }
-            if((e.flags & AutoUpdateEventFlags.AnnounceToRun) == AutoUpdateEventFlags.AnnounceToRun) {
+            if(!e.silent && (e.flags & AutoUpdateEventFlags.AnnounceToRun) == AutoUpdateEventFlags.AnnounceToRun) {
                 Chat.AddMessage("The setting <color=#ffffaa>" + e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + "</color> has been changed from <color=#ffaaaa>" + e.oldValue.ToString() + "</color> to <color=#aaffaa>" + e.newValue.ToString() + "</color>.");
             }
         }
@@ -107,7 +136,7 @@ namespace TILER2 {
                     var thisup = System.IO.File.GetLastWriteTime(cfl.ConfigFilePath);
                     if(observedFiles[cfl] < thisup) {
                         observedFiles[cfl] = thisup;
-                        Debug.Log("Updating " + cfl.Count + " entries in " + cfl.ConfigFilePath);
+                        Debug.Log("TILER2: A config file tracked by AutoItemConfig has been changed: " + cfl.ConfigFilePath);
                         cfl.Reload();
                     }
                 }
@@ -180,7 +209,7 @@ namespace TILER2 {
         
         /// <summary>Binds a property to a BepInEx config file, using reflection and attributes to automatically generate much of the necessary information.</summary>
         public void Bind(PropertyInfo prop, ConfigFile cfl, string modName, string categoryName, AutoItemConfigAttribute attrib, AutoUpdateEventInfoAttribute eiattr = null, BindSubDictInfo? subDict = null) {
-            string errorStr = "TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + ": ";
+            string errorStr = "TILER2: AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + " failed: ";
             if(!subDict.HasValue) {
                 if(this.autoItemConfigs.Exists(x => x.boundProperty == prop)) {
                     Debug.LogError(errorStr + "this property has already been bound.");
@@ -197,6 +226,10 @@ namespace TILER2 {
                         return;
 
                     }
+                    if(!TomlTypeConverter.CanConvert(kTyp)) {
+                        Debug.LogError(errorStr + "dict value type cannot be converted by BepInEx.Configuration.TomlTypeConverter (received " + kTyp.Name + ").");
+                        return;
+                    }
                     var idict = (System.Collections.IDictionary)prop.GetValue(this, null);
                     int ind = 0;
                     var dkeys = (from object k in idict.Keys
@@ -208,9 +241,15 @@ namespace TILER2 {
                     return;
                 }
             }
-            if(!subDict.HasValue && attrib.avb != null && attrib.avbType != prop.PropertyType) {
-                Debug.LogError(errorStr + "property and AcceptableValue types must match (received " + prop.PropertyType.Name + " and " + attrib.avbType.Name + ").");
-                return;
+            if(!subDict.HasValue) {
+                if(attrib.avb != null && attrib.avbType != prop.PropertyType) {
+                    Debug.LogError(errorStr + "property and AcceptableValue types must match (received " + prop.PropertyType.Name + " and " + attrib.avbType.Name + ").");
+                    return;
+                }
+                if(!TomlTypeConverter.CanConvert(prop.PropertyType)) {
+                    Debug.LogError(errorStr + "property type cannot be converted by BepInEx.Configuration.TomlTypeConverter (received " + prop.PropertyType.Name + ").");
+                    return;
+                }
             }
             
             object propObj = subDict.HasValue ? prop.GetValue(this) : this;
@@ -244,16 +283,23 @@ namespace TILER2 {
                     && x.GetParameters()[2].ParameterType == typeof(ConfigDescription)
                 ).MakeGenericMethod(propType);
 
+            var propValue = subDict.HasValue ? subDict.Value.val : prop.GetValue(this);
+
             var cfe = (ConfigEntryBase)genm.Invoke(cfl, new[] {
                 new ConfigDefinition(categoryName, cfgName),
-                subDict.HasValue ? subDict.Value.val : prop.GetValue(this),
+                propValue,
                 new ConfigDescription(cfgDesc,attrib.avb)});
 
             observedFiles[cfl] = System.IO.File.GetLastWriteTime(cfl.ConfigFilePath);
 
+            bool allowMismatch = (attrib.flags & AutoItemConfigFlags.PreventNetMismatch) != AutoItemConfigFlags.PreventNetMismatch;
+            bool deferForever = (attrib.flags & AutoItemConfigFlags.DeferForever) == AutoItemConfigFlags.DeferForever;
+
             var newAIC = new AutoItemConfig {
                 boundProperty = prop,
                 allowConCmd = (attrib.flags & AutoItemConfigFlags.PreventConCmd) != AutoItemConfigFlags.PreventConCmd,
+                allowNetMismatch = allowMismatch,
+                netMismatchCritical = !allowMismatch && deferForever,
                 configEntry = cfe,
                 modName = modName,
                 owner = this,
@@ -262,16 +308,14 @@ namespace TILER2 {
                 propType = propType,
                 onDict = subDict.HasValue,
                 boundKey = subDict.HasValue ? subDict.Value.key : null,
-                updateEventAttribute = eiattr
+                updateEventAttribute = eiattr,
+                cachedValue = propValue,
+                target = propObj
             };
 
             this.autoItemConfigs.Add(newAIC);
 
-            if((attrib.flags & AutoItemConfigFlags.AllowNetMismatch) == AutoItemConfigFlags.AllowNetMismatch) { //!=
-                throw new NotImplementedException("AutoItemConfigFlags.AllowNetMismatch");
-            }
-
-            if((attrib.flags & AutoItemConfigFlags.DeferForever) != AutoItemConfigFlags.DeferForever) {
+            if(!deferForever) {
                 var gtyp = typeof(ConfigEntry<>).MakeGenericType(propType);
                 var evh = gtyp.GetEvent("SettingChanged");
                 
@@ -288,8 +332,10 @@ namespace TILER2 {
                 });
             }
 
-            if((attrib.flags & AutoItemConfigFlags.NoInitialRead) != AutoItemConfigFlags.NoInitialRead)
+            if((attrib.flags & AutoItemConfigFlags.NoInitialRead) != AutoItemConfigFlags.NoInitialRead) {
                 propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
+                newAIC.cachedValue = cfe.BoxedValue;
+            }
         }
 
         /// <summary>Calls Bind on all properties in this AutoItemConfigContainer which have an AutoItemConfigAttribute.</summary>
@@ -317,14 +363,14 @@ namespace TILER2 {
         DeferUntilNextStage = 2,
         ///<summary>(TODO: needs testing) If SET: will cache config changes, through auto-update or otherwise, and prevent them from applying to the attached property while there is an active run.</summary>
         DeferUntilEndGame = 4,
-        ///<summary>(TODO: needs testing) If SET: the attached property will never be changed by config.</summary>
+        ///<summary>(TODO: needs testing) If SET: the attached property will never be changed by config. If combined with PreventNetMismatch, mismatches will cause the client to be kicked.</summary>
         DeferForever = 8,
-        ///<summary>(TODO: NYI) If SET: will prevent the AIC_set console command from being used on this AutoItemConfig.</summary>
+        ///<summary>If SET: will prevent the AIC_set console command from being used on this AutoItemConfig.</summary>
         PreventConCmd = 16,
         ///<summary>If SET: will stop the property value from being changed by the initial config read during BindAll.</summary>
         NoInitialRead = 32,
-        ///<summary>(TODO: net mismatch checking is NYI) If UNSET: the property will temporarily retrieve its value from the host in multiplayer.</summary>
-        AllowNetMismatch = 64,
+        ///<summary>If SET: the property will temporarily retrieve its value from the host in multiplayer. If combined with DeferForever, mismatches will cause the client to be kicked.</summary>
+        PreventNetMismatch = 64,
         ///<summary>If SET: will bind individual items in an IDictionary instead of the entire collection.</summary>
         BindDict = 128
     }
@@ -359,6 +405,8 @@ namespace TILER2 {
         public object newValue;
         ///<summary>The AutoItemConfig which received an update.</summary>
         public AutoItemConfig target;
+        ///<summary>Suppresses the AnnounceToRun flag.</summary>
+        public bool silent;
     }
     
     ///<summary>Causes some actions to be automatically performed when a property's config entry is updated.</summary>
