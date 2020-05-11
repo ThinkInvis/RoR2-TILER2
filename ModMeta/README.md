@@ -17,6 +17,7 @@ The DebugUtil module adds the console command `evo_setitem`.
 #### NetConfig
 
 The NetConfig module automatically syncs important config settings from the server to any connecting clients, and kicks clients with critical config mismatches which can't be resolved (i.e. settings that can't be changed while the game is running).
+
 NetConfig also adds the console commands `aic_get`, `aic_set`, and `aic_settemp`, and the convar `bool aic_allowclientset`.
 
 - `aic_get "path1" "optional path2" "optional path3"`: Attempts to find a config entry. Path matches, in order: mod name, config section, config key. If you weren't specific enough, it will print all matching paths to console; otherwise, it will print detailed information about one specific config entry.
