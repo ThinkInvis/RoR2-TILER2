@@ -12,27 +12,21 @@ using UnityEngine.Networking;
 namespace TILER2 {
     public class AutoItemConfig {
         internal readonly static List<AutoItemConfig> instances = new List<AutoItemConfig>();
-        internal readonly static Dictionary<AutoItemConfig, object> stageDirtyInstances = new Dictionary<AutoItemConfig, object>();
+        internal readonly static Dictionary<AutoItemConfig, (object, bool)> stageDirtyInstances = new Dictionary<AutoItemConfig, (object, bool)>();
         internal readonly static Dictionary<AutoItemConfig, object> runDirtyInstances = new Dictionary<AutoItemConfig, object>();
 
         internal static void CleanupDirty(bool isRunEnd) {
+            Debug.Log("TILER2: Stage ended; applying " + stageDirtyInstances.Count + " deferred config changes...");
             foreach(AutoItemConfig k in stageDirtyInstances.Keys) {
-                k.UpdateProperty(stageDirtyInstances[k]);
+                k.DeferredUpdateProperty(stageDirtyInstances[k].Item1, stageDirtyInstances[k].Item2);
             }
             stageDirtyInstances.Clear();
             if(isRunEnd) {
-                int unOverrides = 0;
+                Debug.Log("TILER2: Run ended; applying " + runDirtyInstances.Count + " deferred config changes...");
                 foreach(AutoItemConfig k in runDirtyInstances.Keys) {
-                    k.UpdateProperty(runDirtyInstances[k], true);
-                    if(k.runDeferOnce) {
-                        k.runDeferOnce = false;
-                        unOverrides++;
-                    }
+                    k.DeferredUpdateProperty(runDirtyInstances[k], true);
                 }
                 runDirtyInstances.Clear();
-                if(unOverrides > 0) {
-                    Debug.Log("TILER2: Run ended; reverted " + unOverrides + " temporary config changes. See above list for details.");
-                }
             }
         }
 
@@ -57,9 +51,11 @@ namespace TILER2 {
 
         public object cachedValue {get; internal set;}
 
-        internal bool runDeferOnce = false;
+        internal bool isOverridden = false;
 
-        public string pathString {
+        public int deferType {get; internal set;}
+
+        public string readablePath {
             get {return modName + "/" + configEntry.Definition.Section + "/" + configEntry.Definition.Key;}
         }
 
@@ -72,27 +68,39 @@ namespace TILER2 {
                 instances.Remove(this);
         }
 
-        internal void ManualUpdateProperty(object newValue, bool silent = false) {
-            runDeferOnce = true;
-            runDirtyInstances[this] = cachedValue;
+        internal void OverrideProperty(object newValue, bool silent = false) {
+            if(!isOverridden) runDirtyInstances[this] = cachedValue;
+            isOverridden = true;
             UpdateProperty(newValue, silent);
         }
 
-        internal void UpdateProperty(object newValue, bool silent = false) {
+        private void DeferredUpdateProperty(object newValue, bool silent = false) {
             var oldValue = propGetter.Invoke(target, onDict ? new[] {boundKey} : new object[]{ });
             propSetter.Invoke(target, onDict ? new[]{boundKey, newValue} : new[]{newValue});
             var flags = updateEventAttribute?.flags ?? AutoUpdateEventFlags.None;
             if(updateEventAttribute?.ignoreDefault == false) flags |= owner.defaultEnabledUpdateFlags;
             cachedValue = newValue;
-            owner.OnConfigEntryChanged(new AutoUpdateEventArgs{
+            owner.OnConfigChanged(new AutoUpdateEventArgs{
                 flags = flags,
                 oldValue = oldValue,
                 newValue = newValue,
                 target = this,
                 silent = silent});
+        }
+
+        internal void UpdateProperty(object newValue, bool silent = false) {
             if(NetworkServer.active && !this.allowNetMismatch) {
                 NetConfig.EnsureOrchestrator();
-                NetConfigOrchestrator.instance.ServerAICSyncOneToAll(this);
+                NetConfigOrchestrator.instance.ServerAICSyncOneToAll(this, newValue);
+            }
+            if(deferType == 0 || Run.instance == null || !Run.instance.enabled) {
+                DeferredUpdateProperty(newValue, silent);
+            } else if(deferType == 1) {
+                AutoItemConfig.stageDirtyInstances[this] = (newValue, silent);
+            } else if(deferType == 2) {
+                AutoItemConfig.runDirtyInstances[this] = newValue;
+            } else {
+                Debug.LogWarning("TILER2: something attempted to set the value of an AutoItemConfig with the DeferForever flag: \"" + readablePath + "\"");
             }
         }
     }
@@ -111,15 +119,14 @@ namespace TILER2 {
         /// <summary>Fired when any of the config entries tracked by this AutoItemConfigContainer change.</summary>
         public event EventHandler<AutoUpdateEventArgs> ConfigEntryChanged;
         /// <summary>Internal handler for ConfigEntryChanged event.</summary>
-        internal void OnConfigEntryChanged(AutoUpdateEventArgs e) {
+        internal void OnConfigChanged(AutoUpdateEventArgs e) {
             ConfigEntryChanged?.Invoke(this, e);
             Debug.Log(e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + ": " + e.oldValue.ToString() + " > " + e.newValue.ToString());
             if((e.flags & AutoUpdateEventFlags.InvalidateStats) == AutoUpdateEventFlags.InvalidateStats && (Run.instance?.isActiveAndEnabled ?? false)) {
-                Debug.Log("Invalidating stats on " + MiscUtil.AliveList().Count + " CharacterMasters");
                 MiscUtil.AliveList().ForEach(cm => {if(cm.hasBody) cm.GetBody().RecalculateStats();});
             }
             if(!e.silent && (e.flags & AutoUpdateEventFlags.AnnounceToRun) == AutoUpdateEventFlags.AnnounceToRun) {
-                Chat.AddMessage("The setting <color=#ffffaa>" + e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + "</color> has been changed from <color=#ffaaaa>" + e.oldValue.ToString() + "</color> to <color=#aaffaa>" + e.newValue.ToString() + "</color>.");
+                NetConfigOrchestrator.ServerSendGlobalChatMsg("The setting <color=#ffffaa>" + e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + "</color> has been changed from <color=#ffaaaa>" + e.oldValue.ToString() + "</color> to <color=#aaffaa>" + e.newValue.ToString() + "</color>.");
             }
         }
 
@@ -294,12 +301,16 @@ namespace TILER2 {
 
             bool allowMismatch = (attrib.flags & AutoItemConfigFlags.PreventNetMismatch) != AutoItemConfigFlags.PreventNetMismatch;
             bool deferForever = (attrib.flags & AutoItemConfigFlags.DeferForever) == AutoItemConfigFlags.DeferForever;
+            bool deferRun = (attrib.flags & AutoItemConfigFlags.DeferUntilEndGame) == AutoItemConfigFlags.DeferUntilEndGame;
+            bool deferStage = (attrib.flags & AutoItemConfigFlags.DeferUntilNextStage) == AutoItemConfigFlags.DeferUntilNextStage;
+            bool allowCon = (attrib.flags & AutoItemConfigFlags.PreventConCmd) != AutoItemConfigFlags.PreventConCmd;
 
             var newAIC = new AutoItemConfig {
                 boundProperty = prop,
-                allowConCmd = (attrib.flags & AutoItemConfigFlags.PreventConCmd) != AutoItemConfigFlags.PreventConCmd,
+                allowConCmd = allowCon && !deferForever && !deferRun,
                 allowNetMismatch = allowMismatch,
                 netMismatchCritical = !allowMismatch && deferForever,
+                deferType = deferForever ? 3 : (deferRun ? 2 : (deferStage ? 1 : 0)),
                 configEntry = cfe,
                 modName = modName,
                 owner = this,
@@ -320,15 +331,7 @@ namespace TILER2 {
                 var evh = gtyp.GetEvent("SettingChanged");
                 
                 evh.ReflAddEventHandler(cfe, (object obj,EventArgs evtArgs) => {
-                    bool cacheStage = (attrib.flags & AutoItemConfigFlags.DeferUntilNextStage) == AutoItemConfigFlags.DeferUntilNextStage;
-                    bool cacheRun = (attrib.flags & AutoItemConfigFlags.DeferUntilEndGame) == AutoItemConfigFlags.DeferUntilEndGame || newAIC.runDeferOnce;
-                    if((!cacheStage && !cacheRun) || Run.instance == null || !Run.instance.enabled) {
-                        newAIC.UpdateProperty(cfe.BoxedValue);
-                    } else if(cacheRun) {
-                        AutoItemConfig.runDirtyInstances[newAIC] = cfe.BoxedValue;
-                    } else {
-                        AutoItemConfig.stageDirtyInstances[newAIC] = cfe.BoxedValue;
-                    }
+                    newAIC.UpdateProperty(cfe.BoxedValue);
                 });
             }
 
@@ -361,9 +364,9 @@ namespace TILER2 {
         AVIsList = 1,
         ///<summary>(TODO: needs testing) If SET: will cache config changes, through auto-update or otherwise, and prevent them from applying to the attached property until the next stage transition.</summary>
         DeferUntilNextStage = 2,
-        ///<summary>(TODO: needs testing) If SET: will cache config changes, through auto-update or otherwise, and prevent them from applying to the attached property while there is an active run.</summary>
+        ///<summary>(TODO: needs testing) If SET: will cache config changes, through auto-update or otherwise, and prevent them from applying to the attached property while there is an active run. Takes precedence over DeferUntilNextStage and PreventConCmd.</summary>
         DeferUntilEndGame = 4,
-        ///<summary>(TODO: needs testing) If SET: the attached property will never be changed by config. If combined with PreventNetMismatch, mismatches will cause the client to be kicked.</summary>
+        ///<summary>(TODO: needs testing) If SET: the attached property will never be changed by config. If combined with PreventNetMismatch, mismatches will cause the client to be kicked. Takes precedence over DeferUntilNextStage, DeferUntilEndGame, and PreventConCmd.</summary>
         DeferForever = 8,
         ///<summary>If SET: will prevent the AIC_set console command from being used on this AutoItemConfig.</summary>
         PreventConCmd = 16,

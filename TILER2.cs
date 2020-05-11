@@ -59,20 +59,19 @@ namespace TILER2 {
                 //TODO: reroll (removed) items in choice boxes
             };
             
-            On.RoR2.Run.OnDisable += (orig, self) => {
-                orig(self);
-                AutoItemConfig.CleanupDirty(true);
-            };
-            
             On.RoR2.Networking.GameNetworkManager.Disconnect += (orig, self) => {
                 orig(self);
                 AutoItemConfig.CleanupDirty(true);
             };
-
-            On.RoR2.Run.EndStage += (orig, self) => {
-                orig(self);
+            
+            
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, mode) => {
                 AutoItemConfig.CleanupDirty(false);
             };
+            /*On.RoR2.Run.EndStage += (orig, self) => {
+                orig(self);
+                AutoItemConfig.CleanupDirty(false);
+            };*/
             
             On.RoR2.Networking.GameNetworkManager.OnServerAddPlayerInternal += (orig, self, conn, pcid, extraMsg) => {
                 orig(self, conn, pcid, extraMsg);
@@ -81,9 +80,6 @@ namespace TILER2 {
                 NetConfig.EnsureOrchestrator();
                 NetConfigOrchestrator.AICSyncAllToOne(conn);
             };
-            /*On.UnityEngine.NetworkServer. += (orig, self, conn) => {
-                orig(self, conn);
-            };*/
 
             /*On.RoR2.RuleBook.GenerateItemMask += (orig, self) => {
                 var retv = orig(self);

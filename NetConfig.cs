@@ -120,7 +120,7 @@ namespace TILER2 {
             if(matchesLevel4.Count == 0) return (matchesLevel3, "multiple level 3 matches, no level 4 matches");
             else if(matchesLevel4.Count == 1) return (matchesLevel4, null);
             else {
-                Debug.LogError("TILER2: There are multiple config entries with the path \"" + matchesLevel4[0].pathString + "\"; this should never happen! Please report this as a bug.");
+                Debug.LogError("TILER2: There are multiple config entries with the path \"" + matchesLevel4[0].readablePath + "\"; this should never happen! Please report this as a bug.");
                 return (matchesLevel4, "multiple level 4 matches");
             }
         }
@@ -150,13 +150,13 @@ namespace TILER2 {
 
             if(errmsg != null) {
                 if(matches != null)
-                    Debug.Log("The following config settings match that path:\n" + String.Join(", ", matches.Select(x => "\"" + x.pathString + "\"")));
+                    Debug.Log("The following config settings match that path:\n" + String.Join(", ", matches.Select(x => "\"" + x.readablePath + "\"")));
                 else
                     Debug.Log("There are no config settings with complete nor partial matches for that path.");
                 return;
             }
 
-            Debug.Log("\"" + matches[0].pathString + "\" (" + matches[0].propType.Name + "): " + (matches[0].configEntry.Description?.Description ?? "[no description]") + "\nCurrent value: " + matches[0].cachedValue.ToString());
+            Debug.Log("\"" + matches[0].readablePath + "\" (" + matches[0].propType.Name + "): " + (matches[0].configEntry.Description?.Description ?? "[no description]") + "\nCurrent value: " + matches[0].cachedValue.ToString());
         }
 
         private static void AICSet(ConCommandArgs args, bool isTemporary) {
@@ -179,7 +179,7 @@ namespace TILER2 {
             if(errmsg != null) {
                 errmsg += ").";
                 if(matches != null) {
-                    errmsg += "\nThe following config settings have a matching path: " + String.Join(", ", matches.Select(x => "\"" + x.pathString + "\""));
+                    errmsg += "\nThe following config settings have a matching path: " + String.Join(", ", matches.Select(x => "\"" + x.readablePath + "\""));
                 }
                 NetConfigOrchestrator.SendConMsg(args.sender, errorPre + errmsg, 1);
                 return;
@@ -198,8 +198,8 @@ namespace TILER2 {
             if(!isTemporary) {
                 matches[0].configEntry.BoxedValue = convObj;
                 if(!matches[0].configEntry.ConfigFile.SaveOnConfigSet) matches[0].configEntry.ConfigFile.Save();
-            } else matches[0].ManualUpdateProperty(convObj);
-            if(args.sender && !args.sender.hasAuthority) Debug.Log("TILER2: ConCmd " + targetCmd + " from client " + args.sender.userName + " passed. Changed config setting " + matches[0].pathString + " to " + convObj.ToString());
+            } else matches[0].OverrideProperty(convObj);
+            if(args.sender && !args.sender.hasAuthority) Debug.Log("TILER2: ConCmd " + targetCmd + " from client " + args.sender.userName + " passed. Changed config setting " + matches[0].readablePath + " to " + convObj.ToString());
             NetConfigOrchestrator.SendConMsg(args.sender, "TILER2: ConCmd " + targetCmd + " successfully updated config entry!", 0);
         }
 
@@ -288,6 +288,16 @@ namespace TILER2 {
             else
                 Debug.Log(msg);
         }
+
+        [Server]
+        internal static void ServerSendGlobalChatMsg(string msg) {
+            instance.RpcGlobalChatMsg(msg);
+        }
+
+        [ClientRpc]
+        internal void RpcGlobalChatMsg(string msg) {
+            Chat.AddMessage(msg);
+        }
         
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private void Update() {
@@ -375,11 +385,11 @@ namespace TILER2 {
         }
 
         [Server]
-        internal void ServerAICSyncOneToAll(AutoItemConfig targetConfig) {
+        internal void ServerAICSyncOneToAll(AutoItemConfig targetConfig, object newValue) {
             foreach(var user in NetworkUser.readOnlyInstancesList) {
                 if(user.hasAuthority || (user.connectionToClient != null && Util.ConnectionIsLocal(user.connectionToClient))) continue;
                 TargetAICSyncOneToAll(user.connectionToClient, targetConfig.modName, targetConfig.configEntry.Definition.Section, targetConfig.configEntry.Definition.Key,
-                    BepInEx.Configuration.TomlTypeConverter.ConvertToString(targetConfig.cachedValue, targetConfig.propType));
+                    BepInEx.Configuration.TomlTypeConverter.ConvertToString(newValue, targetConfig.propType));
             }
         }
 
@@ -410,7 +420,7 @@ namespace TILER2 {
                     Debug.LogError("CRITICAL MISMATCH on \"" + modname + "/" + category + "/" + cfgname + "\": Requested " + newVal.ToString() + " vs current " + exactMatches[0].cachedValue.ToString());
                     return -1;
                 }
-                exactMatches[0].ManualUpdateProperty(newVal, silent);
+                exactMatches[0].OverrideProperty(newVal, silent);
                 return 1;
             }
             return 0;
