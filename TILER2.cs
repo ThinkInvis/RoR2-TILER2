@@ -9,6 +9,7 @@ using R2API.Utils;
 using R2API;
 using UnityEngine.Networking;
 using System.Collections.Generic;
+using BepInEx.Configuration;
 
 namespace TILER2 {
     
@@ -16,7 +17,7 @@ namespace TILER2 {
     [BepInPlugin(ModGuid, ModName, ModVer)]
     [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(ResourcesAPI), nameof(PlayerAPI), nameof(PrefabAPI), nameof(BuffAPI), nameof(CommandHelper))]
     public class TILER2Plugin:BaseUnityPlugin {
-        public const string ModVer = "1.0.0";
+        public const string ModVer = "1.0.1";
         public const string ModName = "TILER2";
         public const string ModGuid = "com.ThinkInvisible.TILER2";
         
@@ -25,6 +26,22 @@ namespace TILER2 {
 
         internal static FilingDictionary<ItemBoilerplate> masterItemList = new FilingDictionary<ItemBoilerplate>();
 
+        internal ConfigFile cfgFile;
+
+        internal static ConfigEntry<bool> gCfgMismatchKick;
+        internal static ConfigEntry<bool> gCfgMismatchTimeout;
+        internal static ConfigEntry<bool> gCfgMismatchCheck;
+
+        internal TILER2Plugin() {
+            cfgFile = new ConfigFile(System.IO.Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
+            
+            gCfgMismatchCheck = cfgFile.Bind(new ConfigDefinition("NetConfig", "EnableCheck"), true, new ConfigDescription(
+                "If false, NetConfig will not check for config mismatches at all."));
+            gCfgMismatchKick = cfgFile.Bind(new ConfigDefinition("NetConfig", "MismatchKick"), false, new ConfigDescription(
+                "If false, NetConfig will not kick clients that fail config checks."));
+            gCfgMismatchTimeout = cfgFile.Bind(new ConfigDefinition("NetConfig", "MismatchTimeoutKick"), false, new ConfigDescription(
+                "If false, NetConfig will not kick clients that take too long to respond to config checks."));
+        }
 
         public void Awake() {
             //this doesn't seem to fire until the title screen is up, which is good because config file changes shouldn't immediately be read during startup; watch for regression (or just implement a check anyways?)
@@ -74,7 +91,7 @@ namespace TILER2 {
             
             On.RoR2.Networking.GameNetworkManager.OnServerAddPlayerInternal += (orig, self, conn, pcid, extraMsg) => {
                 orig(self, conn, pcid, extraMsg);
-                if(Util.ConnectionIsLocal(conn) || NetConfigOrchestrator.checkedConnections.Contains(conn)) return;
+                if(!gCfgMismatchCheck.Value || Util.ConnectionIsLocal(conn) || NetConfigOrchestrator.checkedConnections.Contains(conn)) return;
                 NetConfigOrchestrator.checkedConnections.Add(conn);
                 NetConfig.EnsureOrchestrator();
                 NetConfigOrchestrator.AICSyncAllToOne(conn);

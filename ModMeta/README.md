@@ -28,11 +28,16 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 ## Issues/TODO
 
+- NetConfig may be incorrectly kicking clients.
 - ItemBoilerplate currently has no support for adding ItemDisplayRules.
 - Items which players have but were disabled mid-run need a UI indicator for such.
 - See the GitHub repo for more!
 
 ## Changelog
+
+**1.0.1**
+
+- Added config options to partially/completely disable NetConfig mismatch checking, and increased the timeout time from 10s to 30s. This is a holdover until the root cause of the relevant issue can be found and addressed.
 
 **1.0.0**
 

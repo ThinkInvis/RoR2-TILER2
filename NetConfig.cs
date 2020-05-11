@@ -300,7 +300,7 @@ namespace TILER2 {
         
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private void Update() {
-            if(!NetworkServer.active) return;
+            if(!TILER2Plugin.gCfgMismatchTimeout.Value || !NetworkServer.active) return;
             connectionsToCheck.ForEach(x => {
                 x.timeRemaining -= Time.unscaledDeltaTime;
                 if(x.timeRemaining <= 0f) {
@@ -318,7 +318,7 @@ namespace TILER2 {
             public string password;
             public float timeRemaining;
         }
-        private const float connCheckWaitTime = 10f;
+        private const float connCheckWaitTime = 30f;
         private static readonly List<WaitingConnCheck> connectionsToCheck = new List<WaitingConnCheck>();
         internal static readonly List<NetworkConnection> checkedConnections = new List<NetworkConnection>();
 
@@ -332,8 +332,12 @@ namespace TILER2 {
                 Debug.Log("TILER2: Connection " + match.connection.connectionId + " passed config check");
                 connectionsToCheck.Remove(match);
             } else if(result == "FAIL"){
-                Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check, kicking");
-                RoR2.Networking.GameNetworkManager.singleton.ServerKickClient(match.connection, RoR2.Networking.GameNetworkManager.KickReason.Unspecified);
+                if(TILER2Plugin.gCfgMismatchKick.Value) {
+                    Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check, kicking");
+                    RoR2.Networking.GameNetworkManager.singleton.ServerKickClient(match.connection, RoR2.Networking.GameNetworkManager.KickReason.Unspecified);
+                } else {
+                    Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check");
+                }
                 connectionsToCheck.Remove(match);
             } else {
                 Debug.LogError("TILER2: POSSIBLE SECURITY ISSUE: Received registered connection and correct password in CheckRespond, but result is not valid");
