@@ -127,7 +127,6 @@ namespace TILER2 {
 
         [ConCommand(commandName = "aic_checkrespond", flags = ConVarFlags.ExecuteOnServer)]
         public static void ConCmdAICCheckRespond(ConCommandArgs args) {
-            Debug.Log("aiccheckrespond");
             EnsureOrchestrator();
             NetConfigOrchestrator.instance.CheckRespond(args.sender.connectionToClient, args[0], args[1]);
         }

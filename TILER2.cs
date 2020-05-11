@@ -45,7 +45,6 @@ namespace TILER2 {
             On.RoR2.Run.BuildDropTable += (orig, self) => {
                 foreach(ItemBoilerplate bpl in masterItemList) {
                     if(!bpl.enabled) {
-                        Debug.Log("Removing " + bpl.itemCodeName);
                         if(bpl is Equipment) self.availableEquipment.RemoveEquipment(((Equipment)bpl).regIndex);
                         else if(bpl is Item) self.availableItems.RemoveItem(((Item)bpl).regIndex);
                     }

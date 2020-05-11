@@ -78,10 +78,8 @@ namespace TILER2 {
                 } else if(args.target.boundProperty.Name == nameof(itemAIB)) {
                     var hasAIB = regDef.tags.Contains(ItemTag.AIBlacklist);
                     if(hasAIB && !itemAIB) {
-                        Debug.Log("removing from AIB");
                         regDef.tags = regDef.tags.Where(tag => tag != ItemTag.AIBlacklist).ToArray();
                     } else if(!hasAIB && itemAIB) {
-                        Debug.Log("adding to AIB");
                         var nl = regDef.tags.ToList();
                         nl.Add(ItemTag.AIBlacklist);
                         regDef.tags = nl.ToArray();
@@ -153,7 +151,6 @@ namespace TILER2 {
             if(dplist == null) return 0;
             int count = 0;
             foreach(DeployableInfo d in dplist) {
-                Debug.Log(d.deployable.name);
                 count += GetCount(d.deployable.gameObject.GetComponent<Inventory>());
             }
             return count;
@@ -310,7 +307,6 @@ namespace TILER2 {
                 }
             
                 if((args.flags & AutoUpdateEventFlags.InvalidateModel) == AutoUpdateEventFlags.InvalidateModel) {
-                    Debug.Log("model invalidated");
                     var newModel = NewPickupModel();
                     if(newModel != null) {
                         if(pickupDef != null) pickupDef.displayPrefab = newModel;
