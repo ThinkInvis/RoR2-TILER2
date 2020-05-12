@@ -1,5 +1,15 @@
 # TILER2
 
+## SUPPORT DISCLAIMER
+
+### Use of a mod manager is STRONGLY RECOMMENDED.
+
+Seriously, use a mod manager.
+
+If the versions of TILER2 (or possibly any other mods) are different between your game and other players' in multiplayer, things WILL break. If TILER2 is causing kicks for "unspecified reason", it's likely due to a mod version mismatch. Ensure that all players in a server, including the host and/or dedicated server, are using the same mod versions before reporting a bug.
+
+**While reporting a bug, make sure to post a console log** (`path/to/RoR2/BepInEx/LogOutput.log`) from a run of the game where the bug happened; this often provides important information about why the bug is happening. If the bug is multiplayer-only, please try to include logs from both server and client.
+
 ## Description
 
 TILER2 is a library mod. It won't do much on its own, but it may be required for some other mods.
@@ -28,12 +38,15 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 ## Issues/TODO
 
-- NetConfig may be incorrectly kicking clients.
 - ItemBoilerplate currently has no support for adding ItemDisplayRules.
 - Items which players have but were disabled mid-run need a UI indicator for such.
 - See the GitHub repo for more!
 
 ## Changelog
+
+**1.0.2**
+
+- NetConfig mismatch checking now has custom kick messages, and a third option for kicking clients that have missing config entries (likely due to different mod versions). All kick options are now enabled by default, and the timeout time has been reduced to 15s.
 
 **1.0.1**
 
