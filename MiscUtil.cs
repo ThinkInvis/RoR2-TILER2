@@ -11,6 +11,13 @@ using System.Linq.Expressions;
 
 namespace TILER2 {
     public static class MiscUtil {
+        public static float Wrap(float x, float min, float max) {
+            if(x < min)
+                return max - (min - x) % (max - min);
+            else
+                return min + (x - min) % (max - min);
+        }
+
         public static void ReflAddEventHandler(this EventInfo evt, object o, Action<object, EventArgs> lam) {
             var pArr = evt.EventHandlerType.GetMethod("Invoke").GetParameters().Select(p=>Expression.Parameter(p.ParameterType)).ToArray();
             var h = Expression.Lambda(evt.EventHandlerType, Expression.Call(Expression.Constant(lam),lam.GetType().GetMethod("Invoke"),pArr[0],pArr[1]),pArr).Compile();

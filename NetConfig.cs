@@ -126,6 +126,36 @@ namespace TILER2 {
             }
         }
 
+        #if DEBUG
+        [ConCommand(commandName = "aic_scramble")]
+        public static void ConCmdAICScramble(ConCommandArgs args) {
+            var rng = new Xoroshiro128Plus(0);
+            AutoItemConfig.instances.ForEach(x => {
+                /*if(x.configEntry.Description.AcceptableValues is AcceptableValueList) {
+
+                } else if(x.configEntry.Description.AcceptableValues is AcceptableValueRange)*/
+                var av = x.configEntry.Description.AcceptableValues;
+                if(x.propType == typeof(bool))
+                    x.UpdateProperty(rng.nextBool);
+                else if(x.propType == typeof(int)) {
+                    if(av != null && av is AcceptableValueRange<int>)
+                        x.UpdateProperty((int)Mathf.Lerp(((AcceptableValueRange<int>)av).MinValue, ((AcceptableValueRange<int>)av).MaxValue, rng.nextNormalizedFloat));
+                    else if(av != null && av is AcceptableValueList<int>)
+                        x.UpdateProperty(rng.NextElementUniform(((AcceptableValueList<int>)av).AcceptableValues));
+                    else
+                        x.UpdateProperty(rng.nextInt);
+                } else if(x.propType == typeof(float)) {
+                    if(av != null && av is AcceptableValueRange<float>)
+                        x.UpdateProperty(Mathf.Lerp(((AcceptableValueRange<float>)av).MinValue, ((AcceptableValueRange<float>)av).MaxValue, rng.nextNormalizedFloat));
+                    else if(av != null && av is AcceptableValueList<float>)
+                        x.UpdateProperty(rng.NextElementUniform(((AcceptableValueList<float>)av).AcceptableValues));
+                    else
+                        x.UpdateProperty((rng.nextNormalizedFloat - 0.5f) * float.MaxValue);
+                }
+            });
+        }
+        #endif
+
         [ConCommand(commandName = "aic_checkrespond", flags = ConVarFlags.ExecuteOnServer)]
         public static void ConCmdAICCheckRespond(ConCommandArgs args) {
             EnsureOrchestrator();
