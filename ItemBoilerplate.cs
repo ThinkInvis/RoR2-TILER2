@@ -140,10 +140,12 @@ namespace TILER2 {
             return inv?.GetItemCount(regIndex) ?? 0;
         }
         public int GetCount(CharacterMaster chrm) {
-            return chrm?.inventory?.GetItemCount(regIndex) ?? 0;
+            if(!chrm || !chrm.inventory) return 0;
+            return chrm.inventory.GetItemCount(regIndex);
         }
         public int GetCount(CharacterBody body) {
-            return body?.inventory?.GetItemCount(regIndex) ?? 0;
+            if(!body || !body.inventory) return 0;
+            return body.inventory.GetItemCount(regIndex);
         }
         public int GetCountOnDeploys(CharacterMaster master) {
             if(master == null) return 0;
