@@ -27,23 +27,52 @@ namespace TILER2 {
         internal static FilingDictionary<ItemBoilerplate> masterItemList = new FilingDictionary<ItemBoilerplate>();
 
         internal ConfigFile cfgFile;
-
+        
+        internal static ConfigEntry<bool> gCfgEnableCheck;
         internal static ConfigEntry<bool> gCfgMismatchKick;
-        internal static ConfigEntry<bool> gCfgMismatchTimeout;
-        internal static ConfigEntry<bool> gCfgMismatchCheck;
+        internal static ConfigEntry<bool> gCfgBadVersionKick;
+        internal static ConfigEntry<bool> gCfgTimeoutKick;
 
         internal TILER2Plugin() {
             cfgFile = new ConfigFile(System.IO.Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
             
-            gCfgMismatchCheck = cfgFile.Bind(new ConfigDefinition("NetConfig", "EnableCheck"), true, new ConfigDescription(
+            gCfgEnableCheck = cfgFile.Bind(new ConfigDefinition("NetConfig", "EnableCheck"), true, new ConfigDescription(
                 "If false, NetConfig will not check for config mismatches at all."));
-            gCfgMismatchKick = cfgFile.Bind(new ConfigDefinition("NetConfig", "MismatchKick"), false, new ConfigDescription(
-                "If false, NetConfig will not kick clients that fail config checks."));
-            gCfgMismatchTimeout = cfgFile.Bind(new ConfigDefinition("NetConfig", "MismatchTimeoutKick"), false, new ConfigDescription(
-                "If false, NetConfig will not kick clients that take too long to respond to config checks."));
+            gCfgMismatchKick = cfgFile.Bind(new ConfigDefinition("NetConfig", "MismatchKick"), true, new ConfigDescription(
+                "If false, NetConfig will not kick clients that fail config checks (caused by config entries internally marked as both DeferForever and DisallowNetMismatch)."));
+            gCfgBadVersionKick = cfgFile.Bind(new ConfigDefinition("NetConfig", "BadVersionKick"), true, new ConfigDescription(
+                "If false, NetConfig will not kick clients that are missing config entries (may be caused by different mod versions on client)."));
+            gCfgTimeoutKick = cfgFile.Bind(new ConfigDefinition("NetConfig", "TimeoutKick"), true, new ConfigDescription(
+                "If false, NetConfig will not kick clients that take too long to respond to config checks (may be caused by missing mods on client)."));
         }
 
+        internal const int customKickReasonNCCritMismatch = 859321;
+        internal const int customKickReasonNCTimeout = 859322;
+        internal const int customKickReasonNCMissingEntry = 859323;
+
         public void Awake() {
+            var kickMsgType = typeof(RoR2.Networking.GameNetworkManager).GetNestedType("KickMessage", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            var kickMsgReasonProp = kickMsgType.GetProperty("reason");
+
+            LanguageAPI.Add("TILER2_KICKREASON_NCCRITMISMATCH", "TILER2 NetConfig: unable to resolve some config mismatches. Please check your console.");
+            LanguageAPI.Add("TILER2_KICKREASON_NCTIMEOUT", "TILER2 NetConfig: mismatch check timed out. Please check your console, and ask the server host to check theirs.");
+            LanguageAPI.Add("TILER2_KICKREASON_NCMISSINGENTRY", "TILER2 NetConfig: mismatch check found missing entries. You are likely using a different version of a mod than the server.");
+
+            On.RoR2.Networking.GameNetworkManager.KickMessage.GetDisplayToken += (orig, self) => {
+                try {
+                    if(self.GetType() != kickMsgType) return orig(self);
+                    RoR2.Networking.GameNetworkManager.KickReason reason = (RoR2.Networking.GameNetworkManager.KickReason)kickMsgReasonProp.GetValue(self);
+                    if((int)reason == customKickReasonNCCritMismatch) return "TILER2_KICKREASON_NCCRITMISMATCH";
+                    if((int)reason == customKickReasonNCTimeout) return "TILER2_KICKREASON_NCTIMEOUT";
+                    if((int)reason == customKickReasonNCMissingEntry) return "TILER2_KICKREASON_NCMISSINGENTRY";
+                    return orig(self);
+                } catch(Exception ex) {
+                    Debug.LogError("TILER2: failed to inject custom kick message");
+                    Debug.LogError(ex);
+                    return orig(self);
+                }
+            };
+
             //this doesn't seem to fire until the title screen is up, which is good because config file changes shouldn't immediately be read during startup; watch for regression (or just implement a check anyways?)
             On.RoR2.RoR2Application.Update += AutoItemConfigContainer.FilePollUpdateHook;
             On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
@@ -84,6 +113,7 @@ namespace TILER2 {
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, mode) => {
                 AutoItemConfig.CleanupDirty(false);
             };
+
             /*On.RoR2.Run.EndStage += (orig, self) => {
                 orig(self);
                 AutoItemConfig.CleanupDirty(false);
@@ -91,7 +121,7 @@ namespace TILER2 {
             
             On.RoR2.Networking.GameNetworkManager.OnServerAddPlayerInternal += (orig, self, conn, pcid, extraMsg) => {
                 orig(self, conn, pcid, extraMsg);
-                if(!gCfgMismatchCheck.Value || Util.ConnectionIsLocal(conn) || NetConfigOrchestrator.checkedConnections.Contains(conn)) return;
+                if(!gCfgEnableCheck.Value || Util.ConnectionIsLocal(conn) || NetConfigOrchestrator.checkedConnections.Contains(conn)) return;
                 NetConfigOrchestrator.checkedConnections.Add(conn);
                 NetConfig.EnsureOrchestrator();
                 NetConfigOrchestrator.AICSyncAllToOne(conn);

@@ -7,14 +7,15 @@ using System.Linq;
 using static TILER2.MiscUtil;
 using R2API.Utils;
 using R2API;
+using RoR2.Networking;
 using UnityEngine.Networking;
 using System.Collections.Generic;
+using BepInEx.Configuration;
 
 namespace TILER2 {
     internal static class NetConfig {
         internal static GameObject netOrchPrefab;
         internal static GameObject netOrchestrator;
-        
 
         private static readonly RoR2.ConVar.BoolConVar allowClientAICSet = new RoR2.ConVar.BoolConVar("aic_allowclientset", ConVarFlags.None, "false", "If true, clients may use the ConCmds aic_set or aic_settemp to temporarily set config values on the server. If false, aic_set and aic_settemp will not work for clients.");
 
@@ -188,7 +189,7 @@ namespace TILER2 {
             
             object convObj;
             try {
-                convObj = BepInEx.Configuration.TomlTypeConverter.ConvertToValue(convStr, matches[0].propType);
+                convObj = TomlTypeConverter.ConvertToValue(convStr, matches[0].propType);
             } catch {
                 NetConfigOrchestrator.SendConMsg(args.sender, errorPre + "(can't convert argument 2 'newValue' to the target config type, " + matches[0].propType.Name + ").", 1);
                 return;
@@ -215,13 +216,13 @@ namespace TILER2 {
         public static void ConCmdAICSetTemp(ConCommandArgs args) {
             EnsureOrchestrator();
 
-            #if !DEBUG
+#if !DEBUG
             if((!args.sender.hasAuthority) && !allowClientAICSet.value) {
                 Debug.LogWarning("TILER2: Client " + args.sender.userName + " tried to use ConCmd aic_settemp, but ConVar aic_allowclientset is set to false. DO NOT change this convar to true, unless you trust everyone who is in or may later join the server; doing so will allow them to temporarily change some config settings.");
                 NetConfigOrchestrator.SendConMsg(args.sender, "TILER2: ConCmd aic_settemp cannot be used on this server by anyone other than the host.", 1);
                 return;
             }
-            #endif
+#endif
 
             AICSet(args, true);
         }
@@ -232,7 +233,7 @@ namespace TILER2 {
                 Debug.LogWarning("TILER2: ConCmd aic was not passed enough arguments (needs at least 1 to determine which command to route to).");
                 return;
             }
-            string cmdToCall = null;
+            string cmdToCall;
             if(args[0].ToUpper() == "GET") cmdToCall = "aic_get";
             else if(args[0].ToUpper() == "SET") cmdToCall = "aic_set";
             else if(args[0].ToUpper() == "SETTEMP") cmdToCall = "aic_settemp";
@@ -300,12 +301,12 @@ namespace TILER2 {
         
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private void Update() {
-            if(!TILER2Plugin.gCfgMismatchTimeout.Value || !NetworkServer.active) return;
+            if(!TILER2Plugin.gCfgTimeoutKick.Value || !NetworkServer.active) return;
             connectionsToCheck.ForEach(x => {
                 x.timeRemaining -= Time.unscaledDeltaTime;
                 if(x.timeRemaining <= 0f) {
                     Debug.LogWarning("TILER2: Connection " + x.connection.connectionId + " took too long to respond to config check request, kicking");
-                    RoR2.Networking.GameNetworkManager.singleton.ServerKickClient(x.connection, RoR2.Networking.GameNetworkManager.KickReason.Unspecified);
+                    GameNetworkManager.singleton.ServerKickClient(x.connection, (GameNetworkManager.KickReason)TILER2Plugin.customKickReasonNCTimeout);
                     x.connection.Disconnect();
                 }
             });
@@ -318,7 +319,7 @@ namespace TILER2 {
             public string password;
             public float timeRemaining;
         }
-        private const float connCheckWaitTime = 30f;
+        private const float connCheckWaitTime = 15f;
         private static readonly List<WaitingConnCheck> connectionsToCheck = new List<WaitingConnCheck>();
         internal static readonly List<NetworkConnection> checkedConnections = new List<NetworkConnection>();
 
@@ -331,12 +332,22 @@ namespace TILER2 {
             if(result == "PASS") {
                 Debug.Log("TILER2: Connection " + match.connection.connectionId + " passed config check");
                 connectionsToCheck.Remove(match);
-            } else if(result == "FAIL"){
+            } else if(result == "FAILMM"){
                 if(TILER2Plugin.gCfgMismatchKick.Value) {
-                    Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check, kicking");
-                    RoR2.Networking.GameNetworkManager.singleton.ServerKickClient(match.connection, RoR2.Networking.GameNetworkManager.KickReason.Unspecified);
+                    Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check (crit mismatch), kicking");
+                    GameNetworkManager.singleton.ServerKickClient(match.connection, (GameNetworkManager.KickReason)TILER2Plugin.customKickReasonNCCritMismatch);
                 } else {
-                    Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check");
+                    Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check (crit mismatch)");
+                }
+                connectionsToCheck.Remove(match);
+            } else if(result == "FAILBV"
+                || result == "FAIL") { //from old mod version
+                var msg = (result == "FAIL") ? "using old TILER2 version" : "missing entries";
+                if(TILER2Plugin.gCfgBadVersionKick.Value) {
+                    Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check (" + msg + "), kicking");
+                    GameNetworkManager.singleton.ServerKickClient(match.connection, (GameNetworkManager.KickReason)TILER2Plugin.customKickReasonNCMissingEntry);
+                } else {
+                    Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check (" + msg + ")");
                 }
                 connectionsToCheck.Remove(match);
             } else {
@@ -351,7 +362,7 @@ namespace TILER2 {
             var categories = new List<string>();
             var cfgnames = new List<string>();
             foreach(var i in validInsts) {
-                serValues.Add(BepInEx.Configuration.TomlTypeConverter.ConvertToString(i.cachedValue, i.propType));
+                serValues.Add(TomlTypeConverter.ConvertToString(i.cachedValue, i.propType));
                 modnames.Add(i.modName);
                 categories.Add(i.configEntry.Definition.Section);
                 cfgnames.Add(i.configEntry.Definition.Key);
@@ -373,18 +384,20 @@ namespace TILER2 {
         private void TargetAICSyncAllToOne(NetworkConnection target, string password, string[] modnames, string[] categories, string[] cfgnames, string[] values) {
             int matches = 0;
             bool foundCrit = false;
+            bool foundWarn = false;
             for(var i = 0; i < modnames.Length; i++) {
                 var res = CliAICSync(modnames[i], categories[i], cfgnames[i], values[i], true);
                 if(res == 1) matches++;
-                else if(res == -1) foundCrit = true;
+                else if(res == -1) foundWarn = true;
+                else if(res == -2) foundCrit = true;
             }
             if(foundCrit == true) {
-                Debug.LogError("TILER2: The above no-mismatch-allowed config entries are different on the server, and they cannot be changed while the game is running. Please close the game, change these entries to match the server's, then restart and rejoin the server.");
-                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyInstancesList[0], "AIC_CheckRespond " + password + " FAIL");
+                Debug.LogError("TILER2: The above config entries marked with \"CRITICAL MISMATCH\" are different on the server, and they cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
+                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyInstancesList[0], "AIC_CheckRespond " + password + " FAILMM");
                 return;
             }
             else if(matches > 0) Chat.AddMessage("Synced <color=#ffff00>"+ matches +" setting changes</color> from the server temporarily. Check the console for details.");
-            RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyInstancesList[0], "AIC_CheckRespond " + password + " PASS");
+            RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyInstancesList[0], "AIC_CheckRespond " + password + (foundWarn ? " FAILBV" : " PASS"));
         }
 
         [Server]
@@ -392,7 +405,7 @@ namespace TILER2 {
             foreach(var user in NetworkUser.readOnlyInstancesList) {
                 if(user.hasAuthority || (user.connectionToClient != null && Util.ConnectionIsLocal(user.connectionToClient))) continue;
                 TargetAICSyncOneToAll(user.connectionToClient, targetConfig.modName, targetConfig.configEntry.Definition.Section, targetConfig.configEntry.Definition.Key,
-                    BepInEx.Configuration.TomlTypeConverter.ConvertToString(newValue, targetConfig.propType));
+                    TomlTypeConverter.ConvertToString(newValue, targetConfig.propType));
             }
         }
 
@@ -411,17 +424,17 @@ namespace TILER2 {
             });
             if(exactMatches.Count > 1) {
                 Debug.LogError("TILER2: (Server requesting update) There are multiple config entries with the path \"" + modname + "/" + category + "/" + cfgname + "\"; this should never happen! Please report this as a bug.");
-                return 0;
+                return -1;
             } else if(exactMatches.Count == 0) {
-                Debug.LogError("TILER2: The server requested an update for a nonexistent config entry with the path \"" + modname + "/" + category + "/" + cfgname + "\". Make sure you're using the same mods as the server!");
-                return 0;
+                Debug.LogError("TILER2: The server requested an update for a nonexistent config entry with the path \"" + modname + "/" + category + "/" + cfgname + "\". Make sure you're using the same mods AND mod versions as the server!");
+                return -1;
             }
 
-            var newVal = BepInEx.Configuration.TomlTypeConverter.ConvertToValue(value, exactMatches[0].propType);
+            var newVal = TomlTypeConverter.ConvertToValue(value, exactMatches[0].propType);
             if(!exactMatches[0].cachedValue.Equals(newVal)) {
                 if(exactMatches[0].netMismatchCritical) {
                     Debug.LogError("CRITICAL MISMATCH on \"" + modname + "/" + category + "/" + cfgname + "\": Requested " + newVal.ToString() + " vs current " + exactMatches[0].cachedValue.ToString());
-                    return -1;
+                    return -2;
                 }
                 exactMatches[0].OverrideProperty(newVal, silent);
                 return 1;
