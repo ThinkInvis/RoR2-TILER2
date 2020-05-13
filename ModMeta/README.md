@@ -26,7 +26,7 @@ The DebugUtil module adds the console command `evo_setitem`.
 
 #### NetConfig
 
-The NetConfig module automatically syncs important config settings from the server to any connecting clients, and kicks clients with critical config mismatches which can't be resolved (i.e. settings that can't be changed while the game is running).
+The NetConfig module automatically syncs important config settings from the server to any connecting clients, and kicks clients with critical config mismatches which can't be resolved (i.e. settings that can't be changed while the game is running, or client has different mods than server).
 
 NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, and `aic`; and the convar `bool aic_allowclientset`.
 
@@ -44,9 +44,11 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 ## Changelog
 
-**1.0.2**
+**1.1.0**
 
 - NetConfig mismatch checking now has custom kick messages, and a third option for kicking clients that have missing config entries (likely due to different mod versions). All kick options are now enabled by default, and the timeout time has been reduced to 15s.
+- Added MiscUtil.CloneSkillDef.
+- Added command to debug builds only: aic_scramble.
 
 **1.0.1**
 

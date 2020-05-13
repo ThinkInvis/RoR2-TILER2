@@ -17,7 +17,7 @@ namespace TILER2 {
     [BepInPlugin(ModGuid, ModName, ModVer)]
     [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(ResourcesAPI), nameof(PlayerAPI), nameof(PrefabAPI), nameof(BuffAPI), nameof(CommandHelper))]
     public class TILER2Plugin:BaseUnityPlugin {
-        public const string ModVer = "1.0.1";
+        public const string ModVer = "1.1.0";
         public const string ModName = "TILER2";
         public const string ModGuid = "com.ThinkInvisible.TILER2";
         
