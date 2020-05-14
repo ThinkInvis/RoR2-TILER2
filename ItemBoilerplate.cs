@@ -163,7 +163,8 @@ namespace TILER2 {
         public EquipmentDef regDef {get; private set;}
         public CustomEquipment regEqp {get; private set;}
 
-        public virtual float eqpCooldown => 45f; //TODO: allow this to change (other things too but this first), use config?, add a getter function to update ingame cooldown properly if in use
+        [AutoItemConfig("The base cooldown of the equipment, in seconds.", AutoItemConfigFlags.DeferUntilNextStage, 0f, float.MaxValue)]
+        public virtual float eqpCooldown {get; protected set;} = 45f; //TODO: add a getter function to update ingame cooldown properly if in use; marked as DeferUntilNextStage until then
         public virtual bool eqpEnigmable => true;
         public virtual bool eqpIsLunar => false;
         
