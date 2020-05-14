@@ -12,6 +12,20 @@ using RoR2.Skills;
 
 namespace TILER2 {
     public static class MiscUtil {
+        /// <summary>Calls RecalculateValues on all GenericSkill instances (on living CharacterBodies) which have the target SkillDef.</summary>
+        public static void GlobalUpdateSkillDef(SkillDef targetDef) {
+            AliveList().ForEach(cb => {
+                if(!cb.hasBody) return;
+                var sloc = cb.GetBody().skillLocator;
+                if(!sloc) return;
+                for(var i = 0; i < sloc.skillSlotCount; i++) {
+                    var tsk = sloc.GetSkillAtIndex(i);
+                    if(tsk.skillDef == targetDef)
+                        tsk.RecalculateValues();
+                }
+            });
+        }
+
         public static SkillDef CloneSkillDef(SkillDef oldDef) {
             var newDef = ScriptableObject.CreateInstance<SkillDef>();
 
