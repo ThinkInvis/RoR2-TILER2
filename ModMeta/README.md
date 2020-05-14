@@ -44,6 +44,11 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 ## Changelog
 
+**1.1.1**
+
+- Added MiscUtil.GlobalUpdateSkillDef.
+- ItemBoilerplate: Equipment cooldown is now configurable.
+
 **1.1.0**
 
 - NetConfig mismatch checking now has custom kick messages, and a third option for kicking clients that have missing config entries (likely due to different mod versions). All kick options are now enabled by default, and the timeout time has been reduced to 15s.
