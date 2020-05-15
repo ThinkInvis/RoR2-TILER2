@@ -13,7 +13,7 @@ using System.Collections.Generic;
 using BepInEx.Configuration;
 
 namespace TILER2 {
-    internal static class NetConfig {
+    public static class NetConfig {
         internal static GameObject netOrchPrefab;
         internal static GameObject netOrchestrator;
 
@@ -157,7 +157,7 @@ namespace TILER2 {
         #endif
 
         [ConCommand(commandName = "aic_checkrespond", flags = ConVarFlags.ExecuteOnServer)]
-        public static void ConCmdAICCheckRespond(ConCommandArgs args) {
+        internal static void ConCmdAICCheckRespond(ConCommandArgs args) {
             EnsureOrchestrator();
             NetConfigOrchestrator.instance.CheckRespond(args.sender.connectionToClient, args[0], args[1]);
         }
@@ -289,7 +289,7 @@ namespace TILER2 {
     }
     
 
-    internal class NetConfigOrchestrator : NetworkBehaviour {
+    public class NetConfigOrchestrator : NetworkBehaviour {
         internal static NetConfigOrchestrator instance;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
@@ -297,7 +297,7 @@ namespace TILER2 {
             instance = this;
         }
 
-        internal static void SendConMsg(NetworkUser user, string msg, int severity = 0) {
+        public static void SendConMsg(NetworkUser user, string msg, int severity = 0) {
             if(user == null || user.hasAuthority)
                 ConMsg(msg, severity);
             else
@@ -320,7 +320,7 @@ namespace TILER2 {
         }
 
         [Server]
-        internal static void ServerSendGlobalChatMsg(string msg) {
+        public static void ServerSendGlobalChatMsg(string msg) {
             instance.RpcGlobalChatMsg(msg);
         }
 
