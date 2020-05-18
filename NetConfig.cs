@@ -421,13 +421,14 @@ namespace TILER2 {
                 else if(res == -1) foundWarn = true;
                 else if(res == -2) foundCrit = true;
             }
+            if(NetworkUser.readOnlyLocalPlayersList.Count == 0) Debug.LogError("TILER2: Received TargetAICSyncAllToOne, but readOnlyLocalPlayersList is empty; can't send response");
             if(foundCrit == true) {
                 Debug.LogError("TILER2: The above config entries marked with \"CRITICAL MISMATCH\" are different on the server, and they cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
-                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyInstancesList[0], "AIC_CheckRespond " + password + " FAILMM");
+                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "AIC_CheckRespond " + password + " FAILMM");
                 return;
             }
             else if(matches > 0) Chat.AddMessage("Synced <color=#ffff00>"+ matches +" setting changes</color> from the server temporarily. Check the console for details.");
-            RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyInstancesList[0], "AIC_CheckRespond " + password + (foundWarn ? " FAILBV" : " PASS"));
+            RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "AIC_CheckRespond " + password + (foundWarn ? " FAILBV" : " PASS"));
         }
 
         [Server]
