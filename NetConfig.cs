@@ -186,7 +186,15 @@ namespace TILER2 {
                 return;
             }
 
-            Debug.Log("\"" + matches[0].readablePath + "\" (" + matches[0].propType.Name + "): " + (matches[0].configEntry.Description?.Description ?? "[no description]") + "\nCurrent value: " + matches[0].cachedValue.ToString());
+            var strs = new List<string>();
+            strs.Add("\"" + matches[0].readablePath + "\" (" + matches[0].propType.Name + "): " + (matches[0].configEntry.Description?.Description ?? "[no description]"));
+            strs.Add("Current value: " + matches[0].cachedValue.ToString());
+            if(AutoItemConfig.stageDirtyInstances.ContainsKey(matches[0]))
+                strs.Add("Will be changed to " + AutoItemConfig.stageDirtyInstances[matches[0]].Item1.ToString() + " after this stage");
+            if(AutoItemConfig.runDirtyInstances.ContainsKey(matches[0]))
+                strs.Add("Will be changed to " + AutoItemConfig.runDirtyInstances[matches[0]].ToString() + " after the game ends");
+
+            Debug.Log(String.Join("\n", strs));
         }
 
         private static void AICSet(ConCommandArgs args, bool isTemporary) {
