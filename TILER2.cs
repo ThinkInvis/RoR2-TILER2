@@ -87,21 +87,52 @@ namespace TILER2 {
             netOrchPrefabPrefab.AddComponent<NetworkIdentity>();
             NetConfig.netOrchPrefab = netOrchPrefabPrefab.InstantiateClone("TILER2NetConfigOrchestratorPrefab");
             NetConfig.netOrchPrefab.AddComponent<NetConfigOrchestrator>();
-
+            
+            bool itemDropAPISupportsRemoval = typeof(ItemDropAPI).GetMethods().Where(m => m.Name == "RemoveFromDefaultByTier").Count() > 0;
             On.RoR2.Run.BuildDropTable += (orig, self) => {
+                var newItemMask = self.availableItems;
+                var newEqpMask = self.availableEquipment;
                 foreach(ItemBoilerplate bpl in masterItemList) {
                     if(!bpl.enabled) {
-                        if(bpl is Equipment) self.availableEquipment.RemoveEquipment(((Equipment)bpl).regIndex);
-                        else if(bpl is Item) self.availableItems.RemoveItem(((Item)bpl).regIndex);
+                        if(bpl is Equipment eqp) newEqpMask.RemoveEquipment(eqp.regIndex);
+                        else if(bpl is Item item) newItemMask.RemoveItem(item.regIndex);
+                    }
+                }
+                self.availableItems = newItemMask;
+                self.availableEquipment = newEqpMask;
+                self.NetworkavailableItems = newItemMask;
+                self.NetworkavailableEquipment = newEqpMask;
+                //ItemDropAPI completely overwrites drop tables; need to perform separate removal
+                if(R2API.R2API.IsLoaded("ItemDropAPI")) {
+                    //RemoveFromDefaultAllTiers is in a potentially unreleased R2API update
+                    if(itemDropAPISupportsRemoval) {
+                        TemporaryCompat.ItemDropAPIRemoveAll();
+                    } else {
+                        //Temporary reflection patch. TODO: remove at some point after R2API updates
+                        Dictionary<ItemTier, List<ItemIndex>> ati = (Dictionary<ItemTier, List<ItemIndex>>)typeof(ItemDropAPI).GetFieldCached("AdditionalTierItems").GetValue(null);
+                        List<EquipmentIndex> aeqp = (List<EquipmentIndex>)typeof(ItemDropAPI).GetFieldCached("AdditionalEquipment").GetValue(null);
+                        foreach(ItemBoilerplate bpl in masterItemList) {
+                            if(bpl is Equipment eqp) {
+                                if(eqp.enabled) {
+                                    if(!aeqp.Contains(eqp.regIndex)) aeqp.Add(eqp.regIndex);
+                                } else aeqp.Remove(eqp.regIndex);
+                            } else if(bpl is Item item) {
+                                if(item.enabled) {
+                                    if(!ati[item.itemTier].Contains(item.regIndex)) ati[item.itemTier].Add(item.regIndex);
+                                } else ati[item.itemTier].Remove(item.regIndex);
+                            }
+                        }
                     }
                 }
                 orig(self);
+                //should force-update most cached drop tables
+                typeof(PickupDropTable).GetMethodCached("RegenerateAll").Invoke(null, new object[]{Run.instance});
+                //update existing Command droplets. part of an effort to disable items mid-stage, may not be necessary while that's prevented
                 var pickerOptions = typeof(PickupPickerController).GetFieldCached("options");
                 foreach(var picker in FindObjectsOfType<PickupPickerController>()) {
                     var oldOpt = ((PickupPickerController.Option[])pickerOptions.GetValue(picker))[0];
                     picker.SetOptionsFromPickupForCommandArtifact(oldOpt.pickupIndex);
                 }
-                //TODO: reroll (removed) items in choice boxes
             };
             
             On.RoR2.Networking.GameNetworkManager.Disconnect += (orig, self) => {
