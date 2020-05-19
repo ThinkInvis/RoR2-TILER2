@@ -190,9 +190,13 @@ namespace TILER2 {
             strs.Add("\"" + matches[0].readablePath + "\" (" + matches[0].propType.Name + "): " + (matches[0].configEntry.Description?.Description ?? "[no description]"));
             strs.Add("Current value: " + matches[0].cachedValue.ToString());
             if(AutoItemConfig.stageDirtyInstances.ContainsKey(matches[0]))
-                strs.Add("Will be changed to " + AutoItemConfig.stageDirtyInstances[matches[0]].Item1.ToString() + " after this stage");
-            if(AutoItemConfig.runDirtyInstances.ContainsKey(matches[0]))
-                strs.Add("Will be changed to " + AutoItemConfig.runDirtyInstances[matches[0]].ToString() + " after the game ends");
+                strs.Add("Value next stage: " + AutoItemConfig.stageDirtyInstances[matches[0]].Item1.ToString());
+            if(AutoItemConfig.runDirtyInstances.ContainsKey(matches[0])) {
+                if(AutoItemConfig.runDirtyInstances[matches[0]].Equals(matches[0].configEntry.BoxedValue))
+                    strs.Add("Temp. override; original value: " + AutoItemConfig.runDirtyInstances[matches[0]].ToString());
+                else
+                    strs.Add("Value after game ends: " + AutoItemConfig.runDirtyInstances[matches[0]].ToString());
+            }
 
             Debug.Log(String.Join("\n", strs));
         }
