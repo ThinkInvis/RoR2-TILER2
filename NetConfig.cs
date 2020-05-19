@@ -300,8 +300,10 @@ namespace TILER2 {
         public static void SendConMsg(NetworkUser user, string msg, int severity = 0) {
             if(user == null || user.hasAuthority)
                 ConMsg(msg, severity);
-            else
+            else {
+                NetConfig.EnsureOrchestrator();
                 instance.TargetConMsg(user.connectionToClient, msg, severity);
+            }
         }
 
         [TargetRpc]
@@ -321,6 +323,7 @@ namespace TILER2 {
 
         [Server]
         public static void ServerSendGlobalChatMsg(string msg) {
+            NetConfig.EnsureOrchestrator();
             instance.RpcGlobalChatMsg(msg);
         }
 
