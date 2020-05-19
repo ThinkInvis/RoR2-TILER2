@@ -127,7 +127,7 @@ namespace TILER2 {
                 TILER2Plugin.globalStatsDirty = true;
             if((e.flags & AutoUpdateEventFlags.InvalidateDropTable) == AutoUpdateEventFlags.InvalidateDropTable)
                 TILER2Plugin.globalDropsDirty = true;
-            if(!e.silent && (e.flags & AutoUpdateEventFlags.AnnounceToRun) == AutoUpdateEventFlags.AnnounceToRun)
+            if(!e.silent && (e.flags & AutoUpdateEventFlags.AnnounceToRun) == AutoUpdateEventFlags.AnnounceToRun && NetworkServer.active)
                 NetConfigOrchestrator.ServerSendGlobalChatMsg("The setting <color=#ffffaa>" + e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + "</color> has been changed from <color=#ffaaaa>" + e.oldValue.ToString() + "</color> to <color=#aaffaa>" + e.newValue.ToString() + "</color>.");
         }
 
