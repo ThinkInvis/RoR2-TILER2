@@ -119,7 +119,7 @@ namespace TILER2 {
             };
 
             itemTags = Array.AsReadOnly(iarr);
-            regItem = new CustomItem(regDef, new ItemDisplayRuleDict(null));
+            regItem = new CustomItem(regDef, displayRules);
             regIndex = ItemAPI.Add(regItem);
         }
 
@@ -229,7 +229,7 @@ namespace TILER2 {
                 isLunar = eqpIsLunar,
                 canDrop = true
             };
-            regEqp = new CustomEquipment(regDef, new ItemDisplayRuleDict(null));
+            regEqp = new CustomEquipment(regDef, displayRules);
             regIndex = ItemAPI.Add(regEqp);
         }
 
@@ -329,6 +329,8 @@ namespace TILER2 {
         public string modelPathName {get; protected set;}
         ///<summary>A resource string pointing to the item's icon.</summary>
         public string iconPathName {get; protected set;}
+        
+        protected ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
             
         ///<summary>Set to true when SetupConfig is called; prevents SetupConfig from being called multiple times on the same instance.</summary>
         public bool configDone {get; private protected set;} = false;
