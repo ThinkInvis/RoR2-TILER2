@@ -122,12 +122,13 @@ namespace TILER2 {
         internal void OnConfigChanged(AutoUpdateEventArgs e) {
             ConfigEntryChanged?.Invoke(this, e);
             Debug.Log(e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + ": " + e.oldValue.ToString() + " > " + e.newValue.ToString());
-            if((e.flags & AutoUpdateEventFlags.InvalidateStats) == AutoUpdateEventFlags.InvalidateStats && (Run.instance?.isActiveAndEnabled ?? false)) {
-                MiscUtil.AliveList().ForEach(cm => {if(cm.hasBody) cm.GetBody().RecalculateStats();});
-            }
-            if(!e.silent && (e.flags & AutoUpdateEventFlags.AnnounceToRun) == AutoUpdateEventFlags.AnnounceToRun) {
+            if(!(Run.instance?.isActiveAndEnabled ?? false)) return;
+            if((e.flags & AutoUpdateEventFlags.InvalidateStats) == AutoUpdateEventFlags.InvalidateStats)
+                TILER2Plugin.globalStatsDirty = true;
+            if((e.flags & AutoUpdateEventFlags.InvalidateDropTable) == AutoUpdateEventFlags.InvalidateDropTable)
+                TILER2Plugin.globalDropsDirty = true;
+            if(!e.silent && (e.flags & AutoUpdateEventFlags.AnnounceToRun) == AutoUpdateEventFlags.AnnounceToRun)
                 NetConfigOrchestrator.ServerSendGlobalChatMsg("The setting <color=#ffffaa>" + e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + "</color> has been changed from <color=#ffaaaa>" + e.oldValue.ToString() + "</color> to <color=#aaffaa>" + e.newValue.ToString() + "</color>.");
-            }
         }
 
         private static readonly Dictionary<ConfigFile, DateTime> observedFiles = new Dictionary<ConfigFile, DateTime>();
@@ -383,20 +384,22 @@ namespace TILER2 {
     [Flags]
     public enum AutoUpdateEventFlags {
         None = 0,
-        ///<summary>Causes an update to the linked item's language registry.</summary>
+        ///<summary>Causes an immediate update to the linked item's language registry.</summary>
         InvalidateNameToken = 1,
-        ///<summary>Causes an update to the linked item's language registry.</summary>
+        ///<summary>Causes an immediate update to the linked item's language registry.</summary>
         InvalidatePickupToken = 2,
-        ///<summary>Causes an update to the linked item's language registry.</summary>
+        ///<summary>Causes an immediate update to the linked item's language registry.</summary>
         InvalidateDescToken = 4,
-        ///<summary>Causes an update to the linked item's language registry.</summary>
+        ///<summary>Causes an immediate update to the linked item's language registry.</summary>
         InvalidateLoreToken = 8,
-        ///<summary>Causes an update to the linked item's pickup model.</summary>
+        ///<summary>Causes an immediate update to the linked item's pickup model.</summary>
         InvalidateModel = 16,
-        ///<summary>Causes RecalculateStats on all copies of CharacterMaster which are alive and have a CharacterBody.</summary>
+        ///<summary>Causes a next-frame RecalculateStats on all copies of CharacterMaster which are alive and have a CharacterBody.</summary>
         InvalidateStats = 32,
-        ///<summary>Causes a chat message to be printed informing all players of the updated setting.</summary>
-        AnnounceToRun = 64
+        ///<summary>Causes a next-frame drop table recalculation.</summary>
+        InvalidateDropTable = 64,
+        ///<summary>Causes an immediate networked chat message informing all players of the updated setting.</summary>
+        AnnounceToRun = 128
     }
 
     public class AutoUpdateEventArgs : EventArgs {

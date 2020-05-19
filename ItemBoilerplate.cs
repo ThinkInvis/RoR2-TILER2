@@ -188,9 +188,6 @@ namespace TILER2 {
             
             ConfigEntryChanged += (sender, args) => {
                 if(args.target.boundProperty.Name == nameof(enabled)) {
-                    if(Run.instance?.enabled == true) {
-                        Run.instance.BuildDropTable();
-                    }
                     if(args.oldValue != args.newValue) {
                         if((bool)args.newValue == true) {
                             LoadBehavior();
@@ -323,7 +320,7 @@ namespace TILER2 {
         public PickupIndex pickupIndex {get; internal set;}
         public RoR2.UI.LogBook.Entry logbookEntry {get; internal set;}
 
-        [AutoUpdateEventInfo(AutoUpdateEventFlags.InvalidateDescToken | AutoUpdateEventFlags.InvalidatePickupToken | AutoUpdateEventFlags.InvalidateStats)]
+        [AutoUpdateEventInfo(AutoUpdateEventFlags.InvalidateDescToken | AutoUpdateEventFlags.InvalidatePickupToken | AutoUpdateEventFlags.InvalidateStats | AutoUpdateEventFlags.InvalidateDropTable)]
         [AutoItemConfig("If false, this item/equipment will not drop ingame, and it will not work if you somehow get a copy (all IL patches and hooks will be disabled for compatibility).",
             AutoItemConfigFlags.PreventNetMismatch | AutoItemConfigFlags.DeferUntilNextStage)]
         public bool enabled {get; protected set;} = true;

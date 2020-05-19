@@ -26,8 +26,11 @@ namespace TILER2 {
 
         internal static FilingDictionary<ItemBoilerplate> masterItemList = new FilingDictionary<ItemBoilerplate>();
 
+        internal static bool globalStatsDirty = false;
+        internal static bool globalDropsDirty = false;
+
         internal ConfigFile cfgFile;
-        
+
         internal static ConfigEntry<bool> gCfgEnableCheck;
         internal static ConfigEntry<bool> gCfgMismatchKick;
         internal static ConfigEntry<bool> gCfgBadVersionKick;
@@ -179,6 +182,22 @@ namespace TILER2 {
 
                 return retv;
             };*/
+        }
+
+        private void Update() {
+            if(!(Run.instance?.isActiveAndEnabled ?? false)) {
+                globalStatsDirty = false;
+                globalDropsDirty = false;
+            } else {
+                if(globalStatsDirty) {
+                    globalStatsDirty = false;
+                    MiscUtil.AliveList().ForEach(cm => {if(cm.hasBody) cm.GetBody().RecalculateStats();});
+                }
+                if(globalDropsDirty) {
+                    globalDropsDirty = false;
+                    Run.instance.BuildDropTable();
+                }
+            }
         }
         
         private void On_PickupCatalogInit(On.RoR2.PickupCatalog.orig_Init orig) {
