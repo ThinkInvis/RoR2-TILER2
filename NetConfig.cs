@@ -331,13 +331,15 @@ namespace TILER2 {
         
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private void Update() {
-            if(!TILER2Plugin.gCfgTimeoutKick.Value || !NetworkServer.active) return;
+            if(!NetworkServer.active) return;
             connectionsToCheck.ForEach(x => {
                 x.timeRemaining -= Time.unscaledDeltaTime;
                 if(x.timeRemaining <= 0f) {
-                    Debug.LogWarning("TILER2: Connection " + x.connection.connectionId + " took too long to respond to config check request, kicking");
-                    GameNetworkManager.singleton.ServerKickClient(x.connection, (GameNetworkManager.KickReason)TILER2Plugin.customKickReasonNCTimeout);
-                    x.connection.Disconnect();
+                    if(TILER2Plugin.gCfgTimeoutKick.Value) {
+                        Debug.LogWarning("TILER2: Connection " + x.connection.connectionId + " took too long to respond to config check request! Kick-on-timeout option is enabled; kicking client.");
+                        GameNetworkManager.singleton.ServerKickClient(x.connection, (GameNetworkManager.KickReason)TILER2Plugin.customKickReasonNCTimeout);
+                    } else
+                        Debug.LogWarning("TILER2: Connection " + x.connection.connectionId + " took too long to respond to config check request! Kick-on-timeout option is disabled.");
                 }
             });
 
