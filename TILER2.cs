@@ -182,6 +182,14 @@ namespace TILER2 {
 
                 return retv;
             };*/
+
+            On.RoR2.Run.Start += (orig, self) => {
+                orig(self);
+                if(!NetworkServer.active) return;
+                var itemRngGenerator = new Xoroshiro128Plus(self.seed);
+                foreach(var bpl in masterItemList)
+                    bpl.itemRng = new Xoroshiro128Plus(itemRngGenerator.nextUlong);
+            };
         }
 
         private void Update() {

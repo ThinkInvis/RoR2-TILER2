@@ -339,6 +339,9 @@ namespace TILER2 {
         ///<summary>Set to true when SetupBehavior is called; prevents SetupBehavior from being called multiple times on the same instance.</summary>
         public bool behaviorDone {get; private protected set;} = false;
 
+        ///<summary>A server-only rng instance based on the current run's seed.</summary>
+        public Xoroshiro128Plus itemRng {get; internal set;}
+
         /// <summary>The item's internal name. Will be identical to the name of the innermost class deriving from ItemBoilerplate.</summary>
         public string itemCodeName {get; private protected set;}
         /// <summary>The item's display name in the mod's default language. Will be used in config files; should also be used in RegLang if called with no language parameter.</summary>
