@@ -43,6 +43,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 ## Changelog
 
+**1.2.1**
+
+- ItemBoilerplate: Added member `public Xoroshiro128Plus itemRng {get; internal set;}`. This is initialized at the start of every run, based on the run's main RNG seed.
+
 **1.2.0**
 
 - ItemBoilerplate:
