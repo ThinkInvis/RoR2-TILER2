@@ -43,6 +43,15 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 ## Changelog
 
+The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
+
+**1.3.0**
+
+- Added StatHooks module.
+- Added `Artifact : ItemBoilerplate`.
+- Migrated some extension methods from ClassicItems (`CharacterBody.SetBuffCount`).
+- GitHub repo is now licensed (GNU GPL3).
+
 **1.2.1**
 
 - ItemBoilerplate: Added member `public Xoroshiro128Plus itemRng {get; internal set;}`. This is initialized at the start of every run, based on the run's main RNG seed.
@@ -73,11 +82,3 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 - NetConfig mismatch checking now has custom kick messages, and a third option for kicking clients that have missing config entries (likely due to different mod versions). All kick options are now enabled by default, and the timeout time has been reduced to 15s.
 - Added MiscUtil.CloneSkillDef.
 - Added concmd to debug builds only: aic_scramble.
-
-**1.0.1**
-
-- Added config options to partially/completely disable NetConfig mismatch checking, and increased the timeout time from 10s to 30s. This is a holdover until the root cause of the relevant issue can be found and addressed.
-
-**1.0.0**
-
-- Initial release. Transferred ItemBoilerplate, MiscUtil, and DebugUtil from ClassicItems to here. Added AutoItemConfig and NetConfig.
