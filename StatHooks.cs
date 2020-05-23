@@ -10,6 +10,7 @@ namespace TILER2 {
             public float healthMultAdd = 0f;
             public float baseHealthAdd = 0f;
             public float regenMultAdd = 0f;
+            public float baseRegenAdd = 0f;
             public float moveSpeedMultAdd = 0f;
             public float jumpPowerMultAdd = 0f;
             public float damageMultAdd = 0f;
@@ -54,10 +55,24 @@ namespace TILER2 {
             } else {
                 Debug.LogError("TILER2/StatHooks: failed to apply IL patch (health modifier)");
             }
+            
+            ILFound = c.TryGotoNext(MoveType.After,
+                x=>x.MatchLdfld<CharacterBody>("baseRegen"),
+                x=>x.MatchLdarg(0),
+                x=>x.MatchLdfld<CharacterBody>("levelRegen"),
+                x=>x.MatchLdloc(out _),
+                x=>x.MatchMul(),
+                x=>x.MatchAdd());
+            if(ILFound) {
+                c.EmitDelegate<Func<float>>(()=>{
+                    return statMods.baseRegenAdd;
+                });
+                c.Emit(OpCodes.Add);
+            } else {
+                Debug.LogError("TILER2/StatHooks: failed to apply IL patch (base regen modifier)");
+            }
 
-            ILFound = c.TryGotoNext(
-                x=>x.MatchLdfld<CharacterBody>("baseRegen"))
-            && c.TryGotoNext(MoveType.After,
+            ILFound = c.TryGotoNext(MoveType.After,
                 x=>x.OpCode == OpCodes.Ldloc_S,
                 x=>x.MatchAdd(),
                 x=>x.OpCode == OpCodes.Ldloc_S,
@@ -72,7 +87,7 @@ namespace TILER2 {
                 });
                 c.Emit(OpCodes.Add);
             } else {
-                Debug.LogError("TILER2/StatHooks: failed to apply IL patch (regen modifier)");
+                Debug.LogError("TILER2/StatHooks: failed to apply IL patch (regen multiplier modifier)");
             }
 
             ILFound = c.TryGotoNext(MoveType.After,
