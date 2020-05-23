@@ -190,6 +190,8 @@ namespace TILER2 {
                 foreach(var bpl in masterItemList)
                     bpl.itemRng = new Xoroshiro128Plus(itemRngGenerator.nextUlong);
             };
+
+            IL.RoR2.CharacterBody.RecalculateStats += StatHooks.IL_CBRecalcStats;
         }
 
         private void Update() {
