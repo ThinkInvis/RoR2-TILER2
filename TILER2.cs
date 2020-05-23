@@ -60,6 +60,7 @@ namespace TILER2 {
             LanguageAPI.Add("TILER2_KICKREASON_NCCRITMISMATCH", "TILER2 NetConfig: unable to resolve some config mismatches. Please check your console.");
             LanguageAPI.Add("TILER2_KICKREASON_NCTIMEOUT", "TILER2 NetConfig: mismatch check timed out. Please check your console, and ask the server host to check theirs.");
             LanguageAPI.Add("TILER2_KICKREASON_NCMISSINGENTRY", "TILER2 NetConfig: mismatch check found missing entries. You are likely using a different version of a mod than the server.");
+            LanguageAPI.Add("TILER2_DISABLED_ARTIFACT", "This artifact is <color=#ff7777>force-disabled</color>; it will have no effect ingame.");
 
             On.RoR2.Networking.GameNetworkManager.KickMessage.GetDisplayToken += (orig, self) => {
                 try {
