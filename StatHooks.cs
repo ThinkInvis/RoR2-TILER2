@@ -20,7 +20,7 @@ namespace TILER2 {
         }
 
         public delegate void StatHookEventHandler(CharacterBody sender, StatHookEventArgs args);
-        public static event StatHookEventHandler OnPreRecalcStats;
+        public static event StatHookEventHandler GetStatCoefficients;
 
         //TODO: backup modifiers in an On. hook
         internal static void IL_CBRecalcStats(ILContext il) {
@@ -30,7 +30,7 @@ namespace TILER2 {
             c.Emit(OpCodes.Ldarg_0);
             c.EmitDelegate<Action<CharacterBody>>((cb) => {
                 statMods = new StatHookEventArgs();
-                OnPreRecalcStats?.Invoke(cb, statMods);
+                GetStatCoefficients?.Invoke(cb, statMods);
             });
             
             bool ILFound = c.TryGotoNext(MoveType.After,
