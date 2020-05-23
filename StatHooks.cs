@@ -19,17 +19,18 @@ namespace TILER2 {
             public float armorAdd = 0f;
         }
 
-        public delegate void StatHookEventHandler(CharacterBody sender, ref StatHookEventArgs args);
+        public delegate void StatHookEventHandler(CharacterBody sender, StatHookEventArgs args);
         public static event StatHookEventHandler OnPreRecalcStats;
 
         //TODO: backup modifiers in an On. hook
         internal static void IL_CBRecalcStats(ILContext il) {
             ILCursor c = new ILCursor(il);
 
-            StatHookEventArgs statMods = new StatHookEventArgs();
+            StatHookEventArgs statMods = null;
             c.Emit(OpCodes.Ldarg_0);
             c.EmitDelegate<Action<CharacterBody>>((cb) => {
-                OnPreRecalcStats?.Invoke(cb, ref statMods);
+                statMods = new StatHookEventArgs();
+                OnPreRecalcStats?.Invoke(cb, statMods);
             });
             
             bool ILFound = c.TryGotoNext(MoveType.After,
@@ -43,9 +44,10 @@ namespace TILER2 {
                 x=>x.MatchLdcR4(out _));
 
             if(ILFound) {
-                c.Index --;
-                c.Next.Operand = (float)c.Next.Operand + statMods.healthMultAdd;
-                c.Index --;
+                c.EmitDelegate<Func<float, float>>((origHealthMult) => {
+                    return origHealthMult + statMods.healthMultAdd;
+                });
+                c.Index -= 3;
                 c.EmitDelegate<Func<float, float>>((origMaxHealth) => {
                     return origMaxHealth + statMods.baseHealthAdd;
                 });
@@ -65,7 +67,9 @@ namespace TILER2 {
                 x=>x.OpCode == OpCodes.Ldloc_S,
                 x=>x.MatchAdd());
             if(ILFound) {
-                c.Emit(OpCodes.Ldc_R4, statMods.regenMultAdd);
+                c.EmitDelegate<Func<float>>(()=>{
+                    return statMods.regenMultAdd;
+                });
                 c.Emit(OpCodes.Add);
             } else {
                 Debug.LogError("TILER2/StatHooks: failed to apply IL patch (regen modifier)");
@@ -81,8 +85,9 @@ namespace TILER2 {
                 x=>x.MatchStloc(out _),
                 x=>x.MatchLdcR4(out _));
             if(ILFound) {
-                c.Index--;
-                c.Next.Operand = (float)c.Next.Operand + statMods.moveSpeedMultAdd;
+                c.EmitDelegate<Func<float, float>>((origMoveSpeedMult) => {
+                    return origMoveSpeedMult + statMods.moveSpeedMultAdd;
+                });
             } else {
                 Debug.LogError("TILER2/StatHooks: failed to apply IL patch (move speed modifier)");
             }
@@ -115,9 +120,10 @@ namespace TILER2 {
                 x=>x.MatchStloc(out _),
                 x=>x.MatchLdcR4(out _));
             if(ILFound) {
-                c.Index--;
-                c.Next.Operand = (float)c.Next.Operand + statMods.damageMultAdd;
-                c.Index--;
+                c.EmitDelegate<Func<float, float>>((origDamageMult) => {
+                    return origDamageMult + statMods.damageMultAdd;
+                });
+                c.Index -= 3;
                 c.EmitDelegate<Func<float, float>>((origDamage) => {
                     return origDamage + statMods.baseDamageAdd;
                 });
@@ -135,8 +141,9 @@ namespace TILER2 {
                 x=>x.MatchStloc(out _),
                 x=>x.MatchLdcR4(out _));
             if(ILFound) {
-                c.Index--;
-                c.Next.Operand = (float)c.Next.Operand + statMods.attackSpeedMultAdd;
+                c.EmitDelegate<Func<float, float>>((origAttackSpeedMult) => {
+                    return origAttackSpeedMult + statMods.attackSpeedMultAdd;
+                });
             } else {
                 Debug.LogError("TILER2/StatHooks: failed to apply IL patch (attack speed modifier)");
             }
@@ -149,8 +156,9 @@ namespace TILER2 {
 
             if(ILFound) {
                 c.Emit(OpCodes.Ldloc, locOrigCrit);
-                c.Emit(OpCodes.Ldc_R4, statMods.critAdd);
-                c.Emit(OpCodes.Add);
+                c.EmitDelegate<Func<float, float>>((origCrit) => {
+                    return origCrit + statMods.critAdd;
+                });
                 c.Emit(OpCodes.Stloc, locOrigCrit);
             } else {
                 Debug.LogError("TILER2/StatHooks: failed to apply IL patch (crit modifier)");
