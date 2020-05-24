@@ -3,13 +3,53 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using System.Runtime.CompilerServices;
 using System.Reflection;
 using RoR2;
+using RoR2.Networking;
 using System.Text.RegularExpressions;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 namespace TILER2 {
+    internal static class AutoItemConfigModule {
+        internal static bool globalStatsDirty = false;
+        internal static bool globalDropsDirty = false;
+
+        internal static void Setup() {
+            //this doesn't seem to fire until the title screen is up, which is good because config file changes shouldn't immediately be read during startup; watch for regression (or just implement a check anyways?)
+            On.RoR2.RoR2Application.Update += AutoItemConfigContainer.FilePollUpdateHook;
+            
+            On.RoR2.Networking.GameNetworkManager.Disconnect += On_GNMDisconnect;
+            
+            SceneManager.sceneLoaded += Evt_USMSceneLoaded;
+        }
+
+        internal static void Update() {
+            if(!(Run.instance?.isActiveAndEnabled ?? false)) {
+                globalStatsDirty = false;
+                globalDropsDirty = false;
+            } else {
+                if(globalStatsDirty) {
+                    globalStatsDirty = false;
+                    MiscUtil.AliveList().ForEach(cm => {if(cm.hasBody) cm.GetBody().RecalculateStats();});
+                }
+                if(globalDropsDirty) {
+                    globalDropsDirty = false;
+                    Run.instance.BuildDropTable();
+                }
+            }
+        }
+
+        internal static void On_GNMDisconnect(On.RoR2.Networking.GameNetworkManager.orig_Disconnect orig, GameNetworkManager self) {
+            orig(self);
+            AutoItemConfig.CleanupDirty(true);
+        }
+
+        internal static void Evt_USMSceneLoaded(Scene scene, LoadSceneMode mode) {
+            AutoItemConfig.CleanupDirty(false);
+        }
+    }
+
     public class AutoItemConfig {
         internal readonly static List<AutoItemConfig> instances = new List<AutoItemConfig>();
         internal readonly static Dictionary<AutoItemConfig, (object, bool)> stageDirtyInstances = new Dictionary<AutoItemConfig, (object, bool)>();
@@ -124,9 +164,9 @@ namespace TILER2 {
             Debug.Log(e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + ": " + e.oldValue.ToString() + " > " + e.newValue.ToString());
             if(!(Run.instance?.isActiveAndEnabled ?? false)) return;
             if((e.flags & AutoUpdateEventFlags.InvalidateStats) == AutoUpdateEventFlags.InvalidateStats)
-                TILER2Plugin.globalStatsDirty = true;
+                AutoItemConfigModule.globalStatsDirty = true;
             if((e.flags & AutoUpdateEventFlags.InvalidateDropTable) == AutoUpdateEventFlags.InvalidateDropTable)
-                TILER2Plugin.globalDropsDirty = true;
+                AutoItemConfigModule.globalDropsDirty = true;
             if(!e.silent && (e.flags & AutoUpdateEventFlags.AnnounceToRun) == AutoUpdateEventFlags.AnnounceToRun && NetworkServer.active)
                 NetConfigOrchestrator.ServerSendGlobalChatMsg("The setting <color=#ffffaa>" + e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + "</color> has been changed from <color=#ffaaaa>" + e.oldValue.ToString() + "</color> to <color=#aaffaa>" + e.newValue.ToString() + "</color>.");
         }

@@ -1,19 +1,78 @@
 ﻿using UnityEngine;
 using RoR2;
-using BepInEx;
 using System;
 using System.Reflection;
 using System.Linq;
-using static TILER2.MiscUtil;
-using R2API.Utils;
 using R2API;
 using RoR2.Networking;
 using UnityEngine.Networking;
 using System.Collections.Generic;
 using BepInEx.Configuration;
+using static RoR2.Networking.GameNetworkManager;
 
 namespace TILER2 {
     public static class NetConfig {
+        internal const KickReason kickCritMismatch = (KickReason)859321;
+        internal const KickReason kickTimeout = (KickReason)859322;
+        internal const KickReason kickMissingEntry = (KickReason)859323;
+
+        internal static ConfigEntry<bool> gCfgEnableCheck;
+        internal static ConfigEntry<bool> gCfgMismatchKick;
+        internal static ConfigEntry<bool> gCfgBadVersionKick;
+        internal static ConfigEntry<bool> gCfgTimeoutKick;
+
+        internal static void Setup(ConfigFile cfgFile) {
+            gCfgEnableCheck = cfgFile.Bind(new ConfigDefinition("NetConfig", "EnableCheck"), true, new ConfigDescription(
+                "If false, NetConfig will not check for config mismatches at all."));
+            gCfgMismatchKick = cfgFile.Bind(new ConfigDefinition("NetConfig", "MismatchKick"), true, new ConfigDescription(
+                "If false, NetConfig will not kick clients that fail config checks (caused by config entries internally marked as both DeferForever and DisallowNetMismatch)."));
+            gCfgBadVersionKick = cfgFile.Bind(new ConfigDefinition("NetConfig", "BadVersionKick"), true, new ConfigDescription(
+                "If false, NetConfig will not kick clients that are missing config entries (may be caused by different mod versions on client)."));
+            gCfgTimeoutKick = cfgFile.Bind(new ConfigDefinition("NetConfig", "TimeoutKick"), true, new ConfigDescription(
+                "If false, NetConfig will not kick clients that take too long to respond to config checks (may be caused by missing mods on client)."));
+
+            var netOrchPrefabPrefab = new GameObject("TILER2NetConfigOrchestratorPrefabPrefab");
+            netOrchPrefabPrefab.AddComponent<NetworkIdentity>();
+            NetConfig.netOrchPrefab = netOrchPrefabPrefab.InstantiateClone("TILER2NetConfigOrchestratorPrefab");
+            NetConfig.netOrchPrefab.AddComponent<NetConfigOrchestrator>();
+            
+            On.RoR2.Networking.GameNetworkManager.OnServerAddPlayerInternal += (orig, self, conn, pcid, extraMsg) => {
+                orig(self, conn, pcid, extraMsg);
+                if(!gCfgEnableCheck.Value || Util.ConnectionIsLocal(conn) || NetConfigOrchestrator.checkedConnections.Contains(conn)) return;
+                NetConfigOrchestrator.checkedConnections.Add(conn);
+                NetConfig.EnsureOrchestrator();
+                NetConfigOrchestrator.AICSyncAllToOne(conn);
+            };
+            
+            /*On.RoR2.Run.EndStage += (orig, self) => {
+                orig(self);
+                AutoItemConfig.CleanupDirty(false);
+            };*/
+
+            var kickMsgType = typeof(GameNetworkManager).GetNestedType("KickMessage", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            var kickMsgReasonProp = kickMsgType.GetProperty("reason");
+
+            LanguageAPI.Add("TILER2_KICKREASON_NCCRITMISMATCH", "TILER2 NetConfig: unable to resolve some config mismatches. Please check your console.");
+            LanguageAPI.Add("TILER2_KICKREASON_NCTIMEOUT", "TILER2 NetConfig: mismatch check timed out. Please check your console, and ask the server host to check theirs.");
+            LanguageAPI.Add("TILER2_KICKREASON_NCMISSINGENTRY", "TILER2 NetConfig: mismatch check found missing entries. You are likely using a different version of a mod than the server.");
+            LanguageAPI.Add("TILER2_DISABLED_ARTIFACT", "This artifact is <color=#ff7777>force-disabled</color>; it will have no effect ingame.");
+
+            On.RoR2.Networking.GameNetworkManager.KickMessage.GetDisplayToken += (orig, self) => {
+                try {
+                    if(self.GetType() != kickMsgType) return orig(self);
+                    GameNetworkManager.KickReason reason = (GameNetworkManager.KickReason)kickMsgReasonProp.GetValue(self);
+                    if(reason == kickCritMismatch) return "TILER2_KICKREASON_NCCRITMISMATCH";
+                    if(reason == kickTimeout) return "TILER2_KICKREASON_NCTIMEOUT";
+                    if(reason == kickMissingEntry) return "TILER2_KICKREASON_NCMISSINGENTRY";
+                    return orig(self);
+                } catch(Exception ex) {
+                    Debug.LogError("TILER2: failed to inject custom kick message");
+                    Debug.LogError(ex);
+                    return orig(self);
+                }
+            };
+        }
+
         internal static GameObject netOrchPrefab;
         internal static GameObject netOrchestrator;
 
@@ -186,10 +245,11 @@ namespace TILER2 {
                 return;
             }
 
-            var strs = new List<string>();
-            strs.Add("\"" + matches[0].readablePath + "\" (" + matches[0].propType.Name + "): " + (matches[0].configEntry.Description?.Description ?? "[no description]"));
-            strs.Add("Current value: " + matches[0].cachedValue.ToString());
-            if(AutoItemConfig.stageDirtyInstances.ContainsKey(matches[0]))
+            var strs = new List<string> {
+                "\"" + matches[0].readablePath + "\" (" + matches[0].propType.Name + "): " + (matches[0].configEntry.Description?.Description ?? "[no description]"),
+                "Current value: " + matches[0].cachedValue.ToString()
+            };
+            if (AutoItemConfig.stageDirtyInstances.ContainsKey(matches[0]))
                 strs.Add("Value next stage: " + AutoItemConfig.stageDirtyInstances[matches[0]].Item1.ToString());
             if(AutoItemConfig.runDirtyInstances.ContainsKey(matches[0])) {
                 if(AutoItemConfig.runDirtyInstances[matches[0]].Equals(matches[0].configEntry.BoxedValue))
@@ -350,9 +410,9 @@ namespace TILER2 {
             connectionsToCheck.ForEach(x => {
                 x.timeRemaining -= Time.unscaledDeltaTime;
                 if(x.timeRemaining <= 0f) {
-                    if(TILER2Plugin.gCfgTimeoutKick.Value) {
+                    if(NetConfig.gCfgTimeoutKick.Value) {
                         Debug.LogWarning("TILER2: Connection " + x.connection.connectionId + " took too long to respond to config check request! Kick-on-timeout option is enabled; kicking client.");
-                        GameNetworkManager.singleton.ServerKickClient(x.connection, (GameNetworkManager.KickReason)TILER2Plugin.customKickReasonNCTimeout);
+                        GameNetworkManager.singleton.ServerKickClient(x.connection, NetConfig.kickTimeout);
                     } else
                         Debug.LogWarning("TILER2: Connection " + x.connection.connectionId + " took too long to respond to config check request! Kick-on-timeout option is disabled.");
                 }
@@ -380,9 +440,9 @@ namespace TILER2 {
                 Debug.Log("TILER2: Connection " + match.connection.connectionId + " passed config check");
                 connectionsToCheck.Remove(match);
             } else if(result == "FAILMM"){
-                if(TILER2Plugin.gCfgMismatchKick.Value) {
+                if(NetConfig.gCfgMismatchKick.Value) {
                     Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check (crit mismatch), kicking");
-                    GameNetworkManager.singleton.ServerKickClient(match.connection, (GameNetworkManager.KickReason)TILER2Plugin.customKickReasonNCCritMismatch);
+                    GameNetworkManager.singleton.ServerKickClient(match.connection, NetConfig.kickCritMismatch);
                 } else {
                     Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check (crit mismatch)");
                 }
@@ -390,9 +450,9 @@ namespace TILER2 {
             } else if(result == "FAILBV"
                 || result == "FAIL") { //from old mod version
                 var msg = (result == "FAIL") ? "using old TILER2 version" : "missing entries";
-                if(TILER2Plugin.gCfgBadVersionKick.Value) {
+                if(NetConfig.gCfgBadVersionKick.Value) {
                     Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check (" + msg + "), kicking");
-                    GameNetworkManager.singleton.ServerKickClient(match.connection, (GameNetworkManager.KickReason)TILER2Plugin.customKickReasonNCMissingEntry);
+                    GameNetworkManager.singleton.ServerKickClient(match.connection, NetConfig.kickMissingEntry);
                 } else {
                     Debug.LogWarning("TILER2: Connection " + match.connection.connectionId + " failed config check (" + msg + ")");
                 }

@@ -6,6 +6,10 @@ using UnityEngine;
 
 namespace TILER2 {
     public static class StatHooks {
+        internal static void Setup() {
+            IL.RoR2.CharacterBody.RecalculateStats += IL_CBRecalcStats;
+        }
+
         public class StatHookEventArgs : EventArgs {
             public float healthMultAdd = 0f;
             public float baseHealthAdd = 0f;

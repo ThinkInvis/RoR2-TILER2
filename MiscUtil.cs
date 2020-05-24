@@ -12,6 +12,14 @@ using RoR2.Skills;
 
 namespace TILER2 {
     public static class MiscUtil {
+        private static Type nodeRefType;
+        private static Type nodeRefTypeArr;
+
+        internal static void Setup() {
+            nodeRefType = typeof(DirectorCore).GetNestedTypes(BindingFlags.NonPublic).First(t=>t.Name == "NodeReference");
+            nodeRefTypeArr = nodeRefType.MakeArrayType();
+        }
+
         /// <summary>Calls RecalculateValues on all GenericSkill instances (on living CharacterBodies) which have the target SkillDef.</summary>
         public static void GlobalUpdateSkillDef(SkillDef targetDef) {
             AliveList().ForEach(cb => {
@@ -162,7 +170,7 @@ namespace TILER2 {
                 Debug.LogWarning("TILER2: RemoveOccupiedNode has no nodes to remove");
                 return false;
             }
-            Array ocnNew = (Array)Activator.CreateInstance(TILER2Plugin.nodeRefTypeArr, ocn.Length - 1);
+            Array ocnNew = (Array)Activator.CreateInstance(nodeRefTypeArr, ocn.Length - 1);
             IEnumerable ocne = ocn as IEnumerable;
             int i = 0;
             foreach(object o in ocne) {

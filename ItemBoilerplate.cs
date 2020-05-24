@@ -4,13 +4,136 @@ using R2API.Utils;
 using RoR2;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Networking;
 using static TILER2.MiscUtil;
 
 namespace TILER2 {
+    internal static class ItemBoilerplateModule {
+        internal static FilingDictionary<ItemBoilerplate> masterItemList = new FilingDictionary<ItemBoilerplate>();
+        private static bool itemDropAPISupportsRemoval;
+
+        internal static void Setup() {
+            itemDropAPISupportsRemoval = typeof(ItemDropAPI).GetMethods().Where(m => m.Name == "RemoveFromDefaultByTier").Count() > 0;
+            On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
+            On.RoR2.UI.LogBook.LogBookController.BuildPickupEntries += On_LogbookBuildPickupEntries;
+            On.RoR2.Run.Start += On_RunStart;
+            On.RoR2.Run.BuildDropTable += On_RunBuildDropTable;
+            
+
+            /*On.RoR2.RuleBook.GenerateItemMask += (orig, self) => {
+                var retv = orig(self);
+
+                foreach(ItemBoilerplate bpl in masterItemList) {
+                    if(bpl.enabled || !(bpl is Item)) continue;
+                    Debug.Log("Removing: " + bpl);
+                    retv.RemoveItem(((Item)bpl).regIndex);
+                }
+
+                return retv;
+            };
+            On.RoR2.RuleBook.GenerateEquipmentMask += (orig, self) => {
+                var retv = orig(self);
+
+                foreach(ItemBoilerplate bpl in masterItemList) {
+                    if(bpl.enabled || !(bpl is Equipment)) continue;
+                    retv.RemoveEquipment(((Equipment)bpl).regIndex);
+                }
+
+                return retv;
+            };*/
+        }
+        private static void On_RunStart(On.RoR2.Run.orig_Start orig, Run self) {
+            orig(self);
+            if(!NetworkServer.active) return;
+            var itemRngGenerator = new Xoroshiro128Plus(self.seed);
+            foreach(var bpl in masterItemList)
+                bpl.itemRng = new Xoroshiro128Plus(itemRngGenerator.nextUlong);
+        }
+
+        private static void On_RunBuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self) {
+            var newItemMask = self.availableItems;
+            var newEqpMask = self.availableEquipment;
+            foreach(ItemBoilerplate bpl in masterItemList) {
+                if(!bpl.enabled) {
+                    if(bpl is Equipment eqp) newEqpMask.RemoveEquipment(eqp.regIndex);
+                    else if(bpl is Item item) newItemMask.RemoveItem(item.regIndex);
+                }
+            }
+            self.availableItems = newItemMask;
+            self.availableEquipment = newEqpMask;
+            self.NetworkavailableItems = newItemMask;
+            self.NetworkavailableEquipment = newEqpMask;
+            //ItemDropAPI completely overwrites drop tables; need to perform separate removal
+            if(R2API.R2API.IsLoaded("ItemDropAPI")) {
+                //RemoveFromDefaultAllTiers is in a potentially unreleased R2API update
+                if(itemDropAPISupportsRemoval) {
+                    TemporaryCompat.ItemDropAPIRemoveAll();
+                } else {
+                    //Temporary reflection patch. TODO: remove at some point after R2API updates
+                    Dictionary<ItemTier, List<ItemIndex>> ati = (Dictionary<ItemTier, List<ItemIndex>>)typeof(ItemDropAPI).GetFieldCached("AdditionalTierItems").GetValue(null);
+                    List<EquipmentIndex> aeqp = (List<EquipmentIndex>)typeof(ItemDropAPI).GetFieldCached("AdditionalEquipment").GetValue(null);
+                    foreach(ItemBoilerplate bpl in masterItemList) {
+                        if(bpl is Equipment eqp) {
+                            if(eqp.enabled) {
+                                if(!aeqp.Contains(eqp.regIndex)) aeqp.Add(eqp.regIndex);
+                            } else aeqp.Remove(eqp.regIndex);
+                        } else if(bpl is Item item) {
+                            if(item.enabled) {
+                                if(!ati[item.itemTier].Contains(item.regIndex)) ati[item.itemTier].Add(item.regIndex);
+                            } else ati[item.itemTier].Remove(item.regIndex);
+                        }
+                    }
+                }
+            }
+            orig(self);
+            //should force-update most cached drop tables
+            typeof(PickupDropTable).GetMethodCached("RegenerateAll").Invoke(null, new object[]{Run.instance});
+            //update existing Command droplets. part of an effort to disable items mid-stage, may not be necessary while that's prevented
+            var pickerOptions = typeof(PickupPickerController).GetFieldCached("options");
+            foreach(var picker in UnityEngine.Object.FindObjectsOfType<PickupPickerController>()) {
+                var oldOpt = ((PickupPickerController.Option[])pickerOptions.GetValue(picker))[0];
+                picker.SetOptionsFromPickupForCommandArtifact(oldOpt.pickupIndex);
+            }
+        }
+
+        private static void On_PickupCatalogInit(On.RoR2.PickupCatalog.orig_Init orig) {
+            orig();
+
+            foreach(ItemBoilerplate bpl in masterItemList) {
+                PickupIndex pind;
+                if(bpl is Equipment) pind = PickupCatalog.FindPickupIndex(((Equipment)bpl).regIndex);
+                else if(bpl is Item) pind = PickupCatalog.FindPickupIndex(((Item)bpl).regIndex);
+                else continue;
+                var pickup = PickupCatalog.GetPickupDef(pind);
+
+                bpl.pickupDef = pickup;
+                bpl.pickupIndex = pind;
+            }
+        }
+
+        private static RoR2.UI.LogBook.Entry[] On_LogbookBuildPickupEntries(On.RoR2.UI.LogBook.LogBookController.orig_BuildPickupEntries orig) {
+            var retv = orig();
+            var bplsLeft = masterItemList.ToList();
+            foreach(var entry in retv) {
+                if(!(entry.extraData is PickupIndex)) continue;
+                ItemBoilerplate matchedBpl = null;
+                foreach(ItemBoilerplate bpl in bplsLeft) {
+                    if((PickupIndex)entry.extraData == bpl.pickupIndex) {
+                        matchedBpl = bpl;
+                        break;
+                    }
+                }
+                if(matchedBpl != null) {
+                    matchedBpl.logbookEntry = entry;
+                    bplsLeft.Remove(matchedBpl);
+                }
+            }
+            return retv;
+        }
+    }
 
     public abstract class ItemBoilerplate : AutoItemConfigContainer {
         public string nameToken {get; private protected set;}
@@ -36,7 +159,7 @@ namespace TILER2 {
         public ItemBoilerplate() {
             defaultEnabledUpdateFlags = AutoUpdateEventFlags.AnnounceToRun;
 
-            TILER2Plugin.masterItemList.Add(this);
+            ItemBoilerplateModule.masterItemList.Add(this);
             //private Dictionary allRegisteredLanguages; todo; RegLang is never called with a langid!=null param for now
             ConfigEntryChanged += (sender, args) => {
                 if((args.flags & AutoUpdateEventFlags.InvalidateNameToken) == AutoUpdateEventFlags.InvalidateNameToken) {
