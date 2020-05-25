@@ -184,7 +184,7 @@ namespace TILER2 {
                     var thisup = System.IO.File.GetLastWriteTime(cfl.ConfigFilePath);
                     if(observedFiles[cfl] < thisup) {
                         observedFiles[cfl] = thisup;
-                        TILER2Plugin._logger.LogDebug("TILER2: A config file tracked by AutoItemConfig has been changed: " + cfl.ConfigFilePath);
+                        TILER2Plugin._logger.LogDebug("A config file tracked by AutoItemConfig has been changed: " + cfl.ConfigFilePath);
                         cfl.Reload();
                     }
                 }
