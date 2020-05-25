@@ -31,7 +31,7 @@ namespace TILER2 {
 
         public override void SetupConfig(ConfigFile cfl) {
             if(configDone) {
-                Debug.LogError("TILER2: something tried to setup config for an artifact twice");
+                TILER2Plugin._logger.LogError("Something tried to setup config for an artifact twice");
                 return;
             }
             configDone = true;
@@ -64,7 +64,7 @@ namespace TILER2 {
         }
         public override void SetupAttributes(string modTokenIdent, string modCNamePrefix = "") {
             if(attributesDone) {
-                Debug.LogError("TILER2: something tried to setup attributes for an artifact twice");
+                TILER2Plugin._logger.LogError("Something tried to setup attributes for an artifact twice");
                 return;
             }
             attributesDone = true;
@@ -92,7 +92,7 @@ namespace TILER2 {
 
         public override void SetupBehavior() {
             if(behaviorDone) {
-                Debug.LogError("TILER2: something tried to setup behavior for an artifact twice");
+                TILER2Plugin._logger.LogError("Something tried to setup behavior for an artifact twice");
                 return;
             }
             behaviorDone = true;

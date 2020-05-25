@@ -167,7 +167,7 @@ namespace TILER2 {
             var ocnf = self.GetType().GetFieldCached("occupiedNodes");
             Array ocn = (Array)ocnf.GetValue(self);
             if(ocn.Length == 0) {
-                Debug.LogWarning("TILER2: RemoveOccupiedNode has no nodes to remove");
+                TILER2Plugin._logger.LogWarning("RemoveOccupiedNode has no nodes to remove");
                 return false;
             }
             Array ocnNew = (Array)Activator.CreateInstance(nodeRefTypeArr, ocn.Length - 1);
@@ -179,7 +179,7 @@ namespace TILER2 {
                 if(object.Equals(scanGraph, nodeGraph) && scanInd.Equals(nodeIndex))
                     continue;
                 else if(i == ocn.Length - 1) {
-                    Debug.LogWarning("TILER2: RemoveOccupiedNode was passed an already-removed or otherwise nonexistent node");
+                    TILER2Plugin._logger.LogWarning("RemoveOccupiedNode was passed an already-removed or otherwise nonexistent node");
                     return false;
                 }
                 ocnNew.SetValue(o, i);

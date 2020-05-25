@@ -17,7 +17,11 @@ namespace TILER2 {
 
         internal TILER2Plugin() {}
 
+        internal static BepInEx.Logging.ManualLogSource _logger;
+
         public void Awake() {
+            _logger = Logger;
+
             cfgFile = new ConfigFile(System.IO.Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
             
             NetConfig.Setup(cfgFile);

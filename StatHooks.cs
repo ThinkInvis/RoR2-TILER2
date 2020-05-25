@@ -57,7 +57,7 @@ namespace TILER2 {
                     return origMaxHealth + statMods.baseHealthAdd;
                 });
             } else {
-                Debug.LogError("TILER2/StatHooks: failed to apply IL patch (health modifier)");
+                TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (health modifier)");
             }
             
             ILFound = c.TryGotoNext(MoveType.After,
@@ -73,7 +73,7 @@ namespace TILER2 {
                 });
                 c.Emit(OpCodes.Add);
             } else {
-                Debug.LogError("TILER2/StatHooks: failed to apply IL patch (base regen modifier)");
+                TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (base regen modifier)");
             }
 
             ILFound = c.TryGotoNext(MoveType.After,
@@ -91,7 +91,7 @@ namespace TILER2 {
                 });
                 c.Emit(OpCodes.Add);
             } else {
-                Debug.LogError("TILER2/StatHooks: failed to apply IL patch (regen multiplier modifier)");
+                TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (regen multiplier modifier)");
             }
 
             ILFound = c.TryGotoNext(MoveType.After,
@@ -108,7 +108,7 @@ namespace TILER2 {
                     return origMoveSpeedMult + statMods.moveSpeedMultAdd;
                 });
             } else {
-                Debug.LogError("TILER2/StatHooks: failed to apply IL patch (move speed modifier)");
+                TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (move speed modifier)");
             }
             
             //Find (parts of): float jumpPower = this.baseJumpPower + this.levelJumpPower * num32;
@@ -125,7 +125,7 @@ namespace TILER2 {
                     return origJumpPower * (1 + statMods.jumpPowerMultAdd);
                 });
             } else {
-                Debug.LogError("TILER2/StatHooks: failed to apply IL patch (jump power modifier)");
+                TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (jump power modifier)");
             }
 
             ILFound = c.TryGotoNext(MoveType.After,
@@ -147,7 +147,7 @@ namespace TILER2 {
                     return origDamage + statMods.baseDamageAdd;
                 });
             } else {
-                Debug.LogError("TILER2/StatHooks: failed to apply IL patch (damage modifier)");
+                TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (damage modifier)");
             }
 
             ILFound = c.TryGotoNext(MoveType.After,
@@ -164,7 +164,7 @@ namespace TILER2 {
                     return origAttackSpeedMult + statMods.attackSpeedMultAdd;
                 });
             } else {
-                Debug.LogError("TILER2/StatHooks: failed to apply IL patch (attack speed modifier)");
+                TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (attack speed modifier)");
             }
 
             int locOrigCrit = -1;
@@ -180,7 +180,7 @@ namespace TILER2 {
                 });
                 c.Emit(OpCodes.Stloc, locOrigCrit);
             } else {
-                Debug.LogError("TILER2/StatHooks: failed to apply IL patch (crit modifier)");
+                TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (crit modifier)");
             }
             
             ILFound = c.TryGotoNext(
@@ -194,7 +194,7 @@ namespace TILER2 {
                     return oldArmor + statMods.armorAdd;
                 });
             } else {
-                Debug.LogError("TILER2/StatHooks: failed to apply IL patch (armor modifier)");
+                TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (armor modifier)");
             }
         }
     }

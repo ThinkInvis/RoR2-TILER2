@@ -28,7 +28,7 @@ namespace TILER2 {
 
                 foreach(ItemBoilerplate bpl in masterItemList) {
                     if(bpl.enabled || !(bpl is Item)) continue;
-                    Debug.Log("Removing: " + bpl);
+                    TILER2Plugin._logger.Log("Removing: " + bpl);
                     retv.RemoveItem(((Item)bpl).regIndex);
                 }
 
@@ -240,7 +240,7 @@ namespace TILER2 {
 
         public static FilingDictionary<ItemBoilerplate> InitAll(string modDisplayName) {
             if(AutoItemConfig.instances.Exists(x => x.modName == modDisplayName)) {
-                Debug.LogError("TILER2: ItemBoilerplate.InitAll FAILED: the modDisplayName \"" + modDisplayName + "\" is already in use!");
+                TILER2Plugin._logger.LogError("ItemBoilerplate.InitAll FAILED: the modDisplayName \"" + modDisplayName + "\" is already in use!");
                 return null;
             }
 

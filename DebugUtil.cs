@@ -11,14 +11,14 @@ namespace TILER2 {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private static void CCEvoSetItem(ConCommandArgs args) {
             if(args.Count < 1) {
-                Debug.LogError("evo_setitem: missing argument 1 (item ID)!");
+                TILER2Plugin._logger.LogError("evo_setitem: missing argument 1 (item ID)!");
                 return;
             }
             int icnt;
             if(args.Count > 1) {
                 int? icntArg = args.TryGetArgInt(1);
                 if(!icntArg.HasValue || icntArg < 0) {
-                    Debug.LogError("evo_setitem: argument 2 (item count) must be a positive integer!");
+                    TILER2Plugin._logger.LogError("evo_setitem: argument 2 (item count) must be a positive integer!");
                     return;
                 }
                 icnt = (int)icntArg;
@@ -29,13 +29,13 @@ namespace TILER2 {
             ItemIndex item;
             string itemSearch = args.TryGetArgString(0);
             if(itemSearch == null) {
-                Debug.LogError("evo_setitem: could not read argument 1 (item ID)!");
+                TILER2Plugin._logger.LogError("evo_setitem: could not read argument 1 (item ID)!");
                 return;
             }
             else if(int.TryParse(itemSearch, out int itemInd)) {
                 item = (ItemIndex)itemInd;
                 if(!ItemCatalog.IsIndexValid(item)) {
-                    Debug.LogError("evo_setitem: argument 1 (item ID as integer ItemIndex) is out of range; no item with that ID exists!");
+                    TILER2Plugin._logger.LogError("evo_setitem: argument 1 (item ID as integer ItemIndex) is out of range; no item with that ID exists!");
                     return;
                 }
             } else {
@@ -45,24 +45,24 @@ namespace TILER2 {
                     return iName.ToUpper().Contains(itemSearch.ToUpper());
                 });
                 if(results.Count() < 1) {
-                    Debug.LogError("evo_setitem: argument 1 (item ID as string ItemName) not found in ItemCatalog; no item with a name containing that string exists!");
+                    TILER2Plugin._logger.LogError("evo_setitem: argument 1 (item ID as string ItemName) not found in ItemCatalog; no item with a name containing that string exists!");
                     return;
                 } else {
                     if(results.Count() > 1)
-                        Debug.LogWarning("evo_setitem: argument 1 (item ID as string ItemName) matched multiple items; using first.");
+                        TILER2Plugin._logger.LogWarning("evo_setitem: argument 1 (item ID as string ItemName) matched multiple items; using first.");
                     item = results.First();
                 }
             }
 
             Inventory inv = typeof(MonsterTeamGainsItemsArtifactManager).GetFieldValue<Inventory>("monsterTeamInventory");
             if(inv == null) {
-                Debug.LogError("evo_setitem: Artifact of Evolution must be enabled!");
+                TILER2Plugin._logger.LogError("evo_setitem: Artifact of Evolution must be enabled!");
                 return;
             }
 
             int diffCount = icnt-inv.GetItemCount(item);
             inv.GiveItem(item, diffCount);
-            Debug.Log("evo_setitem: " + (diffCount > 0 ? "added " : "removed ") + Mathf.Abs(diffCount) + "x " + Language.GetString(ItemCatalog.GetItemDef(item).nameToken));
+            TILER2Plugin._logger.LogMessage("evo_setitem: " + (diffCount > 0 ? "added " : "removed ") + Mathf.Abs(diffCount) + "x " + Language.GetString(ItemCatalog.GetItemDef(item).nameToken));
         }
     }
 }

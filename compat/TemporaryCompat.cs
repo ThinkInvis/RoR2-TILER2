@@ -12,7 +12,6 @@ namespace TILER2 {
             ItemDropAPI.RemoveFromDefaultByTier(
                 ItemBoilerplateModule.masterItemList.Where(bpl => bpl is Item && !bpl.enabled)
                 .Select(bpl => {
-                    Debug.Log("Removing: " + bpl.itemCodeName);
                     return new KeyValuePair<ItemIndex, ItemTier>(((Item)bpl).regIndex, ((Item)bpl).itemTier);
                 })
                 .ToArray());
@@ -24,7 +23,6 @@ namespace TILER2 {
             ItemDropAPI.AddToDefaultByTier(
                 ItemBoilerplateModule.masterItemList.Where(bpl => bpl is Item && bpl.enabled)
                 .Select(bpl => {
-                    Debug.Log("Adding: " + bpl.itemCodeName);
                     return new KeyValuePair<ItemIndex, ItemTier>(((Item)bpl).regIndex, ((Item)bpl).itemTier);
                 })
                 .ToArray());
