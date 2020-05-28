@@ -433,7 +433,7 @@ namespace TILER2 {
                 return;
             }
             if(result == "PASS") {
-                TILER2Plugin._logger.Log("Connection " + match.connection.connectionId + " passed config check");
+                TILER2Plugin._logger.LogDebug("Connection " + match.connection.connectionId + " passed config check");
                 connectionsToCheck.Remove(match);
             } else if(result == "FAILMM"){
                 if(NetConfig.gCfgMismatchKick.Value) {
