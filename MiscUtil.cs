@@ -9,6 +9,10 @@ using System.Collections.Specialized;
 using System.Reflection;
 using System.Linq.Expressions;
 using RoR2.Skills;
+using MonoMod.Cil;
+using Mono.Cecil.Cil;
+using System.Collections.ObjectModel;
+using RoR2.Navigation;
 
 namespace TILER2 {
     public static class MiscUtil {
@@ -18,7 +22,24 @@ namespace TILER2 {
         internal static void Setup() {
             nodeRefType = typeof(DirectorCore).GetNestedTypes(BindingFlags.NonPublic).First(t=>t.Name == "NodeReference");
             nodeRefTypeArr = nodeRefType.MakeArrayType();
+            IL.RoR2.DirectorCore.TrySpawnObject += IL_DCTrySpawnObject;
+            //IL.RoR2.OccupyNearbyNodes.OnSceneDirectorPrePopulateSceneServer += IL_ONNPrePopulateScene;
+            //On.RoR2.OccupyNearbyNodes.OnSceneDirectorPrePopulateSceneServer += OccupyNearbyNodes_OnSceneDirectorPrePopulateSceneServer;
         }
+
+        /*private static void OccupyNearbyNodes_OnSceneDirectorPrePopulateSceneServer(On.RoR2.OccupyNearbyNodes.orig_OnSceneDirectorPrePopulateSceneServer orig, SceneDirector sceneDirector) {
+            //orig(self); //nope
+			NodeGraph graph = SceneInfo.instance.GetNodeGraph(MapNodeGroup.GraphType.Ground);
+            var list = (List<OccupyNearbyNodes>)typeof(OccupyNearbyNodes).GetFieldCached("instancesList").GetValue(null);
+            foreach(var onn in list) {
+                var nodes = graph.FindNodesInRange(onn.transform.position, 0f, onn.radius, HullMask.None);
+                foreach(var node in nodes) {
+                    //TODO: check if node is free
+                    //TODO: do stuff with custom component
+                    DirectorCore.instance.AddOccupiedNode(graph, node);
+                }
+            }
+        }*/
 
         /// <summary>Calls RecalculateValues on all GenericSkill instances (on living CharacterBodies) which have the target SkillDef.</summary>
         public static void GlobalUpdateSkillDef(SkillDef targetDef) {
@@ -163,30 +184,91 @@ namespace TILER2 {
             PickupDropletController.CreatePickupDroplet(spawnList[rng.RangeInt(0,spawnList.Count)], src.transform.position, new Vector3(UnityEngine.Random.Range(-5.0f, 5.0f), 20f, UnityEngine.Random.Range(-5.0f, 5.0f)));
         }
 
-        public static bool RemoveOccupiedNode(this DirectorCore self, RoR2.Navigation.NodeGraph nodeGraph, RoR2.Navigation.NodeGraph.NodeIndex nodeIndex) {
+        public static bool RemoveOccupiedNode(this DirectorCore self, NodeGraph nodeGraph, NodeGraph.NodeIndex nodeIndex) {
             var ocnf = self.GetType().GetFieldCached("occupiedNodes");
             Array ocn = (Array)ocnf.GetValue(self);
             if(ocn.Length == 0) {
                 TILER2Plugin._logger.LogWarning("RemoveOccupiedNode has no nodes to remove");
                 return false;
             }
-            Array ocnNew = (Array)Activator.CreateInstance(nodeRefTypeArr, ocn.Length - 1);
-            IEnumerable ocne = ocn as IEnumerable;
+
+            var nv = new List<object>();
+            
+            foreach(object o in ocn as IEnumerable) {
+                var scanInd = o.GetFieldValue<NodeGraph.NodeIndex>("nodeIndex");
+                var scanGraph = o.GetFieldValue<NodeGraph>("nodeGraph");
+                if(!scanInd.Equals(nodeIndex) || !object.Equals(scanGraph, nodeGraph))
+                    nv.Add(o);
+            }
+            
+            if(nv.Count == ocn.Length) {
+                TILER2Plugin._logger.LogWarning("RemoveOccupiedNode was passed an already-removed or otherwise nonexistent node");
+                return false;
+            }
+            
+            Array ocnNew = (Array)Activator.CreateInstance(nodeRefTypeArr, nv.Count());
             int i = 0;
-            foreach(object o in ocne) {
-                var scanInd = o.GetFieldValue<RoR2.Navigation.NodeGraph.NodeIndex>("nodeIndex");
-                var scanGraph = o.GetFieldValue<RoR2.Navigation.NodeGraph>("nodeGraph");
-                if(object.Equals(scanGraph, nodeGraph) && scanInd.Equals(nodeIndex))
-                    continue;
-                else if(i == ocn.Length - 1) {
-                    TILER2Plugin._logger.LogWarning("RemoveOccupiedNode was passed an already-removed or otherwise nonexistent node");
-                    return false;
-                }
+            foreach(var o in nv) {
                 ocnNew.SetValue(o, i);
                 i++;
             }
+
             ocnf.SetValue(self, ocnNew);
             return true;
+        }
+
+        public static bool RemoveAllOccupiedNodes(this DirectorCore self, GameObject obj) {
+            var cpt = obj.GetComponent<NodeOccupationInfo>();
+            if(!cpt) return true;
+            cpt._indices.RemoveAll(i => self.RemoveOccupiedNode(i.Key, i.Value));
+            return cpt._indices.Count == 0;
+        }
+
+        private static void IL_DCTrySpawnObject(ILContext il) {
+            ILCursor c = new ILCursor(il);
+            
+            int graphind = -1;
+            if(!c.TryGotoNext(
+                x=>x.MatchCallOrCallvirt<SceneInfo>("GetNodeGraph"),
+                x=>x.MatchStloc(out graphind)
+                )) {
+                TILER2Plugin._logger.LogError("MiscUtil: failed to apply IL patch (DCTrySpawnObject => graphind), RemoveAllOccupiedNodes will not work for single objects");   
+                return;
+            }
+
+            c.Index = 0;
+
+            int instind = -1;
+            if(!c.TryGotoNext(
+                x=>x.MatchLdfld<SpawnCard.SpawnResult>("spawnedInstance"),
+                x=>x.MatchStloc(out instind)
+                )) {
+                TILER2Plugin._logger.LogError("MiscUtil: failed to apply IL patch (DCTrySpawnObject => instind), RemoveAllOccupiedNodes will not work for single objects");   
+                return;
+            }
+
+            c.Index = 0;
+
+            while(c.TryGotoNext(x=>x.MatchCallOrCallvirt<DirectorCore>("AddOccupiedNode"))) {
+                c.Emit(OpCodes.Dup);
+                c.Emit(OpCodes.Ldloc, graphind);
+                c.Emit(OpCodes.Ldloc, instind);
+                c.EmitDelegate<Action<NodeGraph.NodeIndex, NodeGraph, GameObject>>((ind,graph,res)=>{
+                    var cpt = res.gameObject.GetComponent<NodeOccupationInfo>();
+                    if(!cpt) cpt = res.gameObject.AddComponent<NodeOccupationInfo>();
+                    cpt._indices.Add(new KeyValuePair<NodeGraph, NodeGraph.NodeIndex>(graph, ind));
+                });
+                c.Index++;
+            }
+        }
+    }
+
+    public class NodeOccupationInfo : MonoBehaviour {
+        internal readonly List<KeyValuePair<NodeGraph, NodeGraph.NodeIndex>> _indices;
+        public readonly ReadOnlyCollection<KeyValuePair<NodeGraph, NodeGraph.NodeIndex>> indices;
+        public NodeOccupationInfo() {
+            _indices = new List<KeyValuePair<NodeGraph, NodeGraph.NodeIndex>>();
+            indices = _indices.AsReadOnly();
         }
     }
 }
