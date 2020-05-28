@@ -139,12 +139,13 @@ namespace TILER2 {
                 x=>x.MatchStloc(out _),
                 x=>x.MatchLdcR4(out _));
             if(ILFound) {
-                c.EmitDelegate<Func<float, float>>((origDamageMult) => {
-                    return origDamageMult + statMods.damageMultAdd;
-                });
-                c.Index -= 3;
+                c.Index -= 2;
                 c.EmitDelegate<Func<float, float>>((origDamage) => {
                     return origDamage + statMods.baseDamageAdd;
+                });
+                c.Index += 2;
+                c.EmitDelegate<Func<float, float>>((origDamageMult) => {
+                    return origDamageMult + statMods.damageMultAdd;
                 });
             } else {
                 TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (damage modifier)");
