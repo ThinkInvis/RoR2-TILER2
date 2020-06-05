@@ -1,5 +1,15 @@
 ﻿# TILER2 Changelog
 
+**1.4.0**
+
+- General refactor/cleanup of main plugin code into module files.
+- StatHooks: fixed incorrect order of application of damage modifiers.
+- Reworked MiscUtil's NodeGraph tools.
+	- The method RemoveOccupiedNodes has been changed internally, but should remain backwards-compatible.
+	- The methods RemoveAllOccupiedNodes and UpdateOccupiedNodesReference have been added.
+	- The component NodeOccupationInfo has been added. This is automatically added to objects in most ingame cases where nodes are marked as occupied (notable exception: OccupyNearbyNodes component).
+- Now uses plugin-specific console logger.
+
 **1.3.0**
 
 - Added StatHooks module.

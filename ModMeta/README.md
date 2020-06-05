@@ -45,6 +45,16 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**1.4.0**
+
+- General refactor/cleanup of main plugin code into module files.
+- StatHooks: fixed incorrect order of application of damage modifiers.
+- Reworked MiscUtil's NodeGraph tools.
+	- The method RemoveOccupiedNodes has been changed internally, but should remain backwards-compatible.
+	- The methods RemoveAllOccupiedNodes and UpdateOccupiedNodesReference have been added.
+	- The component NodeOccupationInfo has been added. This is automatically added to objects in most ingame cases where nodes are marked as occupied (notable exception: OccupyNearbyNodes component).
+- Now uses plugin-specific console logger.
+
 **1.3.0**
 
 - Added StatHooks module.
@@ -76,9 +86,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 
 - Added MiscUtil.GlobalUpdateSkillDef.
 - ItemBoilerplate: Equipment cooldown is now configurable.
-
-**1.1.0**
-
-- NetConfig mismatch checking now has custom kick messages, and a third option for kicking clients that have missing config entries (likely due to different mod versions). All kick options are now enabled by default, and the timeout time has been reduced to 15s.
-- Added MiscUtil.CloneSkillDef.
-- Added concmd to debug builds only: aic_scramble.
