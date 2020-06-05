@@ -224,6 +224,15 @@ namespace TILER2 {
             return cpt._indices.Count == 0;
         }
 
+        ///<summary>For use while destroying a GameObject and creating another one in its place (e.g. runtime replacement of a placeholder with an unknown prefab).</summary>
+        public static void UpdateOccupiedNodesReference(this DirectorCore self, GameObject oldObj, GameObject newObj) {
+            var oldcpt = oldObj.GetComponent<NodeOccupationInfo>();
+            var newcpt = newObj.GetComponent<NodeOccupationInfo>();
+            if(!oldcpt || newcpt) return;
+            newcpt = newObj.AddComponent<NodeOccupationInfo>();
+            newcpt._indices.AddRange(oldcpt._indices);
+        }
+
         private static void IL_DCTrySpawnObject(ILContext il) {
             ILCursor c = new ILCursor(il);
             
