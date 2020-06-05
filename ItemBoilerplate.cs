@@ -239,11 +239,6 @@ namespace TILER2 {
         protected abstract void UnloadBehavior();
 
         public static FilingDictionary<ItemBoilerplate> InitAll(string modDisplayName) {
-            if(AutoItemConfig.instances.Exists(x => x.modName == modDisplayName)) {
-                TILER2Plugin._logger.LogError("ItemBoilerplate.InitAll FAILED: the modDisplayName \"" + modDisplayName + "\" is already in use!");
-                return null;
-            }
-
             FilingDictionary<ItemBoilerplate> f = new FilingDictionary<ItemBoilerplate>();
             foreach(Type type in Assembly.GetCallingAssembly().GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(ItemBoilerplate)))) {
                 var newBpl = (ItemBoilerplate)Activator.CreateInstance(type);
