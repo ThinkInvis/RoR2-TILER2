@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**1.5.0**
+
+- Updated to accomodate breaking changes in RoR2 1.0 and the new R2API version.
+
 **1.4.0**
 
 - General refactor/cleanup of main plugin code into module files.

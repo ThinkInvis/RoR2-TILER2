@@ -45,6 +45,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**1.5.0**
+
+- Updated to accomodate breaking changes in RoR2 1.0 and the new R2API version.
+
 **1.4.0**
 
 - General refactor/cleanup of main plugin code into module files.
@@ -81,8 +85,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 	- Mid-run changes to AnnounceToRun options (e.g. ItemBoilerplate.enabled) should no longer cause console errors/warnings in singleplayer.
 	- Added `AutoUpdateEventFlags.InvalidateDropTable`, replacing the hardcoded droptable update on ItemBoilerplate.enabled.
 	- InvalidateStats and InvalidateDropTable now both set a relevant dirty flag, causing an update on the next frame (once per batch of config changes) instead of updating immediately (potentially many times at once).
-
-**1.1.1**
-
-- Added MiscUtil.GlobalUpdateSkillDef.
-- ItemBoilerplate: Equipment cooldown is now configurable.
