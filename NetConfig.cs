@@ -13,9 +13,9 @@ using BepInEx.Logging;
 
 namespace TILER2 {
     public static class NetConfig {
-        internal const KickReason kickCritMismatch = (KickReason)859321;
-        internal const KickReason kickTimeout = (KickReason)859322;
-        internal const KickReason kickMissingEntry = (KickReason)859323;
+        internal static readonly SimpleLocalizedKickReason kickCritMismatch = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCCRITMISMATCH");
+        internal static readonly SimpleLocalizedKickReason kickTimeout = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCTIMEOUT");
+        internal static readonly SimpleLocalizedKickReason kickMissingEntry = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCMISSINGENTRY");
 
         internal static ConfigEntry<bool> gCfgEnableCheck;
         internal static ConfigEntry<bool> gCfgMismatchKick;
@@ -57,21 +57,6 @@ namespace TILER2 {
             LanguageAPI.Add("TILER2_KICKREASON_NCTIMEOUT", "TILER2 NetConfig: mismatch check timed out.\nThis may be caused by a mod version mismatch, a network outage, or an error while applying changes.\nIf seeking support for this issue, please make sure to have FULL CONSOLE LOGS from BOTH CLIENT AND SERVER ready to post.");
             LanguageAPI.Add("TILER2_KICKREASON_NCMISSINGENTRY", "TILER2 NetConfig: mismatch check found missing config entries.\nYou are likely using a different version of a mod than the server.");
             LanguageAPI.Add("TILER2_DISABLED_ARTIFACT", "This artifact is <color=#ff7777>force-disabled</color>; it will have no effect ingame.");
-
-            On.RoR2.Networking.GameNetworkManager.KickMessage.GetDisplayToken += (orig, self) => {
-                try {
-                    if(self.GetType() != kickMsgType) return orig(self);
-                    GameNetworkManager.KickReason reason = (GameNetworkManager.KickReason)kickMsgReasonProp.GetValue(self);
-                    if(reason == kickCritMismatch) return "TILER2_KICKREASON_NCCRITMISMATCH";
-                    if(reason == kickTimeout) return "TILER2_KICKREASON_NCTIMEOUT";
-                    if(reason == kickMissingEntry) return "TILER2_KICKREASON_NCMISSINGENTRY";
-                    return orig(self);
-                } catch(Exception ex) {
-                    TILER2Plugin._logger.LogError("Failed to inject custom kick message");
-                    TILER2Plugin._logger.LogError(ex);
-                    return orig(self);
-                }
-            };
         }
 
         internal static GameObject netOrchPrefab;
