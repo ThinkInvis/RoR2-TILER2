@@ -333,18 +333,23 @@ namespace TILER2 {
 
             var propValue = subDict.HasValue ? subDict.Value.val : prop.GetValue(this);
 
+            bool allowMismatch = (attrib.flags & AutoItemConfigFlags.PreventNetMismatch) != AutoItemConfigFlags.PreventNetMismatch;
+            bool deferForever = (attrib.flags & AutoItemConfigFlags.DeferForever) == AutoItemConfigFlags.DeferForever;
+            bool deferRun = (attrib.flags & AutoItemConfigFlags.DeferUntilEndGame) == AutoItemConfigFlags.DeferUntilEndGame;
+            bool deferStage = (attrib.flags & AutoItemConfigFlags.DeferUntilNextStage) == AutoItemConfigFlags.DeferUntilNextStage;
+            bool allowCon = (attrib.flags & AutoItemConfigFlags.PreventConCmd) != AutoItemConfigFlags.PreventConCmd;
+            
+            if(deferForever && !allowMismatch) {
+                Debug.Log("Adding manual sync warning to " + categoryName + "/" + cfgName);
+                cfgDesc += "\nWARNING: THIS SETTING CANNOT BE CHANGED WHILE THE GAME IS RUNNING, AND MUST BE SYNCED MANUALLY FOR MULTIPLAYER!";
+            }
+
             var cfe = (ConfigEntryBase)genm.Invoke(cfl, new[] {
                 new ConfigDefinition(categoryName, cfgName),
                 propValue,
                 new ConfigDescription(cfgDesc,attrib.avb)});
 
             observedFiles[cfl] = System.IO.File.GetLastWriteTime(cfl.ConfigFilePath);
-
-            bool allowMismatch = (attrib.flags & AutoItemConfigFlags.PreventNetMismatch) != AutoItemConfigFlags.PreventNetMismatch;
-            bool deferForever = (attrib.flags & AutoItemConfigFlags.DeferForever) == AutoItemConfigFlags.DeferForever;
-            bool deferRun = (attrib.flags & AutoItemConfigFlags.DeferUntilEndGame) == AutoItemConfigFlags.DeferUntilEndGame;
-            bool deferStage = (attrib.flags & AutoItemConfigFlags.DeferUntilNextStage) == AutoItemConfigFlags.DeferUntilNextStage;
-            bool allowCon = (attrib.flags & AutoItemConfigFlags.PreventConCmd) != AutoItemConfigFlags.PreventConCmd;
 
             var newAIC = new AutoItemConfig {
                 boundProperty = prop,
