@@ -55,6 +55,15 @@ namespace TILER2 {
             });
         }
 
+        public static void OverrideVariant(this SkillFamily targetFamily, SkillDef origDef, SkillDef newDef) {
+            var ind = Array.FindIndex(targetFamily.variants, x => x.skillDef == origDef);
+            if(ind < 0) {
+                TILER2Plugin._logger.LogWarning("SkillFamily.OverrideVariant: couldn't find skilldef " + origDef + " in family " + targetFamily);
+                return;
+            }
+            targetFamily.variants[ind].skillDef = newDef;
+        }
+
         public static SkillDef CloneSkillDef(SkillDef oldDef) {
             var newDef = ScriptableObject.CreateInstance<SkillDef>();
 
