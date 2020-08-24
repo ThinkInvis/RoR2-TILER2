@@ -8,7 +8,7 @@ namespace TILER2 {
     [BepInDependency("com.bepis.r2api")]
     [BepInPlugin(ModGuid, ModName, ModVer)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
-    [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(ResourcesAPI), nameof(PlayerAPI), nameof(PrefabAPI), nameof(BuffAPI), nameof(CommandHelper))]
+    [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(ResourcesAPI), nameof(PlayerAPI), nameof(PrefabAPI), nameof(BuffAPI), nameof(CommandHelper), nameof(R2API.Networking.NetworkingAPI))]
     public class TILER2Plugin:BaseUnityPlugin {
         public const string ModVer = "1.5.0";
         public const string ModName = "TILER2";
@@ -30,6 +30,9 @@ namespace TILER2 {
             AutoItemConfigModule.Setup();
             MiscUtil.Setup();
             ItemBoilerplateModule.Setup();
+
+            FakeInventory.Setup();
+            ItemWard.Setup();
 
             CommandHelper.AddToConsoleWhenReady();
         }
