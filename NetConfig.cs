@@ -12,6 +12,9 @@ using static RoR2.Networking.GameNetworkManager;
 using BepInEx.Logging;
 
 namespace TILER2 {
+    /// <summary>
+    /// Provides automatic network syncing and mismatch kicking for the AutoItemConfig module.
+    /// </summary>
     public static class NetConfig {
         internal static readonly SimpleLocalizedKickReason kickCritMismatch = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCCRITMISMATCH");
         internal static readonly SimpleLocalizedKickReason kickTimeout = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCTIMEOUT");
@@ -207,6 +210,10 @@ namespace TILER2 {
             NetConfigOrchestrator.instance.CheckRespond(args.sender.connectionToClient, args[0], args[1]);
         }
 
+        /// <summary>
+        /// Registers as console command "aic_get". Prints an ingame value managed by TILER2.AutoItemConfig to console.
+        /// </summary>
+        /// <param name="args">Console command arguments. Matches 1 to 3 strings: mod name, config category, and config name, in that order or any subset thereof.</param>
         [ConCommand(commandName = "aic_get", helpText = "Prints an ingame value managed by TILER2.AutoItemConfig to console.")]
         public static void ConCmdAICGet(ConCommandArgs args) {
             var wrongArgsPre = "ConCmd aic_get was used with bad arguments (";
@@ -291,6 +298,10 @@ namespace TILER2 {
             NetConfigOrchestrator.SendConMsg(args.sender, "ConCmd " + targetCmd + " successfully updated config entry!");
         }
 
+        /// <summary>
+        /// Registers as console command "aic_set". While on the main menu, in singleplayer, or hosting a server: permanently override an ingame value managed by TILER2.AutoItemConfig. While non-host: attempts to call aic_settemp on the server instead.
+        /// </summary>
+        /// <param name="args">Console command arguments. Matches 1-3 strings (same as aic_get), then any serialized object which is valid for the target config entry.</param>
         [ConCommand(commandName = "aic_set", helpText = "While on the main menu, in singleplayer, or hosting a server: permanently override an ingame value managed by TILER2.AutoItemConfig. While non-host: attempts to call aic_settemp on the server instead.")]
         public static void ConCmdAICSet(ConCommandArgs args) {
             //todo: don't reroute AllowNetMismatch, add a SetTempLocal cmd?
@@ -300,6 +311,10 @@ namespace TILER2 {
             } else AICSet(args, false);
         }
 
+        /// <summary>
+        /// Registers as console command "aic_settemp". While a run is ongoing: temporarily override an ingame value managed by TILER2.AutoItemConfig. This will last until the end of the run. Use by non-host players can be blocked by the host using the ConVar aic_allowclientset.
+        /// </summary>
+        /// <param name="args">Console command arguments. Matches 1-3 strings (same as aic_get), then any serialized object which is valid for the target config entry.</param>
         [ConCommand(commandName = "aic_settemp", flags = ConVarFlags.ExecuteOnServer, helpText = "While a run is ongoing: temporarily override an ingame value managed by TILER2.AutoItemConfig. This will last until the end of the run. Use by non-host players can be blocked by the host using the ConVar aic_allowclientset.")]
         public static void ConCmdAICSetTemp(ConCommandArgs args) {
             EnsureOrchestrator();
@@ -315,6 +330,10 @@ namespace TILER2 {
             AICSet(args, true);
         }
 
+        /// <summary>
+        /// Registers as console command "aic". Routes to other AutoItemConfig commands (aic_get, aic_set, aic_settemp).
+        /// </summary>
+        /// <param name="args">Console command arguments. Matches 1 string, then the console command arguments of the target aic_ command.</param>
         [ConCommand(commandName = "aic", helpText = "Routes to other AutoItemConfig commands (aic_get, aic_set, aic_settemp). For when you forget the underscore.")]
         public static void ConCmdAIC(ConCommandArgs args) {
             if(args.Count == 0) {
@@ -346,7 +365,9 @@ namespace TILER2 {
         }*/
     }
     
-
+    /// <summary>
+    /// Orchestrator GameObject which handles all network messages for NetConfig.
+    /// </summary>
     public class NetConfigOrchestrator : NetworkBehaviour {
         internal static NetConfigOrchestrator instance;
 
@@ -355,6 +376,12 @@ namespace TILER2 {
             instance = this;
         }
 
+        /// <summary>
+        /// Send a console log message to the target NetworkUser.
+        /// </summary>
+        /// <param name="user">The NetworkUser to send a console message to.</param>
+        /// <param name="msg">The content of the sent message.</param>
+        /// <param name="severity">The severity of the sent message.</param>
         public static void SendConMsg(NetworkUser user, string msg, LogLevel severity = LogLevel.Message) {
             if(user == null || user.hasAuthority)
                 ConMsg(msg, severity);
@@ -374,6 +401,10 @@ namespace TILER2 {
             TILER2Plugin._logger.Log(severity, msg);
         }
 
+        /// <summary>
+        /// Send a chat message to all players in a server.
+        /// </summary>
+        /// <param name="msg">The content of the sent message.</param>
         [Server]
         public static void ServerSendGlobalChatMsg(string msg) {
             NetConfig.EnsureOrchestrator();
