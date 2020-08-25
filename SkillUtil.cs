@@ -5,6 +5,9 @@ using UnityEngine;
 using RoR2.Skills;
 
 namespace TILER2 {
+    /// <summary>
+    /// Contains utilities for working with RoR2.SkillDef and RoR2.SkillFamily.
+    /// </summary>
     public static class SkillUtil {
         //TODO: replace active skilldefs when overrides happen
 
