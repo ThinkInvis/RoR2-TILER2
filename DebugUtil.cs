@@ -54,7 +54,7 @@ namespace TILER2 {
                 }
             }
 
-            Inventory inv = typeof(MonsterTeamGainsItemsArtifactManager).GetFieldValue<Inventory>("monsterTeamInventory");
+            Inventory inv = MonsterTeamGainsItemsArtifactManager.monsterTeamInventory;
             if(inv == null) {
                 TILER2Plugin._logger.LogError("evo_setitem: Artifact of Evolution must be enabled!");
                 return;

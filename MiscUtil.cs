@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using R2API.Utils;
 using System.Collections;
 using System.Reflection;
 using System.Linq.Expressions;
@@ -17,12 +16,7 @@ namespace TILER2 {
     /// Contains miscellaneous utilities for working with a myriad of RoR2/R2API features, as well as some other math/reflection standalones.
     /// </summary>
     public static class MiscUtil {
-        private static Type nodeRefType;
-        private static Type nodeRefTypeArr;
-
         internal static void Setup() {
-            nodeRefType = typeof(DirectorCore).GetNestedTypes(BindingFlags.NonPublic).First(t=>t.Name == "NodeReference");
-            nodeRefTypeArr = nodeRefType.MakeArrayType();
             IL.RoR2.DirectorCore.TrySpawnObject += IL_DCTrySpawnObject;
             On.RoR2.OccupyNearbyNodes.OnSceneDirectorPrePopulateSceneServer += OccupyNearbyNodes_OnSceneDirectorPrePopulateSceneServer;
         }
@@ -30,8 +24,7 @@ namespace TILER2 {
         private static void OccupyNearbyNodes_OnSceneDirectorPrePopulateSceneServer(On.RoR2.OccupyNearbyNodes.orig_OnSceneDirectorPrePopulateSceneServer orig, SceneDirector sceneDirector) {
             //orig(self); //nope
 			NodeGraph graph = SceneInfo.instance.GetNodeGraph(MapNodeGroup.GraphType.Ground);
-            var list = (List<OccupyNearbyNodes>)typeof(OccupyNearbyNodes).GetFieldCached("instancesList").GetValue(null);
-            foreach(var onn in list) {
+            foreach(var onn in OccupyNearbyNodes.instancesList) {
                 var noi = onn.GetComponent<NodeOccupationInfo>();
                 if(!noi) noi = onn.gameObject.AddComponent<NodeOccupationInfo>();
                 var nodes = graph.FindNodesInRange(onn.transform.position, 0f, onn.radius, HullMask.None);
@@ -276,35 +269,14 @@ namespace TILER2 {
         /// <param name="nodeIndex">The NodeIndex within the given NodeGraph to remove.</param>
         /// <returns>True on successful removals; false otherwise.</returns>
         public static bool RemoveOccupiedNode(this DirectorCore self, NodeGraph nodeGraph, NodeGraph.NodeIndex nodeIndex) {
-            var ocnf = self.GetType().GetFieldCached("occupiedNodes");
-            Array ocn = (Array)ocnf.GetValue(self);
-            if(ocn.Length == 0) {
-                TILER2Plugin._logger.LogWarning("RemoveOccupiedNode has no nodes to remove");
-                return false;
-            }
+            var oldLen = self.occupiedNodes.Length;
 
-            var nv = new List<object>();
-            
-            foreach(object o in ocn as IEnumerable) {
-                var scanInd = o.GetFieldValue<NodeGraph.NodeIndex>("nodeIndex");
-                var scanGraph = o.GetFieldValue<NodeGraph>("nodeGraph");
-                if(!scanInd.Equals(nodeIndex) || !object.Equals(scanGraph, nodeGraph))
-                    nv.Add(o);
-            }
-            
-            if(nv.Count == ocn.Length) {
+            self.occupiedNodes = self.occupiedNodes.Where(x => x.nodeGraph != nodeGraph || x.nodeIndex != nodeIndex).ToArray();
+
+            if(oldLen == self.occupiedNodes.Length) {
                 TILER2Plugin._logger.LogWarning("RemoveOccupiedNode was passed an already-removed or otherwise nonexistent node");
                 return false;
             }
-            
-            Array ocnNew = (Array)Activator.CreateInstance(nodeRefTypeArr, nv.Count());
-            int i = 0;
-            foreach(var o in nv) {
-                ocnNew.SetValue(o, i);
-                i++;
-            }
-
-            ocnf.SetValue(self, ocnNew);
             return true;
         }
 

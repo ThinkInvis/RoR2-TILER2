@@ -137,7 +137,7 @@ namespace TILER2 {
         }
         public int GetCountOnDeploys(CharacterMaster master) {
             if(master == null) return 0;
-            var dplist = master.GetFieldValue<List<DeployableInfo>>("deployablesList");
+            var dplist = master.deployablesList;
             if(dplist == null) return 0;
             int count = 0;
             foreach(DeployableInfo d in dplist) {

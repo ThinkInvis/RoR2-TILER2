@@ -91,12 +91,10 @@ namespace TILER2 {
             }
             orig(self);
             //should force-update most cached drop tables
-            typeof(PickupDropTable).GetMethodCached("RegenerateAll").Invoke(null, new object[]{Run.instance});
+            PickupDropTable.RegenerateAll(Run.instance);
             //update existing Command droplets. part of an effort to disable items mid-stage, may not be necessary while that's prevented
-            var pickerOptions = typeof(PickupPickerController).GetFieldCached("options");
             foreach(var picker in UnityEngine.Object.FindObjectsOfType<PickupPickerController>()) {
-                var oldOpt = ((PickupPickerController.Option[])pickerOptions.GetValue(picker))[0];
-                picker.SetOptionsFromPickupForCommandArtifact(oldOpt.pickupIndex);
+                picker.SetOptionsFromPickupForCommandArtifact(picker.options[0].pickupIndex);
             }
         }
 
