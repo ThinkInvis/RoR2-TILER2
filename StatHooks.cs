@@ -5,26 +5,52 @@ using System;
 using UnityEngine;
 
 namespace TILER2 {
+    /// <summary>
+    /// Provides one consolidated IL patch for several commonly-added hooks to RecalculateStats.
+    /// </summary>
     public static class StatHooks {
         internal static void Setup() {
             IL.RoR2.CharacterBody.RecalculateStats += IL_CBRecalcStats;
         }
 
+        /// <summary>
+        /// A collection of modifiers for various stats. Will be passed down the event chain of GetStatCoefficients; add to the contained values to modify stats.
+        /// </summary>
         public class StatHookEventArgs : EventArgs {
+            /// <summary>Added to the direct multiplier to base health. MAX_HEALTH ~ (BASE_HEALTH + baseHealthAdd) * (HEALTH_MULT + healthMultAdd).</summary>
             public float healthMultAdd = 0f;
+            /// <summary>Added to base health. MAX_HEALTH ~ (BASE_HEALTH + baseHealthAdd) * (HEALTH_MULT + healthMultAdd).</summary>
             public float baseHealthAdd = 0f;
+            /// <summary>Added to the direct multiplier to base health regen. HEALTH_REGEN ~ (BASE_REGEN + baseRegenAdd) * (REGEN_MULT + regenMultAdd).</summary>
             public float regenMultAdd = 0f;
+            /// <summary>Added to base health regen. HEALTH_REGEN ~ (BASE_REGEN + baseRegenAdd) * (REGEN_MULT + regenMultAdd).</summary>
             public float baseRegenAdd = 0f;
+            /// <summary>Added to the direct multiplier to move speed. MOVE_SPEED ~ BASE_MOVE_SPEED * (MOVE_SPEED_MULT + moveSpeedMultAdd)</summary>
             public float moveSpeedMultAdd = 0f;
+            /// <summary>Added to the direct multiplier to jump power. JUMP_POWER ~ BASE_JUMP_POWER * (JUMP_POWER_MULT + jumpPowerMultAdd)</summary>
             public float jumpPowerMultAdd = 0f;
+            /// <summary>Added to the direct multiplier to base damage. DAMAGE ~ (BASE_DAMAGE + baseDamageAdd) * (DAMAGE_MULT + damageMultAdd).</summary>
             public float damageMultAdd = 0f;
+            /// <summary>Added to base damage. DAMAGE ~ (BASE_DAMAGE + baseDamageAdd) * (DAMAGE_MULT + damageMultAdd).</summary>
             public float baseDamageAdd = 0f;
+            /// <summary>Added to the direct multiplier to attack speed. ATTACK_SPEED ~ BASE_ATTACK_SPEED * (ATTACK_SPEED_MULT + attackSpeedMultAdd).</summary>
             public float attackSpeedMultAdd = 0f;
+            /// <summary>Added to crit chance. CRIT_CHANCE ~ BASE_CRIT_CHANCE + critAdd.</summary>
             public float critAdd = 0f;
+            /// <summary>Added to armor. ARMOR ~ BASE_ARMOR + armorAdd.</summary>
             public float armorAdd = 0f;
         }
 
+        /// <summary>
+        /// Used as the delegate type for the GetStatCoefficients event.
+        /// </summary>
+        /// <param name="sender">The CharacterBody which RecalculateStats is being called for.</param>
+        /// <param name="args">An instance of StatHookEventArgs, passed to each subscriber to this event in turn for modification.</param>
         public delegate void StatHookEventHandler(CharacterBody sender, StatHookEventArgs args);
+
+        /// <summary>
+        /// Subscribe to this event to modify one of the stat hooks which TILER2.StatHooks covers (see StatHookEventArgs). Fired during CharacterBody.RecalculateStats.
+        /// </summary>
         public static event StatHookEventHandler GetStatCoefficients;
 
         //TODO: backup modifiers in an On. hook
