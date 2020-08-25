@@ -16,7 +16,6 @@ namespace TILER2 {
         private static bool itemDropAPISupportsRemoval;
 
         internal static void Setup() {
-            itemDropAPISupportsRemoval = typeof(ItemDropAPI).GetMethods().Where(m => m.Name == "RemoveFromDefaultByTier").Count() > 0;
             On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
             On.RoR2.UI.LogBook.LogBookController.BuildPickupEntries += On_LogbookBuildPickupEntries;
             On.RoR2.Run.Start += On_RunStart;
@@ -68,25 +67,27 @@ namespace TILER2 {
             self.NetworkavailableEquipment = newEqpMask;
             //ItemDropAPI completely overwrites drop tables; need to perform separate removal
             if(R2API.R2API.IsLoaded("ItemDropAPI")) {
-                //RemoveFromDefaultAllTiers is in a potentially unreleased R2API update
-                if(itemDropAPISupportsRemoval) {
-                    TemporaryCompat.ItemDropAPIRemoveAll();
-                } else {
-                    //Temporary reflection patch. TODO: remove at some point after R2API updates
-                    Dictionary<ItemTier, List<ItemIndex>> ati = (Dictionary<ItemTier, List<ItemIndex>>)typeof(ItemDropAPI).GetFieldCached("AdditionalTierItems").GetValue(null);
-                    List<EquipmentIndex> aeqp = (List<EquipmentIndex>)typeof(ItemDropAPI).GetFieldCached("AdditionalEquipment").GetValue(null);
-                    foreach(ItemBoilerplate bpl in masterItemList) {
-                        if(bpl is Equipment eqp) {
-                            if(eqp.enabled) {
-                                if(!aeqp.Contains(eqp.regIndex)) aeqp.Add(eqp.regIndex);
-                            } else aeqp.Remove(eqp.regIndex);
-                        } else if(bpl is Item item) {
-                            if(item.enabled) {
-                                if(!ati[item.itemTier].Contains(item.regIndex)) ati[item.itemTier].Add(item.regIndex);
-                            } else ati[item.itemTier].Remove(item.regIndex);
-                        }
-                    }
-                }
+                ItemDropAPI.RemoveFromDefaultByTier(
+                    masterItemList.Where(bpl => bpl is Item && !bpl.enabled)
+                    .Select(bpl => {
+                        return new KeyValuePair<ItemIndex, ItemTier>(((Item)bpl).regIndex, ((Item)bpl).itemTier);
+                    })
+                    .ToArray());
+                ItemDropAPI.RemoveFromDefaultEquipment(
+                    masterItemList.Where(bpl => bpl is Equipment && !bpl.enabled)
+                    .Select(bpl => ((Equipment)bpl).regIndex)
+                    .ToArray());
+
+                ItemDropAPI.AddToDefaultByTier(
+                    masterItemList.Where(bpl => bpl is Item && bpl.enabled)
+                    .Select(bpl => {
+                        return new KeyValuePair<ItemIndex, ItemTier>(((Item)bpl).regIndex, ((Item)bpl).itemTier);
+                    })
+                    .ToArray());
+                ItemDropAPI.AddToDefaultEquipment(
+                    masterItemList.Where(bpl => bpl is Equipment && bpl.enabled)
+                    .Select(bpl => ((Equipment)bpl).regIndex)
+                    .ToArray());
             }
             orig(self);
             //should force-update most cached drop tables
