@@ -369,11 +369,10 @@ namespace TILER2 {
     /// Orchestrator GameObject which handles all network messages for NetConfig.
     /// </summary>
     public class NetConfigOrchestrator : NetworkBehaviour {
-        public static NetConfigOrchestrator instance {get; private set;}
+        internal static NetConfigOrchestrator instance;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private void Awake() {
-            if(instance != null) throw new InvalidOperationException("Singleton NetworkBehaviour TILER2.NetConfigOrchestrator was added to the scene multiple times");
             instance = this;
         }
 
