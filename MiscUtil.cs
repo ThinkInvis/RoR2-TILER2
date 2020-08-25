@@ -5,10 +5,8 @@ using System.Linq;
 using UnityEngine;
 using R2API.Utils;
 using System.Collections;
-using System.Collections.Specialized;
 using System.Reflection;
 using System.Linq.Expressions;
-using RoR2.Skills;
 using MonoMod.Cil;
 using Mono.Cecil.Cil;
 using System.Collections.ObjectModel;
@@ -40,56 +38,6 @@ namespace TILER2 {
                 }
             }
         }*/
-
-        /// <summary>Calls RecalculateValues on all GenericSkill instances (on living CharacterBodies) which have the target SkillDef.</summary>
-        public static void GlobalUpdateSkillDef(SkillDef targetDef) {
-            AliveList().ForEach(cb => {
-                if(!cb.hasBody) return;
-                var sloc = cb.GetBody().skillLocator;
-                if(!sloc) return;
-                for(var i = 0; i < sloc.skillSlotCount; i++) {
-                    var tsk = sloc.GetSkillAtIndex(i);
-                    if(tsk.skillDef == targetDef)
-                        tsk.RecalculateValues();
-                }
-            });
-        }
-
-        public static void OverrideVariant(this SkillFamily targetFamily, SkillDef origDef, SkillDef newDef) {
-            var ind = Array.FindIndex(targetFamily.variants, x => x.skillDef == origDef);
-            if(ind < 0) {
-                TILER2Plugin._logger.LogWarning("SkillFamily.OverrideVariant: couldn't find skilldef " + origDef + " in family " + targetFamily);
-                return;
-            }
-            targetFamily.variants[ind].skillDef = newDef;
-        }
-
-        public static SkillDef CloneSkillDef(SkillDef oldDef) {
-            var newDef = ScriptableObject.CreateInstance<SkillDef>();
-
-            //newDef.skillName = oldDef.skillName;
-            //newDef.skillNameToken = oldDef.skillNameToken;
-            //newDef.skillDescriptionToken = oldDef.skillDescriptionToken;
-            //newDef.icon = oldDef.icon;
-            newDef.activationStateMachineName = oldDef.activationStateMachineName;
-            newDef.activationState = oldDef.activationState;
-            newDef.interruptPriority = oldDef.interruptPriority;
-            newDef.baseRechargeInterval = oldDef.baseRechargeInterval;
-            newDef.baseMaxStock = oldDef.baseMaxStock;
-            newDef.rechargeStock = oldDef.rechargeStock;
-            newDef.isBullets = oldDef.isBullets;
-            newDef.shootDelay = oldDef.shootDelay;
-            newDef.beginSkillCooldownOnSkillEnd = oldDef.beginSkillCooldownOnSkillEnd;
-            newDef.requiredStock = oldDef.requiredStock;
-            newDef.stockToConsume = oldDef.stockToConsume;
-            newDef.isCombatSkill = oldDef.isCombatSkill;
-            newDef.noSprint = oldDef.noSprint;
-            newDef.canceledFromSprinting = oldDef.canceledFromSprinting;
-            newDef.mustKeyPress = oldDef.mustKeyPress;
-            newDef.fullRestockOnAssign = oldDef.fullRestockOnAssign;
-
-            return newDef;
-        }
 
         public static float Wrap(float x, float min, float max) {
             if(x < min)
