@@ -39,7 +39,7 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 ## Issues/TODO
 
 - Items which players have but were disabled mid-run need a UI indicator for such.
-- Items past the 256th in the entire catalog cannot be disabled, and the disabled status will loop around within the first 256 instead. This is a bug in RoR2 itself, which may be fixed soon (ETA v1.0.1.x).
+- Items past the 256th in the entire catalog cannot be disabled, and the disabled status will loop around within the second batch of 128 instead. This is a bug in RoR2 itself, which may be fixed soon (ETA v1.0.1.x).
 - If a client gets kicked by R2API mod mismatch, NetConfig will attempt kick them again (to no effect) due to timeout.
 - See the GitHub repo for more!
 
