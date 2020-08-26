@@ -2,10 +2,23 @@
 using MonoMod.Cil;
 using RoR2;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 
 namespace TILER2 {
+	/// <summary>
+	/// 
+	/// </summary>
+	[RequireComponent(typeof(Inventory))]
 	public class FakeInventory : Inventory {
+		public int GetRealItemCount(ItemIndex ind) {
+			ignoreFakes = true;
+			var retv = GetComponent<Inventory>().GetItemCount(ind);
+			ignoreFakes = false;
+			return retv;
+		}
+
 		private static bool ignoreFakes = false;
 
 		internal static void Setup() {
@@ -22,6 +35,7 @@ namespace TILER2 {
 			On.RoR2.ShrineCleanseBehavior.InventoryIsCleansable += ShrineCleanseBehavior_InventoryIsCleansable;
 			On.RoR2.Util.GetItemCountForTeam += Util_GetItemCountForTeam;
 			IL.RoR2.PickupPickerController.SetOptionsFromInteractor += PickupPickerController_SetOptionsFromInteractor;
+            On.RoR2.UI.ItemInventoryDisplay.UpdateDisplay += On_IIDUpdateDisplay;
 
             var cClass = typeof(CostTypeCatalog).GetNestedType("<>c", BindingFlags.NonPublic);
 			var subMethod = cClass.GetMethod("<Init>g__PayCostItems|5_1", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -134,5 +148,34 @@ namespace TILER2 {
 			if(!fakeinv) return origVal;
 			return origVal - fakeinv.GetItemCount(itemIndex);
 		}
+
+        private static void On_IIDUpdateDisplay(On.RoR2.UI.ItemInventoryDisplay.orig_UpdateDisplay orig, RoR2.UI.ItemInventoryDisplay self) {
+            orig(self);
+            Inventory inv = self.inventory;
+            var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
+            if(fakeInv) {
+                foreach(var icon in self.itemIcons) {
+                    var textPfx = "\n<color=#C18FE0>+";
+                    //strip original append text, if any
+                    var origInd = icon.stackText.text.IndexOf(textPfx);
+                    if(origInd >= 0)
+                        icon.stackText.text = icon.stackText.text.Substring(0, origInd);
+
+					var fakeCount = fakeInv.GetItemCount(icon.itemIndex);
+                    if(fakeCount == 0) continue;
+                    
+                    //add new append text
+					var oldCount = icon.itemCount;
+					icon.SetItemIndex(icon.itemIndex, Mathf.Max(oldCount - fakeCount, 0));
+                    var fakeText = textPfx + fakeCount + "</color>";
+                    if(!icon.stackText.enabled) {
+                        icon.stackText.enabled = true;
+                        icon.stackText.text = ((oldCount == fakeCount) ? "0" : "") + fakeText;
+                    } else {
+                        icon.stackText.text += fakeText;
+                    }
+                }
+            }
+        }
 	}
 }

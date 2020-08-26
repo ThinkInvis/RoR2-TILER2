@@ -32,6 +32,9 @@
       <HintPath>lib\R2API.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>lib\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>lib\UnityEngine.dll</HintPath>
       <Private>false</Private>
@@ -44,9 +47,13 @@
       <HintPath>lib\UnityEngine.Networking.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>lib\UnityEngine.UI.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="compat\" />
     <Folder Include="Extensions\" />
   </ItemGroup>
 
