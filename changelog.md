@@ -1,5 +1,18 @@
 ﻿# TILER2 Changelog
 
+**2.0.0**
+
+- BREAKING: Moved the CloneSkillDef and GlobalUpdateSkillDef methods from MiscUtil to SkillUtil.
+- BREAKING: Removed temporary transition patch for a newish R2API feature (ItemBoilerplate --> ItemDropAPI removal).
+- Added the FakeInventory and ItemWard components, migrated from Admiral and TinkersSatchel.
+- AutoItemConfig now adds a warning to config descriptions if both the DeferForever and PreventNetMismatch flags are set.
+- Added the SkillUtil module, incl. several methods for working with SkillFamily variants.
+- The NodeOccupationInfo component now works with the OccupyNearbyNodes component.
+	- Behavior of OccupyNearbyNodes is changed slightly in the process (multiple objects may now occupy the same node using an OccupyNearbyNodes).
+- Switched to publicized RoR2 assembly in favor of a lot of reflection (should increase performance, especially with MiscUtil.RemoveOccupiedNodes).
+- Added full documentation for MiscUtil, SkillUtil, StatHooks, NetConfig.
+- Bumped R2API dependency version to 2.5.7.
+
 **1.5.0**
 
 - Updated to accomodate breaking changes in RoR2 1.0 and the new R2API version.

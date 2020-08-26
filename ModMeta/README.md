@@ -39,11 +39,26 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 ## Issues/TODO
 
 - Items which players have but were disabled mid-run need a UI indicator for such.
+- Items past the 256th in the entire catalog cannot be disabled, and the disabled status will loop around within the first 256 instead. This is a bug in RoR2 itself, which may be fixed soon (ETA v1.0.1.x).
+- If a client gets kicked by R2API mod mismatch, NetConfig will attempt kick them again (to no effect) due to timeout.
 - See the GitHub repo for more!
 
 ## Changelog
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
+
+**2.0.0**
+
+- BREAKING: Moved the CloneSkillDef and GlobalUpdateSkillDef methods from MiscUtil to SkillUtil.
+- BREAKING: Removed temporary transition patch for a newish R2API feature (ItemBoilerplate --> ItemDropAPI removal).
+- Added the FakeInventory and ItemWard components, migrated from Admiral and TinkersSatchel.
+- AutoItemConfig now adds a warning to config descriptions if both the DeferForever and PreventNetMismatch flags are set.
+- Added the SkillUtil module, incl. several methods for working with SkillFamily variants.
+- The NodeOccupationInfo component now works with the OccupyNearbyNodes component.
+	- Behavior of OccupyNearbyNodes is changed slightly in the process (multiple objects may now occupy the same node using an OccupyNearbyNodes).
+- Switched to publicized RoR2 assembly in favor of a lot of reflection (should increase performance, especially with MiscUtil.RemoveOccupiedNodes).
+- Added full documentation for MiscUtil, SkillUtil, StatHooks, NetConfig.
+- Bumped R2API dependency version to 2.5.7.
 
 **1.5.0**
 
@@ -69,19 +84,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **1.2.1**
 
 - ItemBoilerplate: Added member `public Xoroshiro128Plus itemRng {get; internal set;}`. This is initialized at the start of every run, based on the run's main RNG seed.
-
-**1.2.0**
-
-- ItemBoilerplate:
-	- *Important:* Fixed disabled items dropping if another currently loaded mod uses R2API.ItemDropAPI.
-		- Note: this was due to a bug in R2API. There is another related bug which may make items with custom drop behavior become less common every time the drop table is rebuilt. Both bugs may or may not be fixed in the next R2API update.
-	- Added basic support for display rules.
-- NetConfig:
-	- *Important:* Fixed an issue where NetConfig would use the wrong sender for responses to mismatch checks, causing send failure and subsequent timeout.
-	- NetConfigOrchestrator now exposes the following public methods: `void SendConMsg(NetworkUser user, string msg, int severity = 0)`, `void ServerSendGlobalChatMsg(string msg)`.
-	- While timeout kick option is disabled, NetConfig now logs a warning to console on timeout instead of doing nothing.
-	- The aic_get concmd now provides information on deferred changes and temporary overrides.
-- AutoItemConfig:
-	- Mid-run changes to AnnounceToRun options (e.g. ItemBoilerplate.enabled) should no longer cause console errors/warnings in singleplayer.
-	- Added `AutoUpdateEventFlags.InvalidateDropTable`, replacing the hardcoded droptable update on ItemBoilerplate.enabled.
-	- InvalidateStats and InvalidateDropTable now both set a relevant dirty flag, causing an update on the next frame (once per batch of config changes) instead of updating immediately (potentially many times at once).
