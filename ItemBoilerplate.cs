@@ -13,7 +13,6 @@ using static TILER2.MiscUtil;
 namespace TILER2 {
     internal static class ItemBoilerplateModule {
         internal static FilingDictionary<ItemBoilerplate> masterItemList = new FilingDictionary<ItemBoilerplate>();
-        private static bool itemDropAPISupportsRemoval;
 
         internal static void Setup() {
             On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
