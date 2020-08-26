@@ -152,28 +152,28 @@ namespace TILER2 {
         private static void On_IIDUpdateDisplay(On.RoR2.UI.ItemInventoryDisplay.orig_UpdateDisplay orig, RoR2.UI.ItemInventoryDisplay self) {
             orig(self);
             Inventory inv = self.inventory;
+			if(!inv) return;
             var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
-            if(fakeInv) {
-                foreach(var icon in self.itemIcons) {
-                    var textPfx = "\n<color=#C18FE0>+";
-                    //strip original append text, if any
-                    var origInd = icon.stackText.text.IndexOf(textPfx);
-                    if(origInd >= 0)
-                        icon.stackText.text = icon.stackText.text.Substring(0, origInd);
+			if(!fakeInv) return;
+            foreach(var icon in self.itemIcons) {
+                var textPfx = "\n<color=#C18FE0>+";
+                //strip original append text, if any
+                var origInd = icon.stackText.text.IndexOf(textPfx);
+                if(origInd >= 0)
+                    icon.stackText.text = icon.stackText.text.Substring(0, origInd);
 
-					var fakeCount = fakeInv.GetItemCount(icon.itemIndex);
-                    if(fakeCount == 0) continue;
+				var fakeCount = fakeInv.GetItemCount(icon.itemIndex);
+                if(fakeCount == 0) continue;
                     
-                    //add new append text
-					var oldCount = icon.itemCount;
-					icon.SetItemIndex(icon.itemIndex, Mathf.Max(oldCount - fakeCount, 0));
-                    var fakeText = textPfx + fakeCount + "</color>";
-                    if(!icon.stackText.enabled) {
-                        icon.stackText.enabled = true;
-                        icon.stackText.text = ((oldCount == fakeCount) ? "0" : "") + fakeText;
-                    } else {
-                        icon.stackText.text += fakeText;
-                    }
+                //add new append text
+				var oldCount = icon.itemCount;
+				icon.SetItemIndex(icon.itemIndex, Mathf.Max(oldCount - fakeCount, 0));
+                var fakeText = textPfx + fakeCount + "</color>";
+                if(!icon.stackText.enabled) {
+                    icon.stackText.enabled = true;
+                    icon.stackText.text = ((oldCount == fakeCount) ? "0" : "") + fakeText;
+                } else {
+                    icon.stackText.text += fakeText;
                 }
             }
         }
