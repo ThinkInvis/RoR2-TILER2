@@ -98,7 +98,6 @@ namespace TILER2 {
 				var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
 				if(!fakeInv) fakeInv = inv.gameObject.AddComponent<FakeInventory>();
 				foreach(var kvp in itemcounts) {
-					inv.GiveItem(kvp.Key, kvp.Value);
 					fakeInv.GiveItem(kvp.Key, kvp.Value);
 				}
 			}
@@ -114,7 +113,6 @@ namespace TILER2 {
 			if(trackedInventories.Contains(inv)) {
 				var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
 				foreach(var kvp in itemcounts) {
-					inv.RemoveItem(kvp.Key, kvp.Value);
 					fakeInv.RemoveItem(kvp.Key, kvp.Value);
 				}
 				trackedInventories.Remove(inv);
@@ -128,15 +126,10 @@ namespace TILER2 {
 			trackedInventories.RemoveAll(x => !x);
 			foreach(var inv in trackedInventories) {
 				var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
-				inv.GiveItem(ind);
 				fakeInv.GiveItem(ind);
 			}
 			
-			//TODO: this will be unnecessary once NetworkingAPI patch happens
-			if(NetworkClient.active)
-				ClientAddItemDisplay(ind);
-			else
-				new MsgDeltaDisplay(GetComponent<NetworkIdentity>().netId, ind, true).Send(R2API.Networking.NetworkDestination.Clients);
+			new MsgDeltaDisplay(GetComponent<NetworkIdentity>().netId, ind, true).Send(R2API.Networking.NetworkDestination.Clients);
 		}
 
 		public void ServerRemoveItem(ItemIndex ind) {
@@ -145,15 +138,11 @@ namespace TILER2 {
 			else itemcounts[ind]--;
 			if(itemcounts[ind] == 0) itemcounts.Remove(ind);
 
-			if(NetworkClient.active)
-				ClientRemoveItemDisplay(ind);
-			else
-				new MsgDeltaDisplay(GetComponent<NetworkIdentity>().netId, ind, false).Send(R2API.Networking.NetworkDestination.Clients);
+			new MsgDeltaDisplay(GetComponent<NetworkIdentity>().netId, ind, false).Send(R2API.Networking.NetworkDestination.Clients);
 
 			trackedInventories.RemoveAll(x => !x || !x.gameObject);
 			foreach(var inv in trackedInventories) {
 				var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
-				inv.RemoveItem(ind);
 				fakeInv.RemoveItem(ind);
 			}
 		}
