@@ -88,21 +88,22 @@ namespace TILER2 {
 				}
 				var fakeInv = obj.GetComponent<FakeInventory>();
 				if(!fakeInv) fakeInv = obj.AddComponent<FakeInventory>();
-
+				
 				//haunted! do not use. TODO: exorcise
 				//ItemCatalog.ReturnItemStackArray(fakeInv._itemStacks);
 				fakeInv._itemStacks = _itemsToSync;
 				
-				if(!NetworkServer.active) return;
-
-				var inv = fakeInv.GetComponent<Inventory>();
+				if(NetworkServer.active) {
+					var inv = fakeInv.GetComponent<Inventory>();
 				
-				inv.SetDirtyBit(1u);
+					inv.SetDirtyBit(1u);
+					inv.SetDirtyBit(8u);
 
-				//= inventory.onInventoryChanged.Invoke();
-				var multicast = (MulticastDelegate)typeof(Inventory).GetFieldCached(nameof(Inventory.onInventoryChanged)).GetValue(inv);
-				foreach(var del in multicast.GetInvocationList()) {
-					del.Method.Invoke(del.Target, null);
+					//= inventory.onInventoryChanged.Invoke();
+					var multicast = (MulticastDelegate)typeof(Inventory).GetFieldCached(nameof(Inventory.onInventoryChanged)).GetValue(inv);
+					foreach(var del in multicast.GetInvocationList()) {
+						del.Method.Invoke(del.Target, null);
+					}
 				}
 			}
 
