@@ -6,6 +6,7 @@ using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -271,7 +272,7 @@ namespace TILER2 {
 				}
 				self.itemStacks[i] += fakeInv._itemStacks[i];
 			}
-			newAcqOrder.CopyTo(self.itemOrder);
+			newAcqOrder.Distinct().ToList().CopyTo(0, self.itemOrder, 0, Mathf.Min(self.itemOrder.Length,newAcqOrder.Count));
 			self.itemOrderCount = newAcqOrder.Count;
 		}
 
