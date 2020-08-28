@@ -272,7 +272,8 @@ namespace TILER2 {
 				}
 				self.itemStacks[i] += fakeInv._itemStacks[i];
 			}
-			newAcqOrder.Distinct().ToList().CopyTo(0, self.itemOrder, 0, Mathf.Min(self.itemOrder.Length,newAcqOrder.Count));
+			newAcqOrder = newAcqOrder.Distinct().ToList();
+			newAcqOrder.CopyTo(0, self.itemOrder, 0, Mathf.Min(self.itemOrder.Length,newAcqOrder.Count));
 			self.itemOrderCount = newAcqOrder.Count;
 		}
 
