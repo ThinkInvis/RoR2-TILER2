@@ -83,27 +83,29 @@ namespace TILER2 {
 			public void OnReceived() {
 				var obj = Util.FindNetworkObject(_ownerNetId);
 				if(!obj) {
-					TILER2Plugin._logger.LogWarning("FakeInventory.MsgSyncAll received for missing NetworkObject with ID " + _ownerNetId);
+					TILER2Plugin._logger.LogWarning($"FakeInventory.MsgSyncAll received for missing NetworkObject with ID {_ownerNetId}");
 					return;
 				}
+
 				var fakeInv = obj.GetComponent<FakeInventory>();
-				if(!fakeInv) fakeInv = obj.AddComponent<FakeInventory>();
+				if(!fakeInv)
+					fakeInv = obj.AddComponent<FakeInventory>();
 				
 				//haunted! do not use. TODO: exorcise
 				//ItemCatalog.ReturnItemStackArray(fakeInv._itemStacks);
 				fakeInv._itemStacks = _itemsToSync;
+
+				var inv = fakeInv.GetComponent<Inventory>();
 				
 				if(NetworkServer.active) {
-					var inv = fakeInv.GetComponent<Inventory>();
-				
 					inv.SetDirtyBit(1u);
 					inv.SetDirtyBit(8u);
+				}
 
-					//= inventory.onInventoryChanged.Invoke();
-					var multicast = (MulticastDelegate)typeof(Inventory).GetFieldCached(nameof(Inventory.onInventoryChanged)).GetValue(inv);
-					foreach(var del in multicast.GetInvocationList()) {
-						del.Method.Invoke(del.Target, null);
-					}
+				//= inventory.onInventoryChanged.Invoke();
+				var multicast = (MulticastDelegate)typeof(Inventory).GetFieldCached(nameof(Inventory.onInventoryChanged)).GetValue(inv);
+				foreach(var del in multicast.GetInvocationList()) {
+					del.Method.Invoke(del.Target, null);
 				}
 			}
 
@@ -264,10 +266,10 @@ namespace TILER2 {
 			if(!fakeInv) return;
 			List<ItemIndex> newAcqOrder = new List<ItemIndex>(self.inventory.itemAcquisitionOrder);
 			for(int i = 0; i < self.itemStacks.Length; i++) {
-				if(fakeInv.itemStacks[i] > 0 && self.itemStacks[i] == 0) {
+				if(fakeInv._itemStacks[i] > 0 && self.itemStacks[i] == 0) {
 					newAcqOrder.Add((ItemIndex)i);
 				}
-				self.itemStacks[i] += fakeInv.itemStacks[i];
+				self.itemStacks[i] += fakeInv._itemStacks[i];
 			}
 			newAcqOrder.CopyTo(self.itemOrder);
 			self.itemOrderCount = newAcqOrder.Count;
