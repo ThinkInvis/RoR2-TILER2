@@ -47,6 +47,12 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**2.1.0**
+
+- FakeInventory should now work properly in multiplayer.
+- BREAKING (minor): FakeInventory no longer inherits from Inventory and has had some structural changes. It's no longer a requirement to add items to the sibling inventory in parallel.
+- Bumped R2API dependency version to 2.5.11.
+
 **2.0.0**
 
 - BREAKING: Moved the CloneSkillDef and GlobalUpdateSkillDef methods from MiscUtil to SkillUtil.
@@ -80,7 +86,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - Added `Artifact : ItemBoilerplate`.
 - Migrated some extension methods from ClassicItems (`CharacterBody.SetBuffCount`).
 - GitHub repo is now licensed (GNU GPL3).
-
-**1.2.1**
-
-- ItemBoilerplate: Added member `public Xoroshiro128Plus itemRng {get; internal set;}`. This is initialized at the start of every run, based on the run's main RNG seed.

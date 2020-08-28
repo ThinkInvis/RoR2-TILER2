@@ -1,5 +1,10 @@
 ﻿# TILER2 Changelog
 
+**2.1.0**
+
+- FakeInventory should now work properly in multiplayer.
+- BREAKING (minor): FakeInventory no longer inherits from Inventory and has had some structural changes. It's no longer a requirement to add items to the sibling inventory in parallel.
+
 **2.0.0**
 
 - BREAKING: Moved the CloneSkillDef and GlobalUpdateSkillDef methods from MiscUtil to SkillUtil.
