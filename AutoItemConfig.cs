@@ -340,7 +340,6 @@ namespace TILER2 {
             bool allowCon = (attrib.flags & AutoItemConfigFlags.PreventConCmd) != AutoItemConfigFlags.PreventConCmd;
             
             if(deferForever && !allowMismatch) {
-                Debug.Log("Adding manual sync warning to " + categoryName + "/" + cfgName);
                 cfgDesc += "\nWARNING: THIS SETTING CANNOT BE CHANGED WHILE THE GAME IS RUNNING, AND MUST BE SYNCED MANUALLY FOR MULTIPLAYER!";
             }
 
