@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**2.1.1**
+
+- Preliminary patch for RoR2 v1.0.1.1. Fixes some immediate breaking issues (plugin load failure); others may exist.
+
 **2.1.0**
 
 - FakeInventory should now work properly in multiplayer.
