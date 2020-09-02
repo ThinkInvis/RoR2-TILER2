@@ -1,5 +1,10 @@
 ﻿# TILER2 Changelog
 
+**2.1.2**
+
+- Fixed inability of FakeInventory to prevent item steal.
+- Bumped R2API dependency version to 2.5.14.
+
 **2.1.1**
 
 - Preliminary patch for RoR2 v1.0.1.1. Fixes some immediate breaking issues (plugin load failure); others may exist.
