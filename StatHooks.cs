@@ -64,46 +64,56 @@ namespace TILER2 {
                 GetStatCoefficients?.Invoke(cb, statMods);
             });
             
-            bool ILFound = c.TryGotoNext(MoveType.After,
+            int locBaseHealthIndex = -1;
+            int locHealthMultIndex = -1;
+            bool ILFound = c.TryGotoNext(
                 x=>x.MatchLdfld<CharacterBody>("baseMaxHealth"),
                 x=>x.MatchLdarg(0),
-                x=>x.MatchLdfld<CharacterBody>("levelMaxHealth"),
-                x=>x.MatchLdloc(out _),
-                x=>x.MatchMul(),
-                x=>x.MatchAdd(),
-                x=>x.MatchStloc(out _),
-                x=>x.MatchLdcR4(out _));
+                x=>x.MatchLdfld<CharacterBody>("levelMaxHealth"))
+                && c.TryGotoNext(
+                x => x.MatchStloc(out locBaseHealthIndex))
+                && c.TryGotoNext(
+                    x => x.MatchLdloc(locBaseHealthIndex),
+                    x => x.MatchLdloc(out locHealthMultIndex),
+                    x => x.MatchMul(),
+                    x => x.MatchStloc(locBaseHealthIndex));
 
             if(ILFound) {
-                c.EmitDelegate<Func<float, float>>((origHealthMult) => {
-                    return origHealthMult + statMods.healthMultAdd;
-                });
-                c.Index -= 3;
+                c.GotoPrev(x => x.MatchLdfld<CharacterBody>("baseMaxHealth"));
+                c.GotoNext(x => x.MatchStloc(locBaseHealthIndex));
                 c.EmitDelegate<Func<float, float>>((origMaxHealth) => {
                     return origMaxHealth + statMods.baseHealthAdd;
+                });
+                c.GotoNext(x => x.MatchStloc(locHealthMultIndex));
+                c.EmitDelegate<Func<float, float>>((origHealthMult) => {
+                    return origHealthMult + statMods.healthMultAdd;
                 });
             } else {
                 TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (health modifier)");
             }
             
-            ILFound = c.TryGotoNext(MoveType.After,
+            c.Index = 0;
+
+            int locBaseRegenIndex = -1;
+            ILFound = c.TryGotoNext(
                 x=>x.MatchLdfld<CharacterBody>("baseRegen"),
                 x=>x.MatchLdarg(0),
-                x=>x.MatchLdfld<CharacterBody>("levelRegen"),
-                x=>x.MatchLdloc(out _),
-                x=>x.MatchMul(),
-                x=>x.MatchAdd());
+                x=>x.MatchLdfld<CharacterBody>("levelRegen"))
+                && c.TryGotoNext(
+                    x => x.MatchStloc(out locBaseRegenIndex));
+
             if(ILFound) {
-                c.EmitDelegate<Func<float>>(()=>{
-                    return statMods.baseRegenAdd;
+                c.EmitDelegate<Func<float, float>>((origBaseRegen)=>{
+                    return origBaseRegen + statMods.baseRegenAdd;
                 });
-                c.Emit(OpCodes.Add);
             } else {
                 TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (base regen modifier)");
             }
 
+            c.Index = 0;
+
             ILFound = c.TryGotoNext(MoveType.After,
-                x=>x.OpCode == OpCodes.Ldloc_S,
+                x=>x.MatchLdloc(locBaseRegenIndex),
                 x=>x.MatchAdd(),
                 x=>x.OpCode == OpCodes.Ldloc_S,
                 x=>x.MatchAdd(),
@@ -119,6 +129,8 @@ namespace TILER2 {
             } else {
                 TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (regen multiplier modifier)");
             }
+            
+            c.Index = 0;
 
             ILFound = c.TryGotoNext(MoveType.After,
                 x=>x.MatchLdfld<CharacterBody>("baseMoveSpeed"),
@@ -137,6 +149,8 @@ namespace TILER2 {
                 TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (move speed modifier)");
             }
             
+            c.Index = 0;
+
             //Find (parts of): float jumpPower = this.baseJumpPower + this.levelJumpPower * num32;
             ILFound = c.TryGotoNext(MoveType.After,
                 x=>x.MatchLdfld<CharacterBody>("baseJumpPower"),
@@ -153,6 +167,8 @@ namespace TILER2 {
             } else {
                 TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (jump power modifier)");
             }
+            
+            c.Index = 0;
 
             ILFound = c.TryGotoNext(MoveType.After,
                 x=>x.MatchLdarg(0),
@@ -176,6 +192,8 @@ namespace TILER2 {
             } else {
                 TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (damage modifier)");
             }
+            
+            c.Index = 0;
 
             ILFound = c.TryGotoNext(MoveType.After,
                 x=>x.MatchLdfld<CharacterBody>("baseAttackSpeed"),
@@ -193,6 +211,8 @@ namespace TILER2 {
             } else {
                 TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (attack speed modifier)");
             }
+            
+            c.Index = 0;
 
             int locOrigCrit = -1;
             ILFound = c.TryGotoNext(
@@ -210,6 +230,8 @@ namespace TILER2 {
                 TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (crit modifier)");
             }
             
+            c.Index = 0;
+
             ILFound = c.TryGotoNext(
                 x=>x.MatchLdfld<CharacterBody>("baseArmor"))
                 && c.TryGotoNext(
