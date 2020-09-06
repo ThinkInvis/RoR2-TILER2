@@ -56,14 +56,14 @@ namespace TILER2 {
             var newEqpMask = self.availableEquipment;
             foreach(ItemBoilerplate bpl in masterItemList) {
                 if(!bpl.enabled) {
-                    if(bpl is Equipment eqp) newEqpMask.RemoveEquipment(eqp.regIndex);
-                    else if(bpl is Item item) newItemMask.RemoveItem(item.regIndex);
+                    if(bpl is Equipment eqp) newEqpMask.Remove(eqp.regIndex);
+                    else if(bpl is Item item) newItemMask.Remove(item.regIndex);
+                } else {
+                    if(bpl is Equipment eqp) newEqpMask.Add(eqp.regIndex);
+                    else if(bpl is Item item) newItemMask.Add(item.regIndex);
                 }
             }
-            self.availableItems = newItemMask;
-            self.availableEquipment = newEqpMask;
-            self.NetworkavailableItems = newItemMask;
-            self.NetworkavailableEquipment = newEqpMask;
+
             //ItemDropAPI completely overwrites drop tables; need to perform separate removal
             if(R2API.R2API.IsLoaded("ItemDropAPI")) {
                 ItemDropAPI.RemoveFromDefaultByTier(

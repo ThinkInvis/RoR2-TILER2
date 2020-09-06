@@ -39,13 +39,27 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 ## Issues/TODO
 
 - Items which players have but were disabled mid-run need a UI indicator for such.
-- Items past the 256th in the entire catalog cannot be disabled, and the disabled status will loop around within the second batch of 128 instead. This is a bug in RoR2 itself, which may be fixed soon (ETA v1.0.1.x).
 - If a client gets kicked by R2API mod mismatch, NetConfig will attempt kick them again (to no effect) due to timeout.
 - See the GitHub repo for more!
 
 ## Changelog
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
+
+**2.1.2**
+
+- Fixed inability of FakeInventory to prevent item steal.
+- Bumped R2API dependency version to 2.5.14.
+
+**2.1.1**
+
+- Preliminary patch for RoR2 v1.0.1.1. Fixes some immediate breaking issues (plugin load failure); others may exist.
+
+**2.1.0**
+
+- FakeInventory should now work properly in multiplayer.
+- BREAKING (minor): FakeInventory no longer inherits from Inventory and has had some structural changes. It's no longer a requirement to add items to the sibling inventory in parallel.
+- Bumped R2API dependency version to 2.5.11.
 
 **2.0.0**
 
@@ -63,24 +77,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **1.5.0**
 
 - Updated to accomodate breaking changes in RoR2 1.0 and the new R2API version.
-
-**1.4.0**
-
-- General refactor/cleanup of main plugin code into module files.
-- StatHooks: fixed incorrect order of application of damage modifiers.
-- Reworked MiscUtil's NodeGraph tools.
-	- The method RemoveOccupiedNodes has been changed internally, but should remain backwards-compatible.
-	- The methods RemoveAllOccupiedNodes and UpdateOccupiedNodesReference have been added.
-	- The component NodeOccupationInfo has been added. This is automatically added to objects in most ingame cases where nodes are marked as occupied (notable exception: OccupyNearbyNodes component).
-- Now uses plugin-specific console logger.
-
-**1.3.0**
-
-- Added StatHooks module.
-- Added `Artifact : ItemBoilerplate`.
-- Migrated some extension methods from ClassicItems (`CharacterBody.SetBuffCount`).
-- GitHub repo is now licensed (GNU GPL3).
-
-**1.2.1**
-
-- ItemBoilerplate: Added member `public Xoroshiro128Plus itemRng {get; internal set;}`. This is initialized at the start of every run, based on the run's main RNG seed.

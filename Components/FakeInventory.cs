@@ -1,27 +1,137 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using R2API.Networking.Interfaces;
+using R2API.Utils;
 using RoR2;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace TILER2 {
 	/// <summary>
-	/// 
+	/// Keeps track of temporary items. Temporary items cannot be spent at 3D Printers or Scrappers, nor removed by itemsteal; they are intended for removal by mod code only.
+	/// Must be attached alongside a normal Inventory. Use GiveItem/RemoveItem/GetItemCount to work with temporary items; use GetRealItemCount to get non-temporary items in the sibling Inventory.
 	/// </summary>
 	[RequireComponent(typeof(Inventory))]
-	public class FakeInventory : Inventory {
+	public class FakeInventory : NetworkBehaviour {
+		private int[] _itemStacks = ItemCatalog.RequestItemStackArray();
+		public readonly ReadOnlyCollection<int> itemStacks;
+		
+		public FakeInventory() {
+			itemStacks = new ReadOnlyCollection<int>(_itemStacks);
+		}
+
+		private void OnDestroy() {
+			ItemCatalog.ReturnItemStackArray(_itemStacks);
+		}
+
+		private bool itemsDirty = false;
+
+		private void DeltaItem(ItemIndex ind, int count) {
+			_itemStacks[(int)ind] = Mathf.Max(_itemStacks[(int)ind]+count, 0);
+			itemsDirty = true;
+		}
+
+		public void GiveItem(ItemIndex ind, int count = 1) {
+			if(!NetworkServer.active) return;
+
+			if(count <= 0) {
+				if(count < 0) RemoveItem(ind, -count);
+				return;
+			}
+
+			DeltaItem(ind, count);
+		}
+
+		public void RemoveItem(ItemIndex ind, int count = 1) {
+			if(!NetworkServer.active) return;
+
+			if(count <= 0) {
+				if(count < 0) GiveItem(ind, -count);
+				return;
+			}
+
+			DeltaItem(ind, -count);
+		}
+
+		public int GetItemCount(ItemIndex ind) {
+			return _itemStacks[(int)ind];
+		}
+
 		public int GetRealItemCount(ItemIndex ind) {
-			ignoreFakes = true;
-			var retv = GetComponent<Inventory>().GetItemCount(ind);
-			ignoreFakes = false;
-			return retv;
+			return GetComponent<Inventory>().itemStacks[(int)ind];
+		}
+
+		protected struct MsgSyncAll : INetMessage {
+			private NetworkInstanceId _ownerNetId;
+			private int[] _itemsToSync;
+			
+			public void Serialize(NetworkWriter writer) {
+				writer.Write(_ownerNetId);
+				writer.WriteItemStacks(_itemsToSync);
+			}
+
+			public void Deserialize(NetworkReader reader) {
+				_ownerNetId = reader.ReadNetworkId();
+				_itemsToSync = new int[ItemCatalog.itemCount];//ItemCatalog.RequestItemStackArray();
+				reader.ReadItemStacks(_itemsToSync);
+			}
+
+			public void OnReceived() {
+				var obj = Util.FindNetworkObject(_ownerNetId);
+				if(!obj) {
+					TILER2Plugin._logger.LogWarning($"FakeInventory.MsgSyncAll received for missing NetworkObject with ID {_ownerNetId}");
+					return;
+				}
+
+				var fakeInv = obj.GetComponent<FakeInventory>();
+				if(!fakeInv)
+					fakeInv = obj.AddComponent<FakeInventory>();
+				
+				//haunted! do not use. TODO: exorcise
+				//ItemCatalog.ReturnItemStackArray(fakeInv._itemStacks);
+				fakeInv._itemStacks = _itemsToSync;
+
+				var inv = fakeInv.GetComponent<Inventory>();
+				
+				if(NetworkServer.active) {
+					inv.SetDirtyBit(1u);
+					inv.SetDirtyBit(8u);
+				}
+
+				//= inventory.onInventoryChanged.Invoke();
+				var multicast = (MulticastDelegate)typeof(Inventory).GetFieldCached(nameof(Inventory.onInventoryChanged)).GetValue(inv);
+				foreach(var del in multicast.GetInvocationList()) {
+					del.Method.Invoke(del.Target, null);
+				}
+			}
+
+			public MsgSyncAll(NetworkInstanceId ownerNetId, int[] itemsToSync) {
+				_ownerNetId = ownerNetId;
+				_itemsToSync = itemsToSync;
+			}
+		}
+
+		private void Awake() {
+			new MsgSyncAll(GetComponent<NetworkIdentity>().netId, _itemStacks).Send(R2API.Networking.NetworkDestination.Clients);
+		}
+
+		private void Update() {
+			if(itemsDirty && NetworkServer.active) {
+				new MsgSyncAll(GetComponent<NetworkIdentity>().netId, _itemStacks).Send(R2API.Networking.NetworkDestination.Clients);
+				itemsDirty = false;
+			}
 		}
 
 		private static bool ignoreFakes = false;
 
 		internal static void Setup() {
+			R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSyncAll>();
+
 			On.RoR2.Inventory.GetItemCount += On_InvGetItemCount;
 			On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.IsAffordable += LunarItemOrEquipmentCostTypeHelper_IsAffordable;
 			On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.PayCost += LunarItemOrEquipmentCostTypeHelper_PayCost;
@@ -36,12 +146,13 @@ namespace TILER2 {
 			On.RoR2.Util.GetItemCountForTeam += Util_GetItemCountForTeam;
 			IL.RoR2.PickupPickerController.SetOptionsFromInteractor += PickupPickerController_SetOptionsFromInteractor;
             On.RoR2.UI.ItemInventoryDisplay.UpdateDisplay += On_IIDUpdateDisplay;
+			On.RoR2.UI.ItemInventoryDisplay.OnInventoryChanged += On_IIDInventoryChanged;
 
             var cClass = typeof(CostTypeCatalog).GetNestedType("<>c", BindingFlags.NonPublic);
 			var subMethod = cClass.GetMethod("<Init>g__PayCostItems|5_1", BindingFlags.NonPublic | BindingFlags.Instance);
             MonoMod.RuntimeDetour.HookGen.HookEndpointManager.Modify(subMethod, (Action<ILContext>)gPayCostItemsHook);
 		}
-		
+
 		private static void PickupPickerController_SetOptionsFromInteractor(ILContext il) {
 			var c = new ILCursor(il);
 			int locIndex = -1;
@@ -101,9 +212,9 @@ namespace TILER2 {
 			return retv;
 		}
 
-		private static int StolenInventoryInfo_StealItem(On.RoR2.ItemStealController.StolenInventoryInfo.orig_StealItem orig, object self, ItemIndex itemIndex, int maxStackToSteal) {
+		private static int StolenInventoryInfo_StealItem(On.RoR2.ItemStealController.StolenInventoryInfo.orig_StealItem orig, object self, ItemIndex itemIndex, int maxStackToSteal, bool? useOrbOverride) {
 			ignoreFakes = true;
-			var retv = orig(self, itemIndex, maxStackToSteal);
+			var retv = orig(self, itemIndex, maxStackToSteal, useOrbOverride);
 			ignoreFakes = false;
 			return retv;
 		}
@@ -143,10 +254,27 @@ namespace TILER2 {
 		
 		private static int On_InvGetItemCount(On.RoR2.Inventory.orig_GetItemCount orig, Inventory self, ItemIndex itemIndex) {
 			var origVal = orig(self, itemIndex);
-			if(self is FakeInventory || !ignoreFakes) return origVal;
+			if(ignoreFakes || !self) return origVal;
 			var fakeinv = self.gameObject.GetComponent<FakeInventory>();
 			if(!fakeinv) return origVal;
-			return origVal - fakeinv.GetItemCount(itemIndex);
+			return origVal + fakeinv._itemStacks[(int)itemIndex];//fakeinv.GetItemCount(itemIndex);
+		}
+		
+		private static void On_IIDInventoryChanged(On.RoR2.UI.ItemInventoryDisplay.orig_OnInventoryChanged orig, RoR2.UI.ItemInventoryDisplay self) {
+			orig(self);
+			if(!self || !self.isActiveAndEnabled || !self.inventory) return;
+			var fakeInv = self.inventory.GetComponent<FakeInventory>();
+			if(!fakeInv) return;
+			List<ItemIndex> newAcqOrder = new List<ItemIndex>(self.inventory.itemAcquisitionOrder);
+			for(int i = 0; i < self.itemStacks.Length; i++) {
+				if(fakeInv._itemStacks[i] > 0 && self.itemStacks[i] == 0) {
+					newAcqOrder.Add((ItemIndex)i);
+				}
+				self.itemStacks[i] += fakeInv._itemStacks[i];
+			}
+			newAcqOrder = newAcqOrder.Distinct().ToList();
+			newAcqOrder.CopyTo(0, self.itemOrder, 0, Mathf.Min(self.itemOrder.Length,newAcqOrder.Count));
+			self.itemOrderCount = newAcqOrder.Count;
 		}
 
         private static void On_IIDUpdateDisplay(On.RoR2.UI.ItemInventoryDisplay.orig_UpdateDisplay orig, RoR2.UI.ItemInventoryDisplay self) {
@@ -156,25 +284,11 @@ namespace TILER2 {
             var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
 			if(!fakeInv) return;
             foreach(var icon in self.itemIcons) {
-                var textPfx = "\n<color=#C18FE0>+";
-                //strip original append text, if any
-                var origInd = icon.stackText.text.IndexOf(textPfx);
-                if(origInd >= 0)
-                    icon.stackText.text = icon.stackText.text.Substring(0, origInd);
-
 				var fakeCount = fakeInv.GetItemCount(icon.itemIndex);
-                if(fakeCount == 0) continue;
-                    
-                //add new append text
-				var oldCount = icon.itemCount;
-				icon.SetItemIndex(icon.itemIndex, Mathf.Max(oldCount - fakeCount, 0));
-                var fakeText = textPfx + fakeCount + "</color>";
-                if(!icon.stackText.enabled) {
-                    icon.stackText.enabled = true;
-                    icon.stackText.text = ((oldCount == fakeCount) ? "0" : "") + fakeText;
-                } else {
-                    icon.stackText.text += fakeText;
-                }
+				if(fakeCount == 0) continue;
+				var realCount = fakeInv.GetRealItemCount(icon.itemIndex);
+				icon.stackText.enabled = true;
+				icon.stackText.text = $"x{realCount}\n<color=#C18FE0>+{fakeCount}</color>";
             }
         }
 	}
