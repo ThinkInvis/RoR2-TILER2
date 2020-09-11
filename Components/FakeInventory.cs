@@ -132,7 +132,10 @@ namespace TILER2 {
 		internal static void Setup() {
 			R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSyncAll>();
 
+			//Main itemcount handler
 			On.RoR2.Inventory.GetItemCount += On_InvGetItemCount;
+
+			//Ignore fake items in:
 			On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.IsAffordable += LunarItemOrEquipmentCostTypeHelper_IsAffordable;
 			On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.PayCost += LunarItemOrEquipmentCostTypeHelper_PayCost;
 			On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.PayOne += LunarItemOrEquipmentCostTypeHelper_PayOne;
@@ -145,6 +148,8 @@ namespace TILER2 {
 			On.RoR2.ShrineCleanseBehavior.InventoryIsCleansable += ShrineCleanseBehavior_InventoryIsCleansable;
 			On.RoR2.Util.GetItemCountForTeam += Util_GetItemCountForTeam;
 			IL.RoR2.PickupPickerController.SetOptionsFromInteractor += PickupPickerController_SetOptionsFromInteractor;
+
+			//Display hooks
             On.RoR2.UI.ItemInventoryDisplay.UpdateDisplay += On_IIDUpdateDisplay;
 			On.RoR2.UI.ItemInventoryDisplay.OnInventoryChanged += On_IIDInventoryChanged;
 
