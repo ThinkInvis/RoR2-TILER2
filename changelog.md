@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**2.1.3**
+
+- Fixed items dropping while disabled when R2API.ItemDropAPI was loaded by another mod.
+
 **2.1.2**
 
 - Fixed inability of FakeInventory to prevent item steal.

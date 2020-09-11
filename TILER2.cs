@@ -10,7 +10,7 @@ namespace TILER2 {
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(ResourcesAPI), nameof(PlayerAPI), nameof(PrefabAPI), nameof(BuffAPI), nameof(CommandHelper), nameof(R2API.Networking.NetworkingAPI))]
     public class TILER2Plugin:BaseUnityPlugin {
-        public const string ModVer = "2.1.2";
+        public const string ModVer = "2.1.3";
         public const string ModName = "TILER2";
         public const string ModGuid = "com.ThinkInvisible.TILER2";
 

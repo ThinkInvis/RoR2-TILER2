@@ -46,6 +46,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**2.1.3**
+
+- Fixed items dropping while disabled when R2API.ItemDropAPI was loaded by another mod.
+
 **2.1.2**
 
 - Fixed inability of FakeInventory to prevent item steal.
@@ -73,7 +77,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - Switched to publicized RoR2 assembly in favor of a lot of reflection (should increase performance, especially with MiscUtil.RemoveOccupiedNodes).
 - Added full documentation for MiscUtil, SkillUtil, StatHooks, NetConfig.
 - Bumped R2API dependency version to 2.5.7.
-
-**1.5.0**
-
-- Updated to accomodate breaking changes in RoR2 1.0 and the new R2API version.
