@@ -1,6 +1,7 @@
 ﻿using RoR2;
 using System;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace TILER2 {
     ///<summary>
@@ -14,6 +15,12 @@ namespace TILER2 {
         public delegate float StackingFormulaWrapper(float value, float extraStackValue, int stacks);
         public delegate int CapFormulaWrapper(float value, float extraStackValue, float procCoefficient);
         
+        public static float LuckCalc(float chance, float luck) {
+            return luck == 0 ? chance : (
+                luck < 0 ? (Mathf.Pow(chance % 1f, 1f - luck))
+                : (1f - Mathf.Pow(1f - (chance % 1f), 1f + luck)));
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void AddEffect(ItemIndex itemIndex, float value, float? extraStackValue = null, EffectFormatterWrapper formatter = null, StackingFormulaWrapper stackFormula = null, CapFormulaWrapper capFormula = null) {
             BetterUI.ProcItemsCatalog.AddEffect(itemIndex, value, extraStackValue,
