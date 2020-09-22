@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**2.2.0**
+
+- Migrated and publicized mod compat classes from ClassicItems. Now provides public hooks for BetterUI, ItemStats, and ShareSuite.
+
 **2.1.3**
 
 - Fixed items dropping while disabled when R2API.ItemDropAPI was loaded by another mod.

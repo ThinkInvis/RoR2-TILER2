@@ -46,6 +46,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**2.2.0**
+
+- Migrated and publicized mod compat classes from ClassicItems. Now provides public hooks for BetterUI, ItemStats, and ShareSuite.
+
 **2.1.3**
 
 - Fixed items dropping while disabled when R2API.ItemDropAPI was loaded by another mod.
@@ -64,16 +68,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - FakeInventory should now work properly in multiplayer.
 - BREAKING (minor): FakeInventory no longer inherits from Inventory and has had some structural changes. It's no longer a requirement to add items to the sibling inventory in parallel.
 - Bumped R2API dependency version to 2.5.11.
-
-**2.0.0**
-
-- BREAKING: Moved the CloneSkillDef and GlobalUpdateSkillDef methods from MiscUtil to SkillUtil.
-- BREAKING: Removed temporary transition patch for a newish R2API feature (ItemBoilerplate --> ItemDropAPI removal).
-- Added the FakeInventory and ItemWard components, migrated from Admiral and TinkersSatchel.
-- AutoItemConfig now adds a warning to config descriptions if both the DeferForever and PreventNetMismatch flags are set.
-- Added the SkillUtil module, incl. several methods for working with SkillFamily variants.
-- The NodeOccupationInfo component now works with the OccupyNearbyNodes component.
-	- Behavior of OccupyNearbyNodes is changed slightly in the process (multiple objects may now occupy the same node using an OccupyNearbyNodes).
-- Switched to publicized RoR2 assembly in favor of a lot of reflection (should increase performance, especially with MiscUtil.RemoveOccupiedNodes).
-- Added full documentation for MiscUtil, SkillUtil, StatHooks, NetConfig.
-- Bumped R2API dependency version to 2.5.7.
