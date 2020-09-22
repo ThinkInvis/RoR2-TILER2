@@ -4,10 +4,12 @@ using R2API;
 using BepInEx.Configuration;
 
 namespace TILER2 {
-    
     [BepInDependency("com.bepis.r2api", "2.5.14")]
     [BepInPlugin(ModGuid, ModName, ModVer)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
+    [BepInDependency("com.funkfrog_sipondo.sharesuite",BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("dev.ontrigger.itemstats",BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.xoxfaby.BetterUI",BepInDependency.DependencyFlags.SoftDependency)]
     [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(ResourcesAPI), nameof(PlayerAPI), nameof(PrefabAPI), nameof(BuffAPI), nameof(CommandHelper), nameof(R2API.Networking.NetworkingAPI))]
     public class TILER2Plugin:BaseUnityPlugin {
         public const string ModVer = "2.1.3";

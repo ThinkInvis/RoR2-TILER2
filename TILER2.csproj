@@ -13,6 +13,12 @@
       <HintPath>lib\BepInEx.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="BetterUI">
+      <HintPath>lib\BetterUI.dll</HintPath>
+    </Reference>
+    <Reference Include="ItemStats">
+      <HintPath>lib\ItemStats.dll</HintPath>
+    </Reference>
     <Reference Include="MMHOOK_Assembly-CSharp">
       <HintPath>lib\MMHOOK_Assembly-CSharp.dll</HintPath>
       <Private>false</Private>
@@ -31,6 +37,9 @@
     <Reference Include="R2API">
       <HintPath>lib\R2API.dll</HintPath>
       <Private>false</Private>
+    </Reference>
+    <Reference Include="ShareSuite">
+      <HintPath>lib\ShareSuite.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>lib\Unity.TextMeshPro.dll</HintPath>
@@ -53,7 +62,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="compat\" />
     <Folder Include="Extensions\" />
   </ItemGroup>
 
