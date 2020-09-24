@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**2.2.2**
+
+- Made FakeInventory more compatible with BetterUI and other item sorting mods.
+
 **2.2.1**
 
 - Updated BetterUI hooks for v1.5.7.

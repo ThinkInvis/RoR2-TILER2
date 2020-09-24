@@ -46,6 +46,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**2.2.2**
+
+- Made FakeInventory more compatible with BetterUI and other item sorting mods.
+
 **2.2.1**
 
 - Updated BetterUI hooks for v1.5.7.
@@ -62,7 +66,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 
 - Fixed inability of FakeInventory to prevent item steal.
 - Bumped R2API dependency version to 2.5.14.
-
-**2.1.1**
-
-- Preliminary patch for RoR2 v1.0.1.1. Fixes some immediate breaking issues (plugin load failure); others may exist.
