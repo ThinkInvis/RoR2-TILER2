@@ -46,6 +46,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**2.2.1**
+
+- Updated BetterUI hooks for v1.5.7.
+
 **2.2.0**
 
 - Migrated and publicized mod compat classes from ClassicItems. Now provides public hooks for BetterUI, ItemStats, and ShareSuite.
@@ -62,9 +66,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **2.1.1**
 
 - Preliminary patch for RoR2 v1.0.1.1. Fixes some immediate breaking issues (plugin load failure); others may exist.
-
-**2.1.0**
-
-- FakeInventory should now work properly in multiplayer.
-- BREAKING (minor): FakeInventory no longer inherits from Inventory and has had some structural changes. It's no longer a requirement to add items to the sibling inventory in parallel.
-- Bumped R2API dependency version to 2.5.11.
