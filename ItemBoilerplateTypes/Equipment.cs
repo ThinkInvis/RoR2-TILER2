@@ -86,6 +86,8 @@ namespace TILER2 {
                 isLunar = eqpIsLunar,
                 canDrop = true
             };
+            if(eqpIsLunar) 
+				regDef.colorIndex = ColorCatalog.ColorIndex.LunarItem;
             regEqp = new CustomEquipment(regDef, displayRules);
             regIndex = ItemAPI.Add(regEqp);
         }
