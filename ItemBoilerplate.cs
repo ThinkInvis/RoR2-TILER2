@@ -65,7 +65,7 @@ namespace TILER2 {
             }
 
             //ItemDropAPI completely overwrites drop tables; need to perform separate removal
-            if(R2API.R2API.IsLoaded("ItemDropAPI")) {
+            if(ItemDropAPI.Loaded) {
                 ItemDropAPI.RemoveFromDefaultByTier(
                     masterItemList.Where(bpl => bpl is Item && !bpl.enabled)
                     .Select(bpl => {

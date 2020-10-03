@@ -132,7 +132,10 @@ namespace TILER2 {
 		internal static void Setup() {
 			R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSyncAll>();
 
+			//Main itemcount handler
 			On.RoR2.Inventory.GetItemCount += On_InvGetItemCount;
+
+			//Ignore fake items in:
 			On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.IsAffordable += LunarItemOrEquipmentCostTypeHelper_IsAffordable;
 			On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.PayCost += LunarItemOrEquipmentCostTypeHelper_PayCost;
 			On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.PayOne += LunarItemOrEquipmentCostTypeHelper_PayOne;
@@ -145,6 +148,8 @@ namespace TILER2 {
 			On.RoR2.ShrineCleanseBehavior.InventoryIsCleansable += ShrineCleanseBehavior_InventoryIsCleansable;
 			On.RoR2.Util.GetItemCountForTeam += Util_GetItemCountForTeam;
 			IL.RoR2.PickupPickerController.SetOptionsFromInteractor += PickupPickerController_SetOptionsFromInteractor;
+
+			//Display hooks
             On.RoR2.UI.ItemInventoryDisplay.UpdateDisplay += On_IIDUpdateDisplay;
 			On.RoR2.UI.ItemInventoryDisplay.OnInventoryChanged += On_IIDInventoryChanged;
 
@@ -265,11 +270,15 @@ namespace TILER2 {
 			if(!self || !self.isActiveAndEnabled || !self.inventory) return;
 			var fakeInv = self.inventory.GetComponent<FakeInventory>();
 			if(!fakeInv) return;
-			List<ItemIndex> newAcqOrder = new List<ItemIndex>(self.inventory.itemAcquisitionOrder);
+			List<ItemIndex> newAcqOrder = self.itemOrder.Take(self.itemOrderCount).ToList();
 			for(int i = 0; i < self.itemStacks.Length; i++) {
-				if(fakeInv._itemStacks[i] > 0 && self.itemStacks[i] == 0) {
-					newAcqOrder.Add((ItemIndex)i);
+				if(self.itemStacks[i] == 0) {
+					if(fakeInv._itemStacks[i] > 0)
+						newAcqOrder.Add((ItemIndex)i);
+					else
+						newAcqOrder.Remove((ItemIndex)i);
 				}
+				
 				self.itemStacks[i] += fakeInv._itemStacks[i];
 			}
 			newAcqOrder = newAcqOrder.Distinct().ToList();
