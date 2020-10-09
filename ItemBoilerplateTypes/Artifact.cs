@@ -47,13 +47,13 @@ namespace TILER2 {
                     if(args.oldValue != args.newValue) {
                         if((bool)args.newValue == true) {
                             LoadBehavior();
-                            if(Run.instance?.enabled == true) Chat.AddMessage(displayName + " is <color=#aaffaa>NO LONGER FORCE-DISABLED</color>, and it will now take effect if enabled ingame.");
+                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage(displayName + " is <color=#aaffaa>NO LONGER FORCE-DISABLED</color>, and it will now take effect if enabled ingame.");
                             regDef.descriptionToken = descToken;
                             regDef.smallIconDeselectedSprite = Resources.Load<Sprite>(iconPathNameDisabled);
                             regDef.smallIconSelectedSprite = Resources.Load<Sprite>(iconPathName);
                         } else {
                             UnloadBehavior();
-                            if(Run.instance?.enabled == true) Chat.AddMessage(displayName + " has been <color=#ffaaaa>FORCE-DISABLED</color>. If enabled ingame, it will not have any effect.");
+                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage(displayName + " has been <color=#ffaaaa>FORCE-DISABLED</color>. If enabled ingame, it will not have any effect.");
                             regDef.descriptionToken = "TILER2_DISABLED_ARTIFACT";
                             regDef.smallIconDeselectedSprite = Resources.Load<Sprite>("textures/miscicons/texUnlockIcon");
                             regDef.smallIconSelectedSprite = Resources.Load<Sprite>("textures/miscicons/texUnlockIcon");
@@ -107,7 +107,7 @@ namespace TILER2 {
         protected override void UnloadBehavior() {}
 
         public bool IsActiveAndEnabled() {
-            return enabled && (RunArtifactManager.instance?.IsArtifactEnabled(regIndex) ?? false);
+            return enabled && (RunArtifactManager.instance != null ? RunArtifactManager.instance.IsArtifactEnabled(regIndex) : false);
         }
     }
 }

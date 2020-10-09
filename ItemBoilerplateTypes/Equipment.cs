@@ -48,9 +48,9 @@ namespace TILER2 {
                     if(args.oldValue != args.newValue) {
                         if((bool)args.newValue == true) {
                             LoadBehavior();
-                            if(Run.instance?.enabled == true) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
+                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
                         } else {
-                            if(Run.instance?.enabled == true) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
+                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
                             UnloadBehavior();
                         }
                     }
@@ -118,10 +118,12 @@ namespace TILER2 {
         protected abstract bool OnEquipUseInner(EquipmentSlot slot);
         
         public bool HasEqp(Inventory inv, bool inMain = true, bool inAlt = false) {
-            return (inMain && (inv?.currentEquipmentIndex ?? EquipmentIndex.None) == regIndex) || (inAlt && (inv?.alternateEquipmentIndex ?? EquipmentIndex.None) == regIndex);
+            return (inMain && (inv != null ? inv.currentEquipmentIndex : EquipmentIndex.None) == regIndex) || (inAlt && (inv != null ? inv.alternateEquipmentIndex : EquipmentIndex.None) == regIndex);
         }
         public bool HasEqp(CharacterBody body) {
-            return (body?.equipmentSlot?.equipmentIndex ?? EquipmentIndex.None) == regIndex;
+            var eqpIndex = EquipmentIndex.None;
+            if(body && body.equipmentSlot) eqpIndex = body.equipmentSlot.equipmentIndex;
+            return eqpIndex == regIndex;
         }
     }
 }

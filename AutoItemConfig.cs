@@ -25,7 +25,7 @@ namespace TILER2 {
         }
 
         internal static void Update() {
-            if(!(Run.instance?.isActiveAndEnabled ?? false)) {
+            if(!(Run.instance != null && Run.instance.isActiveAndEnabled)) {
                 globalStatsDirty = false;
                 globalDropsDirty = false;
             } else {
@@ -162,7 +162,7 @@ namespace TILER2 {
         internal void OnConfigChanged(AutoUpdateEventArgs e) {
             ConfigEntryChanged?.Invoke(this, e);
             TILER2Plugin._logger.LogDebug(e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + ": " + e.oldValue.ToString() + " > " + e.newValue.ToString());
-            if(!(Run.instance?.isActiveAndEnabled ?? false)) return;
+            if(!(Run.instance != null && Run.instance.isActiveAndEnabled)) return;
             if((e.flags & AutoUpdateEventFlags.InvalidateStats) == AutoUpdateEventFlags.InvalidateStats)
                 AutoItemConfigModule.globalStatsDirty = true;
             if((e.flags & AutoUpdateEventFlags.InvalidateDropTable) == AutoUpdateEventFlags.InvalidateDropTable)

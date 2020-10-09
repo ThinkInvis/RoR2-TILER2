@@ -92,7 +92,9 @@ namespace TILER2 {
 		}
 
 		private void RegObject(GameObject go) {
-			var inv = go.GetComponent<CharacterBody>()?.inventory;
+			var cb = go.GetComponent<CharacterBody>();
+			if(!cb) return;
+			var inv = cb.inventory;
 			if(inv && !trackedInventories.Contains(inv)) {
 				trackedInventories.Add(inv);
 				var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
@@ -104,7 +106,9 @@ namespace TILER2 {
 		}
 
 		private void DeregObject(GameObject go) {
-			var inv = go.GetComponent<CharacterBody>()?.inventory;
+			var cb = go.GetComponent<CharacterBody>();
+			if(!cb) return;
+			var inv = cb.inventory;
 			if(!inv) return;
 			DeregInv(inv);
 		}

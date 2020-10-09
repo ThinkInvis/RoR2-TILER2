@@ -51,15 +51,15 @@ namespace TILER2 {
             
             ConfigEntryChanged += (sender, args) => {
                 if(args.target.boundProperty.Name == nameof(enabled)) {
-                    if(Run.instance?.enabled == true) {
+                    var runIsActive = Run.instance != null && Run.instance.enabled;
+                    if(runIsActive)
                         Run.instance.BuildDropTable();
-                    }
                     if(args.oldValue != args.newValue) {
                         if((bool)args.newValue == true) {
                             LoadBehavior();
-                            if(Run.instance?.enabled == true) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
+                            if(runIsActive) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
                         } else {
-                            if(Run.instance?.enabled == true) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
+                            if(runIsActive) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
                             UnloadBehavior();
                         }
                     }
@@ -125,7 +125,7 @@ namespace TILER2 {
         }
 
         public int GetCount(Inventory inv) {
-            return inv?.GetItemCount(regIndex) ?? 0;
+            return (inv == null) ? 0 : inv.GetItemCount(regIndex);
         }
         public int GetCount(CharacterMaster chrm) {
             if(!chrm || !chrm.inventory) return 0;
