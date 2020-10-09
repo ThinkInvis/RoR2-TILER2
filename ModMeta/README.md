@@ -46,6 +46,12 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**2.2.3**
+
+- FakeInventory now provides a blacklist for modded items to use.
+- Fixed some potential NullReferenceExceptions caused by using the `?.` operator on Unity objects.
+- Fixed TILER2-managed Lunar equipments having the wrong color on some highlights/outlines.
+
 **2.2.2**
 
 - Made FakeInventory more compatible with BetterUI and other item sorting mods.
@@ -61,8 +67,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **2.1.3**
 
 - Fixed items dropping while disabled when R2API.ItemDropAPI was loaded by another mod.
-
-**2.1.2**
-
-- Fixed inability of FakeInventory to prevent item steal.
-- Bumped R2API dependency version to 2.5.14.

@@ -1,5 +1,11 @@
 ﻿# TILER2 Changelog
 
+**2.2.3**
+
+- FakeInventory now provides a blacklist for modded items to use.
+- Fixed some potential NullReferenceExceptions caused by using the `?.` operator on Unity objects.
+- Fixed TILER2-managed Lunar equipments having the wrong color on some highlights/outlines.
+
 **2.2.2**
 
 - Made FakeInventory more compatible with BetterUI and other item sorting mods.
