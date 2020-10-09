@@ -21,6 +21,9 @@ namespace TILER2 {
 		private int[] _itemStacks = ItemCatalog.RequestItemStackArray();
 		public readonly ReadOnlyCollection<int> itemStacks;
 		
+		///<summary>Items in this HashSet cannot be added to nor removed from a FakeInventory.</summary>
+		public static HashSet<ItemIndex> blacklist = new HashSet<ItemIndex>();
+
 		public FakeInventory() {
 			itemStacks = new ReadOnlyCollection<int>(_itemStacks);
 		}
@@ -32,6 +35,7 @@ namespace TILER2 {
 		private bool itemsDirty = false;
 
 		private void DeltaItem(ItemIndex ind, int count) {
+			if(blacklist.Contains(ind)) return;
 			_itemStacks[(int)ind] = Mathf.Max(_itemStacks[(int)ind]+count, 0);
 			itemsDirty = true;
 		}
