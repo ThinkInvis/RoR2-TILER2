@@ -8,7 +8,7 @@ using UnityEngine;
 using static TILER2.MiscUtil;
 
 namespace TILER2 {
-    public abstract class ItemBoilerplate : AutoItemConfigContainer {
+    public abstract class ItemBoilerplate : Module {
         public string nameToken {get; private protected set;}
         public string pickupToken {get; private protected set;}
         public string descToken {get; private protected set;}
@@ -35,19 +35,6 @@ namespace TILER2 {
             ItemBoilerplateModule.masterItemList.Add(this);
             //private Dictionary allRegisteredLanguages; todo; RegLang is never called with a langid!=null param for now
             ConfigEntryChanged += (sender, args) => {
-                if((args.flags & AutoUpdateEventFlags.InvalidateNameToken) == AutoUpdateEventFlags.InvalidateNameToken) {
-                    LanguageAPI.Add(nameToken, NewLangName());
-                }
-                if((args.flags & AutoUpdateEventFlags.InvalidatePickupToken) == AutoUpdateEventFlags.InvalidatePickupToken) {
-                    LanguageAPI.Add(pickupToken, (enabled ? "" : "<color=#FF0000>[DISABLED]</color>") + NewLangPickup());
-                }
-                if((args.flags & AutoUpdateEventFlags.InvalidateDescToken) == AutoUpdateEventFlags.InvalidateDescToken) {
-                    LanguageAPI.Add(descToken, (enabled ? "" : "<color=#FF0000>[DISABLED]</color>\n") + NewLangDesc());
-                }
-                if((args.flags & AutoUpdateEventFlags.InvalidateLoreToken) == AutoUpdateEventFlags.InvalidateLoreToken) {
-                    LanguageAPI.Add(loreToken, NewLangLore());
-                }
-            
                 if((args.flags & AutoUpdateEventFlags.InvalidateModel) == AutoUpdateEventFlags.InvalidateModel) {
                     var newModel = NewPickupModel();
                     if(newModel != null) {
@@ -58,14 +45,23 @@ namespace TILER2 {
             };
         }
 
+        public override void InstallLang() {
+            genericLanguageTokens[nameToken] = NewLangName();
+            genericLanguageTokens[pickupToken] = (enabled ? "" : "<color=#FF0000>[DISABLED]</color>") + NewLangPickup();
+            genericLanguageTokens[descToken] = (enabled ? "" : "<color=#FF0000>[DISABLED]</color>\n") + NewLangDesc();
+            genericLanguageTokens[loreToken] = NewLangLore();
+
+            base.InstallLang();
+        }
+
         public PickupDef pickupDef {get; internal set;}
         public PickupIndex pickupIndex {get; internal set;}
         public RoR2.UI.LogBook.Entry logbookEntry {get; internal set;}
 
-        [AutoUpdateEventInfo(AutoUpdateEventFlags.InvalidateDescToken | AutoUpdateEventFlags.InvalidatePickupToken | AutoUpdateEventFlags.InvalidateStats | AutoUpdateEventFlags.InvalidateDropTable)]
-        [AutoItemConfig("If false, this item/equipment will not drop ingame, and it will not work if you somehow get a copy (all IL patches and hooks will be disabled for compatibility).",
-            AutoItemConfigFlags.PreventNetMismatch | AutoItemConfigFlags.DeferUntilNextStage)]
-        public bool enabled {get; protected set;} = true;
+        public override bool managedEnable => true;
+        public override string configDescription => "";
+        public override AutoConfigFlags enabledConfigFlags => AutoConfigFlags.PreventNetMismatch | AutoConfigFlags.DeferUntilNextStage;
+        public override AutoUpdateEventFlags enabledConfigUpdateEventFlags => AutoUpdateEventFlags.InvalidateLanguage | AutoUpdateEventFlags.InvalidateStats | AutoUpdateEventFlags.InvalidateDropTable;
 
         ///<summary>A resource string pointing to the item's model.</summary>
         public string modelPathName {get; protected set;} = null;
@@ -122,20 +118,5 @@ namespace TILER2 {
         public abstract void SetupBehavior(); 
         protected abstract void LoadBehavior();
         protected abstract void UnloadBehavior();
-
-        /// <summary>
-        /// Call to scan your plugin's assembly for classes inheriting from ItemBoilerplate, initialize all of them, and prepare a list for further setup.
-        /// </summary>
-        /// <param name="modDisplayName">A display name to use for your mod. Mostly used to name config categories in the stock ItemBoilerplate implementations.</param>
-        /// <returns>A FilingDictionary containing all instances that this method just initialized.</returns>
-        public static FilingDictionary<ItemBoilerplate> InitAll(string modDisplayName) {
-            FilingDictionary<ItemBoilerplate> f = new FilingDictionary<ItemBoilerplate>();
-            foreach(Type type in Assembly.GetCallingAssembly().GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(ItemBoilerplate)))) {
-                var newBpl = (ItemBoilerplate)Activator.CreateInstance(type);
-                newBpl.modName = modDisplayName;
-                f.Add(newBpl);
-            }
-            return f; //:regional_indicator_f:
-        }
     }
 }

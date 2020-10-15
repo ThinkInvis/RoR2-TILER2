@@ -26,7 +26,7 @@ namespace TILER2 {
 
         public abstract ItemTier itemTier {get;}
 
-        [AutoItemConfig("If true, the item will not be given to enemies by Evolution nor in the arena map, and it will not be found by Scavengers.")]
+        [AutoConfig("If true, the item will not be given to enemies by Evolution nor in the arena map, and it will not be found by Scavengers.")]
         public virtual bool itemAIB {get;protected set;} = false;
 
         public virtual ReadOnlyCollection<ItemTag> itemTags {get; private set;}

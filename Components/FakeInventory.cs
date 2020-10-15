@@ -18,6 +18,38 @@ namespace TILER2 {
 	/// </summary>
 	[RequireComponent(typeof(Inventory))]
 	public class FakeInventory : NetworkBehaviour {
+		internal class FakeInventoryModule : Module<FakeInventoryModule> {
+			public override void Setup() {
+				base.Setup();
+				R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSyncAll>();
+
+				//Main itemcount handler
+				On.RoR2.Inventory.GetItemCount += On_InvGetItemCount;
+
+				//Ignore fake items in:
+				On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.IsAffordable += LunarItemOrEquipmentCostTypeHelper_IsAffordable;
+				On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.PayCost += LunarItemOrEquipmentCostTypeHelper_PayCost;
+				On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.PayOne += LunarItemOrEquipmentCostTypeHelper_PayOne;
+				On.RoR2.Inventory.HasAtLeastXTotalItemsOfTier += Inventory_HasAtLeastXTotalItemsOfTier;
+				On.RoR2.Inventory.GetTotalItemCountOfTier += Inventory_GetTotalItemCountOfTier;
+				On.RoR2.ItemStealController.StolenInventoryInfo.StealItem += StolenInventoryInfo_StealItem;
+				On.RoR2.RunReport.Generate += RunReport_Generate;
+				On.RoR2.ScrapperController.BeginScrapping += ScrapperController_BeginScrapping;
+				On.RoR2.ShrineCleanseBehavior.CleanseInventoryServer += ShrineCleanseBehavior_CleanseInventoryServer;
+				On.RoR2.ShrineCleanseBehavior.InventoryIsCleansable += ShrineCleanseBehavior_InventoryIsCleansable;
+				On.RoR2.Util.GetItemCountForTeam += Util_GetItemCountForTeam;
+				IL.RoR2.PickupPickerController.SetOptionsFromInteractor += PickupPickerController_SetOptionsFromInteractor;
+
+				//Display hooks
+				On.RoR2.UI.ItemInventoryDisplay.UpdateDisplay += On_IIDUpdateDisplay;
+				On.RoR2.UI.ItemInventoryDisplay.OnInventoryChanged += On_IIDInventoryChanged;
+
+				var cClass = typeof(CostTypeCatalog).GetNestedType("<>c", BindingFlags.NonPublic);
+				var subMethod = cClass.GetMethod("<Init>g__PayCostItems|5_1", BindingFlags.NonPublic | BindingFlags.Instance);
+				MonoMod.RuntimeDetour.HookGen.HookEndpointManager.Modify(subMethod, (Action<ILContext>)gPayCostItemsHook);
+			}
+		}
+
 		private int[] _itemStacks = ItemCatalog.RequestItemStackArray();
 		public readonly ReadOnlyCollection<int> itemStacks;
 		
@@ -132,35 +164,6 @@ namespace TILER2 {
 		}
 
 		private static bool ignoreFakes = false;
-
-		internal static void Setup() {
-			R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSyncAll>();
-
-			//Main itemcount handler
-			On.RoR2.Inventory.GetItemCount += On_InvGetItemCount;
-
-			//Ignore fake items in:
-			On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.IsAffordable += LunarItemOrEquipmentCostTypeHelper_IsAffordable;
-			On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.PayCost += LunarItemOrEquipmentCostTypeHelper_PayCost;
-			On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.PayOne += LunarItemOrEquipmentCostTypeHelper_PayOne;
-			On.RoR2.Inventory.HasAtLeastXTotalItemsOfTier += Inventory_HasAtLeastXTotalItemsOfTier;
-			On.RoR2.Inventory.GetTotalItemCountOfTier += Inventory_GetTotalItemCountOfTier;
-			On.RoR2.ItemStealController.StolenInventoryInfo.StealItem += StolenInventoryInfo_StealItem;
-			On.RoR2.RunReport.Generate += RunReport_Generate;
-			On.RoR2.ScrapperController.BeginScrapping += ScrapperController_BeginScrapping;
-			On.RoR2.ShrineCleanseBehavior.CleanseInventoryServer += ShrineCleanseBehavior_CleanseInventoryServer;
-			On.RoR2.ShrineCleanseBehavior.InventoryIsCleansable += ShrineCleanseBehavior_InventoryIsCleansable;
-			On.RoR2.Util.GetItemCountForTeam += Util_GetItemCountForTeam;
-			IL.RoR2.PickupPickerController.SetOptionsFromInteractor += PickupPickerController_SetOptionsFromInteractor;
-
-			//Display hooks
-            On.RoR2.UI.ItemInventoryDisplay.UpdateDisplay += On_IIDUpdateDisplay;
-			On.RoR2.UI.ItemInventoryDisplay.OnInventoryChanged += On_IIDInventoryChanged;
-
-            var cClass = typeof(CostTypeCatalog).GetNestedType("<>c", BindingFlags.NonPublic);
-			var subMethod = cClass.GetMethod("<Init>g__PayCostItems|5_1", BindingFlags.NonPublic | BindingFlags.Instance);
-            MonoMod.RuntimeDetour.HookGen.HookEndpointManager.Modify(subMethod, (Action<ILContext>)gPayCostItemsHook);
-		}
 
 		private static void PickupPickerController_SetOptionsFromInteractor(ILContext il) {
 			var c = new ILCursor(il);

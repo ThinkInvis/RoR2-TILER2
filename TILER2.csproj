@@ -62,7 +62,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Extensions\" />
+    <Folder Include="LegacyModules\" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

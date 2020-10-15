@@ -6,17 +6,17 @@ using UnityEngine.Networking;
 using static TILER2.MiscUtil;
 
 namespace TILER2 {
-    internal static class ItemBoilerplateModule {
+    internal class ItemBoilerplateModule : Module<ItemBoilerplateModule> {
         internal static FilingDictionary<ItemBoilerplate> masterItemList = new FilingDictionary<ItemBoilerplate>();
 
-        internal static void Setup() {
+        public override void Setup() {
             On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
             On.RoR2.UI.LogBook.LogBookController.BuildPickupEntries += On_LogbookBuildPickupEntries;
             On.RoR2.Run.Start += On_RunStart;
             On.RoR2.Run.BuildDropTable += On_RunBuildDropTable;
         }
 
-        private static void On_RunStart(On.RoR2.Run.orig_Start orig, Run self) {
+        private void On_RunStart(On.RoR2.Run.orig_Start orig, Run self) {
             orig(self);
             if(!NetworkServer.active) return;
             var itemRngGenerator = new Xoroshiro128Plus(self.seed);
@@ -24,7 +24,7 @@ namespace TILER2 {
                 bpl.itemRng = new Xoroshiro128Plus(itemRngGenerator.nextUlong);
         }
 
-        private static void On_RunBuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self) {
+        private void On_RunBuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self) {
             var newItemMask = self.availableItems;
             var newEqpMask = self.availableEquipment;
             foreach(ItemBoilerplate bpl in masterItemList) {
@@ -70,7 +70,7 @@ namespace TILER2 {
             }
         }
 
-        private static void On_PickupCatalogInit(On.RoR2.PickupCatalog.orig_Init orig) {
+        private void On_PickupCatalogInit(On.RoR2.PickupCatalog.orig_Init orig) {
             orig();
 
             foreach(ItemBoilerplate bpl in masterItemList) {
@@ -85,7 +85,7 @@ namespace TILER2 {
             }
         }
 
-        private static RoR2.UI.LogBook.Entry[] On_LogbookBuildPickupEntries(On.RoR2.UI.LogBook.LogBookController.orig_BuildPickupEntries orig) {
+        private RoR2.UI.LogBook.Entry[] On_LogbookBuildPickupEntries(On.RoR2.UI.LogBook.LogBookController.orig_BuildPickupEntries orig) {
             var retv = orig();
             var bplsLeft = masterItemList.ToList();
             foreach(var entry in retv) {

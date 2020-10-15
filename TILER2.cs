@@ -27,20 +27,15 @@ namespace TILER2 {
 
             cfgFile = new ConfigFile(System.IO.Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
             
-            NetConfig.Setup(cfgFile);
-            StatHooks.Setup();
-            AutoItemConfigModule.Setup();
-            MiscUtil.Setup();
-            ItemBoilerplateModule.Setup();
+            Module.InitModules(cfgFile, "TILER2");
 
-            FakeInventory.Setup();
-            ItemWard.Setup();
+            MiscUtil.Setup();
 
             CommandHelper.AddToConsoleWhenReady();
         }
 
         private void Update() {
-            AutoItemConfigModule.Update();
+            AutoConfigModule.Update();
         }
     }
 }
