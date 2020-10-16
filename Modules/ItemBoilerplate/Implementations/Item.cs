@@ -14,7 +14,6 @@ namespace TILER2 {
 
         public Item() {
             if(instance != null) throw new InvalidOperationException("Singleton class \"" + typeof(T).Name + "\" inheriting ItemBoilerplate/Item was instantiated twice");
-            this.itemCodeName = typeof(T).Name;
             instance = this as T;
         }
     }
@@ -30,25 +29,10 @@ namespace TILER2 {
         public virtual bool itemAIB {get;protected set;} = false;
 
         public virtual ReadOnlyCollection<ItemTag> itemTags {get; private set;}
+        protected ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
 
-        protected event Action<ConfigFile> preConfig;
-        protected event Action<ConfigFile> postConfig;
-        protected event Action<string, string> onAttrib;
-        protected event Action onBehav;
-        
-        public override void SetupConfig(ConfigFile cfl) {
-            if(configDone) {
-                TILER2Plugin._logger.LogError("Something tried to setup config for an item twice");
-                return;
-            }
-            configDone = true;
-
-            preConfig?.Invoke(cfl);
-
-            this.BindAll(cfl, modName, "Items." + itemCodeName);
-
-            postConfig?.Invoke(cfl);
-            
+        public override void SetupConfig() {
+            base.SetupConfig();
             ConfigEntryChanged += (sender, args) => {
                 if(args.target.boundProperty.Name == nameof(enabled)) {
                     var runIsActive = Run.instance != null && Run.instance.enabled;
@@ -56,11 +40,9 @@ namespace TILER2 {
                         Run.instance.BuildDropTable();
                     if(args.oldValue != args.newValue) {
                         if((bool)args.newValue == true) {
-                            LoadBehavior();
-                            if(runIsActive) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
+                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage($"<color=#{ColorCatalog.GetColorHexString(regDef.colorIndex)}>{displayName}</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
                         } else {
-                            if(runIsActive) Chat.AddMessage("<color=#" + ColorCatalog.GetColorHexString(regDef.colorIndex) + ">" + displayName + "</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
-                            UnloadBehavior();
+                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage($"<color=#{ColorCatalog.GetColorHexString(regDef.colorIndex)}>{displayName}</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
                         }
                     }
                 } else if(args.target.boundProperty.Name == nameof(itemAIB)) {
@@ -75,27 +57,17 @@ namespace TILER2 {
                 }
             };
         }
-        public override void SetupAttributes(string modTokenIdent, string modCNamePrefix = "") {
-            if(attributesDone) {
-                TILER2Plugin._logger.LogError("Something tried to setup attributes for an item twice");
-                return;
-            }
-            attributesDone = true;
+        public override void SetupAttributes() {
+            base.SetupAttributes();
 
-            nameToken = modTokenIdent + "_" + itemCodeName.ToUpper() + "_NAME";
-            pickupToken = modTokenIdent + "_" + itemCodeName.ToUpper() + "_PICKUP";
-            descToken = modTokenIdent + "_" + itemCodeName.ToUpper() + "_DESC";
-            loreToken = modTokenIdent + "_" + itemCodeName.ToUpper() + "_LORE";
-
-            onAttrib?.Invoke(modTokenIdent, modCNamePrefix);
-
-            RegLang();
+            pickupToken = $"{modInfo.longIdentifier}_{name.ToUpper()}_PICKUP";
+            loreToken = $"{modInfo.longIdentifier}_{name.ToUpper()}_LORE";
             
             var _itemTags = new List<ItemTag>(itemTags);
             if(itemAIB) _itemTags.Add(ItemTag.AIBlacklist);
             var iarr = _itemTags.ToArray();
             regDef = new ItemDef {
-                name = modCNamePrefix+itemCodeName,
+                name = modInfo.shortIdentifier+name,
                 tier = itemTier,
                 pickupModelPath = modelPathName,
                 pickupIconPath = iconPathName,
@@ -109,19 +81,6 @@ namespace TILER2 {
             itemTags = Array.AsReadOnly(iarr);
             regItem = new CustomItem(regDef, displayRules);
             regIndex = ItemAPI.Add(regItem);
-        }
-
-        public override void SetupBehavior() {
-            if(behaviorDone) {
-                TILER2Plugin._logger.LogError("Something tried to setup behavior for an item twice");
-                return;
-            }
-            behaviorDone = true;
-
-            onBehav?.Invoke();
-
-            if(enabled)
-                LoadBehavior();
         }
 
         public int GetCount(Inventory inv) {

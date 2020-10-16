@@ -9,9 +9,9 @@ using UnityEngine.Networking;
 namespace TILER2 {
 	[RequireComponent(typeof(TeamFilter), typeof(NetworkIdentity))]
     public class ItemWard : NetworkBehaviour {
-		internal class ItemWardModule : Module<ItemWardModule> {
-			public override void Setup() {
-				base.Setup();
+		internal class ItemWardModule : T2Module<ItemWardModule> {
+			public override void SetupConfig() {
+				base.SetupConfig();
 				R2API.Networking.NetworkingAPI.RegisterMessageType<MsgDeltaDisplay>();
 				R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSyncRadius>();
 			

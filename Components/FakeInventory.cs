@@ -18,9 +18,9 @@ namespace TILER2 {
 	/// </summary>
 	[RequireComponent(typeof(Inventory))]
 	public class FakeInventory : NetworkBehaviour {
-		internal class FakeInventoryModule : Module<FakeInventoryModule> {
-			public override void Setup() {
-				base.Setup();
+		internal class FakeInventoryModule : T2Module<FakeInventoryModule> {
+			public override void SetupConfig() {
+				base.SetupConfig();
 				R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSyncAll>();
 
 				//Main itemcount handler

@@ -5,11 +5,11 @@ using RoR2.Networking;
 using UnityEngine.SceneManagement;
 
 namespace TILER2 {
-    internal class AutoConfigModule : Module<AutoConfigModule> {
+    internal class AutoConfigModule : T2Module<AutoConfigModule> {
         internal static bool globalStatsDirty = false;
         internal static bool globalDropsDirty = false;
 
-        public override void Setup() {
+        public override void SetupConfig() {
             //this doesn't seem to fire until the title screen is up, which is good because config file changes shouldn't immediately be read during startup; watch for regression (or just implement a check anyways?)
             On.RoR2.RoR2Application.Update += AutoConfigContainer.FilePollUpdateHook;
             

@@ -6,22 +6,13 @@ using UnityEngine.Networking;
 using static TILER2.MiscUtil;
 
 namespace TILER2 {
-    internal class ItemBoilerplateModule : Module<ItemBoilerplateModule> {
+    internal class ItemBoilerplateModule : T2Module<ItemBoilerplateModule> {
         internal static FilingDictionary<ItemBoilerplate> masterItemList = new FilingDictionary<ItemBoilerplate>();
 
-        public override void Setup() {
+        public override void SetupConfig() {
             On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
             On.RoR2.UI.LogBook.LogBookController.BuildPickupEntries += On_LogbookBuildPickupEntries;
-            On.RoR2.Run.Start += On_RunStart;
             On.RoR2.Run.BuildDropTable += On_RunBuildDropTable;
-        }
-
-        private void On_RunStart(On.RoR2.Run.orig_Start orig, Run self) {
-            orig(self);
-            if(!NetworkServer.active) return;
-            var itemRngGenerator = new Xoroshiro128Plus(self.seed);
-            foreach(var bpl in masterItemList)
-                bpl.itemRng = new Xoroshiro128Plus(itemRngGenerator.nextUlong);
         }
 
         private void On_RunBuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self) {

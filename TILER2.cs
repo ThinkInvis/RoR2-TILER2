@@ -27,7 +27,12 @@ namespace TILER2 {
 
             cfgFile = new ConfigFile(System.IO.Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
             
-            Module.InitModules(cfgFile, "TILER2");
+            T2Module.InitModules(new T2Module.ModInfo {
+                displayName="TILER2",
+                mainConfigFile=cfgFile,
+                longIdentifier="TILER2",
+                shortIdentifier="TILER2"
+            });
 
             MiscUtil.Setup();
 

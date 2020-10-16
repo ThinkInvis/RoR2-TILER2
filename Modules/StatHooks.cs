@@ -8,9 +8,9 @@ namespace TILER2 {
     /// <summary>
     /// Provides one consolidated IL patch for several commonly-added hooks to RecalculateStats.
     /// </summary>
-    public class StatHooks : Module<StatHooks> {
-        public override void Setup() {
-            base.Setup();
+    public class StatHooks : T2Module<StatHooks> {
+        public override void SetupConfig() {
+            base.SetupConfig();
             IL.RoR2.CharacterBody.RecalculateStats += IL_CBRecalcStats;
         }
 
