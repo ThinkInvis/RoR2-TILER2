@@ -5,16 +5,16 @@ using System;
 using UnityEngine;
 
 namespace TILER2 {
-    public abstract class Equipment<T>:Equipment where T : Equipment<T> {
+    public abstract class Equipment_V2<T>:Equipment_V2 where T : Equipment_V2<T> {
         public static T instance {get;private set;}
 
-        public Equipment() {
+        public Equipment_V2() {
             if(instance != null) throw new InvalidOperationException("Singleton class \"" + typeof(T).Name + "\" inheriting ItemBoilerplate/Equipment was instantiated twice");
             instance = this as T;
         }
     }
 
-    public abstract class Equipment : ItemBoilerplate {
+    public abstract class Equipment_V2 : ItemBoilerplate_V2 {
         public EquipmentIndex regIndex {get; private set;}
         public EquipmentDef regDef {get; private set;}
         public CustomEquipment regEqp {get; private set;}

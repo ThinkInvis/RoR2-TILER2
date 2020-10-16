@@ -8,7 +8,7 @@ using UnityEngine;
 using static TILER2.MiscUtil;
 
 namespace TILER2 {
-    public abstract class ItemBoilerplate : T2Module {
+    public abstract class ItemBoilerplate_V2 : T2Module {
         public string nameToken {get; private protected set;}
         public string pickupToken {get; private protected set;}
         public string descToken {get; private protected set;}
@@ -27,13 +27,13 @@ namespace TILER2 {
             return null;
         }
 
-        public ItemBoilerplate() {
-            defaultEnabledUpdateFlags = AutoUpdateEventFlags.AnnounceToRun;
+        public ItemBoilerplate_V2() {
+            defaultEnabledUpdateFlags = AutoUpdateEventFlags_V2.AnnounceToRun;
 
-            ItemBoilerplateModule.masterItemList.Add(this);
+            ItemBoilerplateModule_V2.masterItemList.Add(this);
 
             ConfigEntryChanged += (sender, args) => {
-                if((args.flags & AutoUpdateEventFlags.InvalidateModel) == AutoUpdateEventFlags.InvalidateModel) {
+                if((args.flags & AutoUpdateEventFlags_V2.InvalidateModel) == AutoUpdateEventFlags_V2.InvalidateModel) {
                     var newModel = NewPickupModel();
                     if(newModel != null) {
                         if(pickupDef != null) pickupDef.displayPrefab = newModel;
@@ -64,7 +64,7 @@ namespace TILER2 {
 
         public override bool managedEnable => true;
         public override AutoConfigFlags enabledConfigFlags => AutoConfigFlags.PreventNetMismatch | AutoConfigFlags.DeferUntilNextStage;
-        public override AutoUpdateEventFlags enabledConfigUpdateEventFlags => AutoUpdateEventFlags.InvalidateLanguage | AutoUpdateEventFlags.InvalidateStats | AutoUpdateEventFlags.InvalidateDropTable;
+        public override AutoUpdateEventFlags_V2 enabledConfigUpdateEventFlags => AutoUpdateEventFlags_V2.InvalidateLanguage | AutoUpdateEventFlags_V2.InvalidateStats | AutoUpdateEventFlags_V2.InvalidateDropTable;
 
         ///<summary>A resource string pointing to the resource's model.</summary>
         public string modelPathName {get; protected set;} = null;

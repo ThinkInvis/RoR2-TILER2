@@ -5,16 +5,16 @@ using System;
 using UnityEngine;
 
 namespace TILER2 {
-    public abstract class Artifact<T>:Artifact where T : Artifact<T> {
+    public abstract class Artifact_V2<T>:Artifact_V2 where T : Artifact_V2<T> {
         public static T instance {get;private set;}
 
-        public Artifact() {
+        public Artifact_V2() {
             if(instance != null) throw new InvalidOperationException("Singleton class \"" + typeof(T).Name + "\" inheriting ItemBoilerplate/Artifact was instantiated twice");
             instance = this as T;
         }
     }
 
-    public abstract class Artifact : ItemBoilerplate {
+    public abstract class Artifact_V2 : ItemBoilerplate_V2 {
         public string iconPathNameDisabled {get; protected set;} = null;
 
         public ArtifactIndex regIndex {get; private set;}

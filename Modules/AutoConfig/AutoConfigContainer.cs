@@ -21,17 +21,17 @@ namespace TILER2 {
         }
 
         /// <summary>Fired when any of the config entries tracked by this AutoItemConfigContainer change.</summary>
-        public event EventHandler<AutoUpdateEventArgs> ConfigEntryChanged;
+        public event EventHandler<AutoUpdateEventArgs_V2> ConfigEntryChanged;
         /// <summary>Internal handler for ConfigEntryChanged event.</summary>
-        internal void OnConfigChanged(AutoUpdateEventArgs e) {
+        internal void OnConfigChanged(AutoUpdateEventArgs_V2 e) {
             ConfigEntryChanged?.Invoke(this, e);
             TILER2Plugin._logger.LogDebug(e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + ": " + e.oldValue.ToString() + " > " + e.newValue.ToString());
             if(!(Run.instance != null && Run.instance.isActiveAndEnabled)) return;
-            if((e.flags & AutoUpdateEventFlags.InvalidateStats) == AutoUpdateEventFlags.InvalidateStats)
+            if((e.flags & AutoUpdateEventFlags_V2.InvalidateStats) == AutoUpdateEventFlags_V2.InvalidateStats)
                 AutoConfigModule.globalStatsDirty = true;
-            if((e.flags & AutoUpdateEventFlags.InvalidateDropTable) == AutoUpdateEventFlags.InvalidateDropTable)
+            if((e.flags & AutoUpdateEventFlags_V2.InvalidateDropTable) == AutoUpdateEventFlags_V2.InvalidateDropTable)
                 AutoConfigModule.globalDropsDirty = true;
-            if(!e.silent && (e.flags & AutoUpdateEventFlags.AnnounceToRun) == AutoUpdateEventFlags.AnnounceToRun && NetworkServer.active)
+            if(!e.silent && (e.flags & AutoUpdateEventFlags_V2.AnnounceToRun) == AutoUpdateEventFlags_V2.AnnounceToRun && NetworkServer.active)
                 NetConfigOrchestrator.ServerSendGlobalChatMsg("The setting <color=#ffffaa>" + e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + "</color> has been changed from <color=#ffaaaa>" + e.oldValue.ToString() + "</color> to <color=#aaffaa>" + e.newValue.ToString() + "</color>.");
         }
 
@@ -120,7 +120,7 @@ namespace TILER2 {
         }
         
         /// <summary>Binds a property to a BepInEx config file, using reflection and attributes to automatically generate much of the necessary information.</summary>
-        public void Bind(PropertyInfo prop, ConfigFile cfl, string modName, string categoryName, AutoConfigAttribute attrib, AutoUpdateEventInfoAttribute eiattr = null, BindSubDictInfo? subDict = null) {
+        public void Bind(PropertyInfo prop, ConfigFile cfl, string modName, string categoryName, AutoConfigAttribute attrib, AutoUpdateEventInfo_V2Attribute eiattr = null, BindSubDictInfo? subDict = null) {
             string errorStr = "AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + " failed: ";
             if(!subDict.HasValue) {
                 if(this.bindings.Exists(x => x.boundProperty == prop)) {
@@ -258,11 +258,11 @@ namespace TILER2 {
             foreach(var prop in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
                 var attrib = prop.GetCustomAttribute<AutoConfigAttribute>(true);
                 if(attrib != null)
-                    this.Bind(prop, cfl, modName, categoryName, attrib, prop.GetCustomAttribute<AutoUpdateEventInfoAttribute>(true));
+                    this.Bind(prop, cfl, modName, categoryName, attrib, prop.GetCustomAttribute<AutoUpdateEventInfo_V2Attribute>(true));
             }
         }
         
         /// <summary>All flags that are set here will override unset flags in AutoUpdateEventInfoAttribute, unless attribute.ignoreDefault is true.</summary>
-        protected internal AutoUpdateEventFlags defaultEnabledUpdateFlags = AutoUpdateEventFlags.None;
+        protected internal AutoUpdateEventFlags_V2 defaultEnabledUpdateFlags = AutoUpdateEventFlags_V2.None;
     }
 }

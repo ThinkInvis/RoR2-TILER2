@@ -46,7 +46,7 @@ namespace TILER2 {
         ///<summary>If managedEnable is true, enabledConfigFlags will be used for the resultant config entry.</summary>
         public virtual AutoConfigFlags enabledConfigFlags => AutoConfigFlags.PreventNetMismatch;
         ///<summary>If managedEnable is true, enabledConfigUpdateEventsFlags will be used for the resultant config entry.</summary>
-        public virtual AutoUpdateEventFlags enabledConfigUpdateEventFlags => AutoUpdateEventFlags.InvalidateLanguage;
+        public virtual AutoUpdateEventFlags_V2 enabledConfigUpdateEventFlags => AutoUpdateEventFlags_V2.InvalidateLanguage;
 
         protected readonly List<LanguageAPI.LanguageOverlay> languageOverlays = new List<LanguageAPI.LanguageOverlay>();
         protected readonly Dictionary<string, string> genericLanguageTokens = new Dictionary<string, string>();
@@ -67,7 +67,7 @@ namespace TILER2 {
             if(managedEnable)
                 Bind(typeof(T2Module).GetProperty(nameof(enabled)), modInfo.mainConfigFile, modInfo.displayName, moduleConfigName, new AutoConfigAttribute(
                     $"{((configDescription != null) ? (configDescription + "\n") : "")}Set to False to disable this module, and as much of its content as can be disabled after initial load. Doing so may cause changes in other modules as well.",
-                    enabledConfigFlags), enabledConfigUpdateEventFlags != AutoUpdateEventFlags.None ? new AutoUpdateEventInfoAttribute(enabledConfigUpdateEventFlags) : null);
+                    enabledConfigFlags), enabledConfigUpdateEventFlags != AutoUpdateEventFlags_V2.None ? new AutoUpdateEventInfo_V2Attribute(enabledConfigUpdateEventFlags) : null);
             BindAll(modInfo.mainConfigFile, modInfo.displayName, moduleConfigName);
             ConfigEntryChanged += (sender, args) => {
                 if(args.target.boundProperty.Name == nameof(enabled)) {
@@ -81,7 +81,7 @@ namespace TILER2 {
                         }
                     }
                 }
-                if(enabled && args.flags.HasFlag(AutoUpdateEventFlags.InvalidateLanguage)) {
+                if(enabled && args.flags.HasFlag(AutoUpdateEventFlags_V2.InvalidateLanguage)) {
                     if(languageInstalled)
                         UninstallLanguage();
                     InstallLanguage();
