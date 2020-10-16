@@ -30,25 +30,25 @@ namespace TILER2 {
         }
 
         public ItemBoilerplate() {
-            defaultEnabledUpdateFlags = AutoUpdateEventFlags_V2.AnnounceToRun;
+            defaultEnabledUpdateFlags = AutoUpdateEventFlags.AnnounceToRun;
 
             ItemBoilerplateModule.masterItemList.Add(this);
             //private Dictionary allRegisteredLanguages; todo; RegLang is never called with a langid!=null param for now
             ConfigEntryChanged += (sender, args) => {
-                if((args.flags & AutoUpdateEventFlags_V2.InvalidateNameToken) == AutoUpdateEventFlags_V2.InvalidateNameToken) {
+                if((args.flags & AutoUpdateEventFlags.InvalidateNameToken) == AutoUpdateEventFlags.InvalidateNameToken) {
                     LanguageAPI.Add(nameToken, NewLangName());
                 }
-                if((args.flags & AutoUpdateEventFlags_V2.InvalidatePickupToken) == AutoUpdateEventFlags_V2.InvalidatePickupToken) {
+                if((args.flags & AutoUpdateEventFlags.InvalidatePickupToken) == AutoUpdateEventFlags.InvalidatePickupToken) {
                     LanguageAPI.Add(pickupToken, (enabled ? "" : "<color=#FF0000>[DISABLED]</color>") + NewLangPickup());
                 }
-                if((args.flags & AutoUpdateEventFlags_V2.InvalidateDescToken) == AutoUpdateEventFlags_V2.InvalidateDescToken) {
+                if((args.flags & AutoUpdateEventFlags.InvalidateDescToken) == AutoUpdateEventFlags.InvalidateDescToken) {
                     LanguageAPI.Add(descToken, (enabled ? "" : "<color=#FF0000>[DISABLED]</color>\n") + NewLangDesc());
                 }
-                if((args.flags & AutoUpdateEventFlags_V2.InvalidateLoreToken) == AutoUpdateEventFlags_V2.InvalidateLoreToken) {
+                if((args.flags & AutoUpdateEventFlags.InvalidateLoreToken) == AutoUpdateEventFlags.InvalidateLoreToken) {
                     LanguageAPI.Add(loreToken, NewLangLore());
                 }
             
-                if((args.flags & AutoUpdateEventFlags_V2.InvalidateModel) == AutoUpdateEventFlags_V2.InvalidateModel) {
+                if((args.flags & AutoUpdateEventFlags.InvalidateModel) == AutoUpdateEventFlags.InvalidateModel) {
                     var newModel = NewPickupModel();
                     if(newModel != null) {
                         if(pickupDef != null) pickupDef.displayPrefab = newModel;
@@ -62,7 +62,7 @@ namespace TILER2 {
         public PickupIndex pickupIndex {get; internal set;}
         public RoR2.UI.LogBook.Entry logbookEntry {get; internal set;}
 
-        [AutoUpdateEventInfo(AutoUpdateEventFlags_V2.InvalidateDescToken | AutoUpdateEventFlags_V2.InvalidatePickupToken | AutoUpdateEventFlags_V2.InvalidateStats | AutoUpdateEventFlags_V2.InvalidateDropTable)]
+        [AutoUpdateEventInfo(AutoUpdateEventFlags.InvalidateDescToken | AutoUpdateEventFlags.InvalidatePickupToken | AutoUpdateEventFlags.InvalidateStats | AutoUpdateEventFlags.InvalidateDropTable)]
         [AutoItemConfig("If false, this item/equipment will not drop ingame, and it will not work if you somehow get a copy (all IL patches and hooks will be disabled for compatibility).",
             AutoItemConfigFlags.PreventNetMismatch | AutoItemConfigFlags.DeferUntilNextStage)]
         public bool enabled {get; protected set;} = true;
