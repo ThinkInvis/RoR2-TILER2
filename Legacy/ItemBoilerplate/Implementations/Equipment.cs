@@ -5,6 +5,7 @@ using System;
 using UnityEngine;
 
 namespace TILER2 {
+    [Obsolete("Will be replaced by Equipment_V2 in next major update")]
     public abstract class Equipment<T>:Equipment where T : Equipment<T> {
         public static T instance {get;private set;}
 
@@ -15,6 +16,7 @@ namespace TILER2 {
         }
     }
 
+    [Obsolete("Will be replaced by Equipment_V2 in next major update")]
     public abstract class Equipment : ItemBoilerplate {
         public EquipmentIndex regIndex {get; private set;}
         public EquipmentDef regDef {get; private set;}

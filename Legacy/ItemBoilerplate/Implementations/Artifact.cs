@@ -5,6 +5,7 @@ using System;
 using UnityEngine;
 
 namespace TILER2 {
+    [Obsolete("Will be replaced by Artifact_V2 in next major update")]
     public abstract class Artifact<T>:Artifact where T : Artifact<T> {
         public static T instance {get;private set;}
 
@@ -15,6 +16,7 @@ namespace TILER2 {
         }
     }
 
+    [Obsolete("Will be replaced by Artifact_V2 in next major update")]
     public abstract class Artifact : ItemBoilerplate {
         protected override string NewLangLore(string langID = null) => null;
         protected override string NewLangPickup(string langID = null) => null;

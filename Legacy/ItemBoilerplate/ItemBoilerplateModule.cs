@@ -1,11 +1,13 @@
 ﻿using R2API;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Networking;
 using static TILER2.MiscUtil;
 
 namespace TILER2 {
+    [Obsolete("Will be replaced by ItemBoilerplateModule_V2 in next major update")]
     internal static class ItemBoilerplateModule {
         internal static FilingDictionary<ItemBoilerplate> masterItemList = new FilingDictionary<ItemBoilerplate>();
 

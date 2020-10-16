@@ -9,6 +9,7 @@ using System.Linq;
 using UnityEngine;
 
 namespace TILER2 {
+    [Obsolete("Will be replaced by Item_V2 in next major update")]
     public abstract class Item<T>:Item where T : Item<T> {
         public static T instance {get;private set;}
 
@@ -18,7 +19,8 @@ namespace TILER2 {
             instance = this as T;
         }
     }
-    
+
+    [Obsolete("Will be replaced by Item_V2 in next major update")]
     public abstract class Item : ItemBoilerplate {
         public ItemIndex regIndex {get; private set;}
         public ItemDef regDef {get; private set;}
