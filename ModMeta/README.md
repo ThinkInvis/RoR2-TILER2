@@ -46,6 +46,14 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**3.0.0**
+
+- Introduces the T2Module class.
+- Makes sweeping cosmetic renames to several modules.
+- ItemBoilerplate (now CatalogBoilerplate) main plugin setup now flows slightly differently.
+- CatalogBoilerplate language handling was overhauled to take advantage of R2API Language Overlays.
+- AutoConfig now supports using fields as nametags, not just properties.
+
 **2.2.3**
 
 - FakeInventory now provides a blacklist for modded items to use.
@@ -63,7 +71,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **2.2.0**
 
 - Migrated and publicized mod compat classes from ClassicItems. Now provides public hooks for BetterUI, ItemStats, and ShareSuite.
-
-**2.1.3**
-
-- Fixed items dropping while disabled when R2API.ItemDropAPI was loaded by another mod.
