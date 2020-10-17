@@ -26,7 +26,9 @@ namespace TILER2 {
             _logger = Logger;
 
             cfgFile = new ConfigFile(System.IO.Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
-            
+
+            T2Module.SetupModuleClass();
+
             T2Module.InitModules(new T2Module.ModInfo {
                 displayName="TILER2",
                 mainConfigFile=cfgFile,
