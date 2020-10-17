@@ -19,7 +19,7 @@ namespace TILER2 {
     }
 
     /// <summary>
-    /// Provides a relatively low-extra-code pattern for dividing a mod into smaller modules.
+    /// Provides a relatively low-extra-code pattern for dividing a mod into smaller modules, each of which has its own config category managed by TILER2.AutoConfig.
     /// </summary>
     public abstract class T2Module : AutoConfigContainer {
         public const string LANG_PREFIX_DISABLED = "<color=#FF0000>[DISABLED]</color>";
@@ -131,31 +131,26 @@ namespace TILER2 {
         }
 
         /// <summary>
-        /// Call to scan your plugin's assembly for classes inheriting directly or indirectly from a specific subtype of Module, initialize all of them, and prepare a list for further setup.
-        /// </summary>
-        /// <returns>A FilingDictionary containing all instances that this method just initialized.</returns>
-        public static FilingDictionary<T> InitAll<T>(ModInfo modInfo) where T:T2Module {
-            return InitSome<T>(t => t.IsSubclassOf(typeof(T)), modInfo);
-        }
-
-        /// <summary>
         /// Call to scan your plugin's assembly for classes inheriting directly from a specific subtype of Module, initialize all of them, and prepare a list for further setup.
         /// Has special handling for the MyClass : ModuleOrModuleSubclass&lt;MyClass&gt; pattern.
         /// </summary>
         /// <returns>A FilingDictionary containing all instances that this method just initialized.</returns>
         public static FilingDictionary<T> InitDirect<T>(ModInfo modInfo) where T:T2Module {
-            return InitSome<T>(t => (t.BaseType.IsGenericType
+            return InitAll<T>(modInfo, t => (t.BaseType.IsGenericType
                 ? (t.BaseType.GenericTypeArguments[0] == t && t.BaseType.BaseType == typeof(T))
-                : t.BaseType == typeof(T)), modInfo);
+                : t.BaseType == typeof(T)));
         }
 
-        public static FilingDictionary<T> InitSome<T>(Func<Type, bool> extraTypeChecks, ModInfo modInfo) where T:T2Module {
+        /// <summary>
+        /// Call to scan your plugin's assembly for classes inheriting directly or indirectly from a specific subtype of Module, initialize all of them, and prepare a list for further setup.
+        /// </summary>
+        /// <returns>A FilingDictionary containing all instances that this method just initialized.</returns>
+        public static FilingDictionary<T> InitAll<T>(ModInfo modInfo, Func<Type, bool> extraTypeChecks = null) where T:T2Module {
             var f = new FilingDictionary<T>();
-            foreach(Type type in Assembly.GetCallingAssembly().GetTypes().Where(t => t.IsClass && !t.IsAbstract && (extraTypeChecks?.Invoke(t) ?? true))) {
-                var newModule = (T)Activator.CreateInstance(typeof(T));
+            foreach(Type type in Assembly.GetCallingAssembly().GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(T)) && (extraTypeChecks?.Invoke(t) ?? true))) {
+                var newModule = (T)Activator.CreateInstance(type, nonPublic:true);
                 newModule.modInfo = modInfo;
                 f.Add(newModule);
-
             }
             return f;
         }

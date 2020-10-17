@@ -68,7 +68,7 @@ namespace TILER2 {
         }
         
         /// <summary>Simple tag replacer for patterns matching &lt;AIC.Param1.Param2...&gt;, using reflection information as the replacing values.<para />
-        /// Supported tags: AIC.Prop.[PropName], AIC.DictKey, AIC.DictInd, AIC.DictKeyProp.[PropName]</summary>
+        /// Supported tags: AIC.Prop.[PropName], AIC.Field.[FieldName], AIC.DictKey, AIC.DictInd, AIC.DictKeyProp.[PropName], AIC.DictKeyField.[FieldName]</summary>
         private string ReplaceTags(string orig, PropertyInfo prop, string categoryName, BindSubDictInfo? subDict = null) {
             return Regex.Replace(orig, @"<AIC.([a-zA-Z\.]+)>", (m)=>{
                 string[] strParams = Regex.Split(m.Groups[0].Value.Substring(1, m.Groups[0].Value.Length - 2), @"(?<!\\)\.");;
@@ -86,6 +86,17 @@ namespace TILER2 {
                             return m.Value;
                         }
                         return iprop.GetValue(this).ToString();
+                    case "Field":
+                        if(strParams.Length < 3) {
+                            TILER2Plugin._logger.LogWarning(errorStr + "(not enough params for Field tag).");
+                            return m.Value;
+                        }
+                        var ifld = prop.DeclaringType.GetField(strParams[2], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                        if(ifld == null) {
+                            TILER2Plugin._logger.LogWarning(errorStr + "(could not find Field \"" + strParams[2] + "\").");
+                            return m.Value;
+                        }
+                        return ifld.GetValue(this).ToString();
                     case "DictKey":
                         if(!subDict.HasValue) {
                             TILER2Plugin._logger.LogWarning(errorStr + "(DictKey tag used on non-BindDict).");
@@ -104,7 +115,7 @@ namespace TILER2 {
                             return m.Value;
                         }
                         if(strParams.Length < 3){
-                            TILER2Plugin._logger.LogWarning(errorStr + "(not enough params for Prop tag).");
+                            TILER2Plugin._logger.LogWarning(errorStr + "(not enough params for DictKeyProp tag).");
                             return m.Value;
                         }
                         PropertyInfo kprop = subDict.Value.key.GetType().GetProperty(strParams[2], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -113,6 +124,21 @@ namespace TILER2 {
                             return m.Value;
                         }
                         return kprop.GetValue(subDict.Value.key).ToString();
+                    case "DictKeyField":
+                        if(!subDict.HasValue) {
+                            TILER2Plugin._logger.LogWarning(errorStr + "(DictKeyField tag used on non-BindDict).");
+                            return m.Value;
+                        }
+                        if(strParams.Length < 3) {
+                            TILER2Plugin._logger.LogWarning(errorStr + "(not enough params for DictKeyField tag).");
+                            return m.Value;
+                        }
+                        FieldInfo kfld = subDict.Value.key.GetType().GetField(strParams[2], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                        if(kfld == null) {
+                            TILER2Plugin._logger.LogWarning(errorStr + "(could not find DictKeyField \"" + strParams[2] + "\").");
+                            return m.Value;
+                        }
+                        return kfld.GetValue(subDict.Value.key).ToString();
                 }
                 TILER2Plugin._logger.LogWarning(errorStr + "(unknown tag \"" + strParams[1] + "\").");
                 return m.Value;
