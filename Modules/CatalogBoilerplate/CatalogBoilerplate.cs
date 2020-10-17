@@ -84,7 +84,7 @@ namespace TILER2 {
         protected internal override AutoConfigUpdateActionTypes defaultEnabledUpdateFlags => AutoConfigUpdateActionTypes.AnnounceToRun;
         public override bool managedEnable => true;
         public override AutoConfigFlags enabledConfigFlags => AutoConfigFlags.PreventNetMismatch | AutoConfigFlags.DeferUntilNextStage;
-        public override AutoConfigUpdateActionTypes enabledConfigUpdateEventFlags => AutoConfigUpdateActionTypes.InvalidateLanguage | AutoConfigUpdateActionTypes.InvalidateStats | AutoConfigUpdateActionTypes.InvalidateDropTable;
+        public override AutoConfigUpdateActionTypes enabledConfigUpdateActionTypes => AutoConfigUpdateActionTypes.InvalidateLanguage | AutoConfigUpdateActionTypes.InvalidateStats | AutoConfigUpdateActionTypes.InvalidateDropTable;
 
         ///<summary>A resource string pointing to the object's model.</summary>
         public string modelResourcePath {get; protected set;} = null;
