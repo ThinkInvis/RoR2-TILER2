@@ -14,11 +14,11 @@ namespace TILER2 {
         }
     }
 
-    public abstract class Artifact_V2 : ItemBoilerplate_V2 {
+    public abstract class Artifact_V2 : CatalogBoilerplate {
         public string iconPathNameDisabled {get; protected set;} = null;
 
-        public ArtifactIndex regIndex {get; private set;}
-        public ArtifactDef regDef {get; private set;}
+        public ArtifactIndex catalogIndex {get; private set;}
+        public ArtifactDef artifactDef {get; private set;}
         
         public override void SetupConfig() {
             base.SetupConfig();
@@ -27,14 +27,14 @@ namespace TILER2 {
                     if(args.oldValue != args.newValue) {
                         if((bool)args.newValue == true) {
                             if(Run.instance != null && Run.instance.enabled) Chat.AddMessage(displayName + " is <color=#aaffaa>NO LONGER FORCE-DISABLED</color>, and it will now take effect if enabled ingame.");
-                            regDef.descriptionToken = descToken;
-                            regDef.smallIconDeselectedSprite = Resources.Load<Sprite>(iconPathNameDisabled);
-                            regDef.smallIconSelectedSprite = Resources.Load<Sprite>(iconPathName);
+                            artifactDef.descriptionToken = descToken;
+                            artifactDef.smallIconDeselectedSprite = Resources.Load<Sprite>(iconPathNameDisabled);
+                            artifactDef.smallIconSelectedSprite = Resources.Load<Sprite>(iconResourcePath);
                         } else {
                             if(Run.instance != null && Run.instance.enabled) Chat.AddMessage(displayName + " has been <color=#ffaaaa>FORCE-DISABLED</color>. If enabled ingame, it will not have any effect.");
-                            regDef.descriptionToken = "TILER2_DISABLED_ARTIFACT";
-                            regDef.smallIconDeselectedSprite = Resources.Load<Sprite>("textures/miscicons/texUnlockIcon");
-                            regDef.smallIconSelectedSprite = Resources.Load<Sprite>("textures/miscicons/texUnlockIcon");
+                            artifactDef.descriptionToken = "TILER2_DISABLED_ARTIFACT";
+                            artifactDef.smallIconDeselectedSprite = Resources.Load<Sprite>("textures/miscicons/texUnlockIcon");
+                            artifactDef.smallIconSelectedSprite = Resources.Load<Sprite>("textures/miscicons/texUnlockIcon");
                         }
                     }
                 }
@@ -44,22 +44,30 @@ namespace TILER2 {
         public override void SetupAttributes() {
             base.SetupAttributes();
 
-            regDef = ScriptableObject.CreateInstance<ArtifactDef>();
-            regDef.nameToken = nameToken;
-            regDef.descriptionToken = descToken;
-            regDef.smallIconDeselectedSprite = Resources.Load<Sprite>(iconPathNameDisabled);
-            regDef.smallIconSelectedSprite = Resources.Load<Sprite>(iconPathName);
+            artifactDef = ScriptableObject.CreateInstance<ArtifactDef>();
+            artifactDef.nameToken = nameToken;
+            artifactDef.descriptionToken = descToken;
+            artifactDef.smallIconDeselectedSprite = Resources.Load<Sprite>(iconPathNameDisabled);
+            artifactDef.smallIconSelectedSprite = Resources.Load<Sprite>(iconResourcePath);
             ArtifactCatalog.getAdditionalEntries += (list) => {
-                list.Add(regDef);
+                list.Add(artifactDef);
             };
             On.RoR2.ArtifactCatalog.SetArtifactDefs += (orig, self) => {
                 orig(self);
-                regIndex = regDef.artifactIndex;
+                catalogIndex = artifactDef.artifactIndex;
             };
         }
 
         public bool IsActiveAndEnabled() {
-            return enabled && (RunArtifactManager.instance != null ? RunArtifactManager.instance.IsArtifactEnabled(regIndex) : false);
+            return enabled && (RunArtifactManager.instance != null ? RunArtifactManager.instance.IsArtifactEnabled(catalogIndex) : false);
+        }
+
+        public override ConsoleStrings GetConsoleStrings() {
+            return new ConsoleStrings {
+                className = "Artifact",
+                objectName = this.name,
+                formattedIndex = ((int)this.catalogIndex).ToString()
+            };
         }
     }
 }

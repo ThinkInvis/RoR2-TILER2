@@ -8,7 +8,7 @@ using UnityEngine;
 using static TILER2.MiscUtil;
 
 namespace TILER2 {
-    [Obsolete("Will be replaced by ItemBoilerplate_V2 in next major update")]
+    [Obsolete("Will be replaced by CatalogBoilerplate in next major update")]
     public abstract class ItemBoilerplate : AutoItemConfigContainer {
         public string nameToken {get; private protected set;}
         public string pickupToken {get; private protected set;}

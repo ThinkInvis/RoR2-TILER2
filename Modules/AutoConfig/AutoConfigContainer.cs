@@ -263,6 +263,6 @@ namespace TILER2 {
         }
         
         /// <summary>All flags that are set here will override unset flags in AutoUpdateEventInfoAttribute, unless attribute.ignoreDefault is true.</summary>
-        protected internal AutoUpdateEventFlags_V2 defaultEnabledUpdateFlags = AutoUpdateEventFlags_V2.None;
+        protected internal virtual AutoUpdateEventFlags_V2 defaultEnabledUpdateFlags => AutoUpdateEventFlags_V2.None;
     }
 }

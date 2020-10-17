@@ -18,6 +18,9 @@ namespace TILER2 {
         }
     }
 
+    /// <summary>
+    /// Provides a relatively low-extra-code pattern for dividing a mod into smaller modules.
+    /// </summary>
     public abstract class T2Module : AutoConfigContainer {
         public const string LANG_PREFIX_DISABLED = "<color=#FF0000>[DISABLED]</color>";
 
@@ -29,11 +32,12 @@ namespace TILER2 {
             orig(self);
             if(!NetworkServer.active) return;
             var rngGenerator = new Xoroshiro128Plus(self.seed);
-            foreach(var module in allModules)
+            foreach(var module in _allModules)
                 module.rng = new Xoroshiro128Plus(rngGenerator.nextUlong);
         }
 
-        public static FilingDictionary<T2Module> allModules = new FilingDictionary<T2Module>();
+        private static readonly FilingDictionary<T2Module> _allModules = new FilingDictionary<T2Module>();
+        public static readonly ReadOnlyFilingDictionary<T2Module> allModules = _allModules.AsReadOnly();
 
         public bool enabled { get; protected internal set; } = true;
 
@@ -107,14 +111,14 @@ namespace TILER2 {
         ///<summary>Should undo EVERY change made by Install.</summary>
         public virtual void Uninstall() {}
 
-        ///<summary>Will be called once after initial language setup, and also if/when the module is installed after setup. Automatically loads tokens from the languageTokens dictionary.</summary>
+        ///<summary>Will be called once after initial language setup, and also if/when the module is installed after setup. Automatically loads tokens from genericLanguageTokens/specificLanguageTokens into R2API Language Overlays in languageOverlays.</summary>
         public virtual void InstallLanguage() {
             languageOverlays.Add(LanguageAPI.AddOverlay(genericLanguageTokens));
             languageOverlays.Add(LanguageAPI.AddOverlay(specificLanguageTokens));
             languageInstalled = true;
         }
 
-        //Will be called if/when the module is uninstalled after setup.
+        ///<summary>Will be called if/when the module is uninstalled after setup, and before any language installation after the first. Automatically undoes all R2API Language Overlays registered to languageOverlays.</summary>
         public virtual void UninstallLanguage() {
             foreach(var overlay in languageOverlays) {
                 overlay.Remove();
@@ -186,7 +190,7 @@ namespace TILER2 {
 
         protected T2Module() {
             name = GetType().Name;
-            allModules.Add(this);
+            _allModules.Add(this);
         }
 
         public struct ModInfo {

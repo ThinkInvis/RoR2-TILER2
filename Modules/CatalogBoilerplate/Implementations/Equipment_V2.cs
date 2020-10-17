@@ -14,55 +14,54 @@ namespace TILER2 {
         }
     }
 
-    public abstract class Equipment_V2 : ItemBoilerplate_V2 {
-        public EquipmentIndex regIndex {get; private set;}
-        public EquipmentDef regDef {get; private set;}
-        public CustomEquipment regEqp {get; private set;}
+    public abstract class Equipment_V2 : CatalogBoilerplate {
+        public EquipmentIndex catalogIndex {get; private set;}
+        public EquipmentDef equipmentDef {get; private set;}
+        public CustomEquipment customEquipment {get; private set;}
 
         protected ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
 
         [AutoConfig("The base cooldown of the equipment, in seconds.", AutoConfigFlags.DeferUntilNextStage, 0f, float.MaxValue)]
-        public virtual float eqpCooldown {get; protected set;} = 45f; //TODO: add a getter function to update ingame cooldown properly if in use; marked as DeferUntilNextStage until then
+        public virtual float cooldown {get; protected set;} = 45f; //TODO: add a getter function to update ingame cooldown properly if in use; marked as DeferUntilNextStage until then
         public virtual bool isEnigmaCompatible => true;
         public virtual bool isLunar => false;
 
         public override void SetupConfig() {
             base.SetupConfig();
+
             ConfigEntryChanged += (sender, args) => {
                 if(args.target.boundProperty.Name == nameof(enabled)) {
                     if(args.oldValue != args.newValue) {
                         if((bool)args.newValue == true) {
-                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage($"<color=#{ColorCatalog.GetColorHexString(regDef.colorIndex)}>{displayName}</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
+                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage($"<color=#{ColorCatalog.GetColorHexString(equipmentDef.colorIndex)}>{displayName}</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
                         } else {
-                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage($"<color=#{ColorCatalog.GetColorHexString(regDef.colorIndex)}>{displayName}</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
+                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage($"<color=#{ColorCatalog.GetColorHexString(equipmentDef.colorIndex)}>{displayName}</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
                         }
                     }
                 }
             };
         }
+
         public override void SetupAttributes() {
             base.SetupAttributes();
 
-            pickupToken = $"{modInfo.longIdentifier}_{name.ToUpper()}_PICKUP";
-            loreToken = $"{modInfo.longIdentifier}_{name.ToUpper()}_LORE";
-
-            regDef = new EquipmentDef {
+            equipmentDef = new EquipmentDef {
                 name = modInfo.shortIdentifier + name,
-                pickupModelPath = modelPathName,
-                pickupIconPath = iconPathName,
+                pickupModelPath = modelResourcePath,
+                pickupIconPath = iconResourcePath,
                 nameToken = this.nameToken,
                 pickupToken = this.pickupToken,
                 descriptionToken = this.descToken,
                 loreToken = this.loreToken,
-                cooldown = eqpCooldown,
+                cooldown = cooldown,
                 enigmaCompatible = isEnigmaCompatible,
                 isLunar = isLunar,
                 canDrop = true
             };
             if(isLunar) 
-				regDef.colorIndex = ColorCatalog.ColorIndex.LunarItem;
-            regEqp = new CustomEquipment(regDef, displayRules);
-            regIndex = ItemAPI.Add(regEqp);
+				equipmentDef.colorIndex = ColorCatalog.ColorIndex.LunarItem;
+            customEquipment = new CustomEquipment(equipmentDef, displayRules);
+            catalogIndex = ItemAPI.Add(customEquipment);
         }
 
         public override void Install() {
@@ -76,19 +75,28 @@ namespace TILER2 {
         }
 
         private bool Evt_ESPerformEquipmentAction(On.RoR2.EquipmentSlot.orig_PerformEquipmentAction orig, EquipmentSlot self, EquipmentIndex ind) {
-            if(enabled && ind == regIndex) return OnEquipUseInner(self);
+            if(enabled && ind == catalogIndex) return PerformEquipmentAction(self);
             else return orig(self, ind);
         }
 
-        protected abstract bool OnEquipUseInner(EquipmentSlot slot);
+        protected abstract bool PerformEquipmentAction(EquipmentSlot slot);
         
-        public bool HasEqp(Inventory inv, bool inMain = true, bool inAlt = false) {
-            return (inMain && (inv != null ? inv.currentEquipmentIndex : EquipmentIndex.None) == regIndex) || (inAlt && (inv != null ? inv.alternateEquipmentIndex : EquipmentIndex.None) == regIndex);
+        public bool HasEquipment(Inventory inv, bool inMain = true, bool inAlt = false) {
+            return (inMain && (inv != null ? inv.currentEquipmentIndex : EquipmentIndex.None) == catalogIndex) || (inAlt && (inv != null ? inv.alternateEquipmentIndex : EquipmentIndex.None) == catalogIndex);
         }
-        public bool HasEqp(CharacterBody body) {
+
+        public bool HasEquipment(CharacterBody body) {
             var eqpIndex = EquipmentIndex.None;
             if(body && body.equipmentSlot) eqpIndex = body.equipmentSlot.equipmentIndex;
-            return eqpIndex == regIndex;
+            return eqpIndex == catalogIndex;
+        }
+
+        public override ConsoleStrings GetConsoleStrings() {
+            return new ConsoleStrings {
+                className = "Equipment",
+                objectName = this.name,
+                formattedIndex = ((int)this.catalogIndex).ToString()
+            };
         }
     }
 }
