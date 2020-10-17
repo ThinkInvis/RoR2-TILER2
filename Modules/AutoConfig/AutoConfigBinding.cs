@@ -32,7 +32,7 @@ namespace TILER2 {
         public PropertyInfo boundProperty {get; internal set;}
         public string modName {get; internal set;}
 
-        public AutoConfigUpdateEventInfoAttribute updateEventAttribute {get; internal set;}
+        public AutoConfigUpdateActionsAttribute updateEventAttribute {get; internal set;}
 
         public MethodInfo propGetter {get; internal set;}
         public MethodInfo propSetter {get; internal set;}
@@ -76,10 +76,10 @@ namespace TILER2 {
         private void DeferredUpdateProperty(object newValue, bool silent = false) {
             var oldValue = propGetter.Invoke(target, onDict ? new[] {boundKey} : new object[]{ });
             propSetter.Invoke(target, onDict ? new[]{boundKey, newValue} : new[]{newValue});
-            var flags = updateEventAttribute?.flags ?? AutoConfigUpdateEventFlags.None;
+            var flags = updateEventAttribute?.flags ?? AutoConfigUpdateActionTypes.None;
             if(updateEventAttribute?.ignoreDefault == false) flags |= owner.defaultEnabledUpdateFlags;
             cachedValue = newValue;
-            owner.OnConfigChanged(new AutoConfigUpdateEventArgs{
+            owner.OnConfigChanged(new AutoConfigUpdateActionEventArgs{
                 flags = flags,
                 oldValue = oldValue,
                 newValue = newValue,

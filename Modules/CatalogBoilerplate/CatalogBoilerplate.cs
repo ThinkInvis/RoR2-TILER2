@@ -41,7 +41,7 @@ namespace TILER2 {
         public override void SetupConfig() {
             base.SetupConfig();
             ConfigEntryChanged += (sender, args) => {
-                if((args.flags & AutoConfigUpdateEventFlags.InvalidateModel) == AutoConfigUpdateEventFlags.InvalidateModel) {
+                if((args.flags & AutoConfigUpdateActionTypes.InvalidateModel) == AutoConfigUpdateActionTypes.InvalidateModel) {
                     var newModel = GetPickupModel();
                     if(newModel != null) {
                         if(pickupDef != null) pickupDef.displayPrefab = newModel;
@@ -81,10 +81,10 @@ namespace TILER2 {
         public PickupIndex pickupIndex {get; internal set;}
         public RoR2.UI.LogBook.Entry logbookEntry {get; internal set;}
 
-        protected internal override AutoConfigUpdateEventFlags defaultEnabledUpdateFlags => AutoConfigUpdateEventFlags.AnnounceToRun;
+        protected internal override AutoConfigUpdateActionTypes defaultEnabledUpdateFlags => AutoConfigUpdateActionTypes.AnnounceToRun;
         public override bool managedEnable => true;
         public override AutoConfigFlags enabledConfigFlags => AutoConfigFlags.PreventNetMismatch | AutoConfigFlags.DeferUntilNextStage;
-        public override AutoConfigUpdateEventFlags enabledConfigUpdateEventFlags => AutoConfigUpdateEventFlags.InvalidateLanguage | AutoConfigUpdateEventFlags.InvalidateStats | AutoConfigUpdateEventFlags.InvalidateDropTable;
+        public override AutoConfigUpdateActionTypes enabledConfigUpdateEventFlags => AutoConfigUpdateActionTypes.InvalidateLanguage | AutoConfigUpdateActionTypes.InvalidateStats | AutoConfigUpdateActionTypes.InvalidateDropTable;
 
         ///<summary>A resource string pointing to the object's model.</summary>
         public string modelResourcePath {get; protected set;} = null;

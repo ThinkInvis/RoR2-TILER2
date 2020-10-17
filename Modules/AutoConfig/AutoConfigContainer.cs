@@ -21,17 +21,17 @@ namespace TILER2 {
         }
 
         /// <summary>Fired when any of the config entries tracked by this AutoItemConfigContainer change.</summary>
-        public event EventHandler<AutoConfigUpdateEventArgs> ConfigEntryChanged;
+        public event EventHandler<AutoConfigUpdateActionEventArgs> ConfigEntryChanged;
         /// <summary>Internal handler for ConfigEntryChanged event.</summary>
-        internal void OnConfigChanged(AutoConfigUpdateEventArgs e) {
+        internal void OnConfigChanged(AutoConfigUpdateActionEventArgs e) {
             ConfigEntryChanged?.Invoke(this, e);
             TILER2Plugin._logger.LogDebug(e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + ": " + e.oldValue.ToString() + " > " + e.newValue.ToString());
             if(!(Run.instance != null && Run.instance.isActiveAndEnabled)) return;
-            if((e.flags & AutoConfigUpdateEventFlags.InvalidateStats) == AutoConfigUpdateEventFlags.InvalidateStats)
+            if((e.flags & AutoConfigUpdateActionTypes.InvalidateStats) == AutoConfigUpdateActionTypes.InvalidateStats)
                 AutoConfigModule.globalStatsDirty = true;
-            if((e.flags & AutoConfigUpdateEventFlags.InvalidateDropTable) == AutoConfigUpdateEventFlags.InvalidateDropTable)
+            if((e.flags & AutoConfigUpdateActionTypes.InvalidateDropTable) == AutoConfigUpdateActionTypes.InvalidateDropTable)
                 AutoConfigModule.globalDropsDirty = true;
-            if(!e.silent && (e.flags & AutoConfigUpdateEventFlags.AnnounceToRun) == AutoConfigUpdateEventFlags.AnnounceToRun && NetworkServer.active)
+            if(!e.silent && (e.flags & AutoConfigUpdateActionTypes.AnnounceToRun) == AutoConfigUpdateActionTypes.AnnounceToRun && NetworkServer.active)
                 NetConfigOrchestrator.ServerSendGlobalChatMsg("The setting <color=#ffffaa>" + e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + "</color> has been changed from <color=#ffaaaa>" + e.oldValue.ToString() + "</color> to <color=#aaffaa>" + e.newValue.ToString() + "</color>.");
         }
 
@@ -146,7 +146,7 @@ namespace TILER2 {
         }
         
         /// <summary>Binds a property to a BepInEx config file, using reflection and attributes to automatically generate much of the necessary information.</summary>
-        public void Bind(PropertyInfo prop, ConfigFile cfl, string modName, string categoryName, AutoConfigAttribute attrib, AutoConfigUpdateEventInfoAttribute eiattr = null, BindSubDictInfo? subDict = null) {
+        public void Bind(PropertyInfo prop, ConfigFile cfl, string modName, string categoryName, AutoConfigAttribute attrib, AutoConfigUpdateActionsAttribute eiattr = null, BindSubDictInfo? subDict = null) {
             string errorStr = "AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + " failed: ";
             if(!subDict.HasValue) {
                 if(this.bindings.Exists(x => x.boundProperty == prop)) {
@@ -284,11 +284,11 @@ namespace TILER2 {
             foreach(var prop in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
                 var attrib = prop.GetCustomAttribute<AutoConfigAttribute>(true);
                 if(attrib != null)
-                    this.Bind(prop, cfl, modName, categoryName, attrib, prop.GetCustomAttribute<AutoConfigUpdateEventInfoAttribute>(true));
+                    this.Bind(prop, cfl, modName, categoryName, attrib, prop.GetCustomAttribute<AutoConfigUpdateActionsAttribute>(true));
             }
         }
         
         /// <summary>All flags that are set here will override unset flags in AutoUpdateEventInfoAttribute, unless attribute.ignoreDefault is true.</summary>
-        protected internal virtual AutoConfigUpdateEventFlags defaultEnabledUpdateFlags => AutoConfigUpdateEventFlags.None;
+        protected internal virtual AutoConfigUpdateActionTypes defaultEnabledUpdateFlags => AutoConfigUpdateActionTypes.None;
     }
 }
