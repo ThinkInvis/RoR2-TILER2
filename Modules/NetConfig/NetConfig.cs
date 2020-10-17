@@ -13,7 +13,7 @@ using BepInEx.Logging;
 
 namespace TILER2 {
     /// <summary>
-    /// Provides automatic network syncing and mismatch kicking for the AutoItemConfig module.
+    /// Provides automatic network syncing and mismatch kicking for the AutoConfig module.
     /// </summary>
     public class NetConfig : T2Module<NetConfig> {
         public static readonly SimpleLocalizedKickReason kickCritMismatch = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCCRITMISMATCH");

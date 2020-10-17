@@ -69,7 +69,7 @@ namespace TILER2 {
     ///<summary>Used in AutoUpdateEventInfoAttribute to perform some useful stock actions when the property's config entry is updated.</summary>
     ///<remarks>Implementation of these flags is left to classes that inherit AutoConfig, except for InvalidateStats and AnnounceToRun.</remarks>
     [Flags]
-    public enum AutoUpdateEventFlags_V2 {
+    public enum AutoConfigUpdateEventFlags {
         None = 0,
         ///<summary>Causes an immediate update to the linked item's language registry.</summary>
         InvalidateLanguage = 1 << 0,
@@ -83,9 +83,9 @@ namespace TILER2 {
         AnnounceToRun = 1 << 4
     }
 
-    public class AutoUpdateEventArgs_V2 : EventArgs {
+    public class AutoConfigUpdateEventArgs : EventArgs {
         ///<summary>Any flags passed to the event by an AutoUpdateEventInfoAttribute.</summary>
-        public AutoUpdateEventFlags_V2 flags;
+        public AutoConfigUpdateEventFlags flags;
         ///<summary>The value that the property had before being set.</summary>
         public object oldValue;
         ///<summary>The value that the property has been set to.</summary>
@@ -98,10 +98,10 @@ namespace TILER2 {
     
     ///<summary>Causes some actions to be automatically performed when a property's config entry is updated.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class AutoUpdateEventInfo_V2Attribute : Attribute {
-        public readonly AutoUpdateEventFlags_V2 flags;
+    public class AutoConfigUpdateEventInfoAttribute : Attribute {
+        public readonly AutoConfigUpdateEventFlags flags;
         public readonly bool ignoreDefault;
-        public AutoUpdateEventInfo_V2Attribute(AutoUpdateEventFlags_V2 flags, bool ignoreDefault = false) {
+        public AutoConfigUpdateEventInfoAttribute(AutoConfigUpdateEventFlags flags, bool ignoreDefault = false) {
             this.flags = flags;
             this.ignoreDefault = ignoreDefault;
         }
