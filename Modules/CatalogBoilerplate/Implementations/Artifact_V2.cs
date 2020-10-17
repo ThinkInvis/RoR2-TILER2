@@ -16,6 +16,8 @@ namespace TILER2 {
 
     public abstract class Artifact_V2 : CatalogBoilerplate {
         public override string configCategoryPrefix => "Artifacts.";
+        protected override string GetLoreString(string langID = null) => null;
+        protected override string GetPickupString(string langID = null) => null;
 
         public string iconPathNameDisabled {get; protected set;} = null;
 
