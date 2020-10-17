@@ -63,11 +63,14 @@ namespace TILER2 {
         ///<summary>Contains various information relating to the mod owning this module.</summary>
         public ModInfo modInfo {get; private set;}
 
+        ///<summary>Will be prepended to the category name of all config entries of this subclass of T2Module.</summary>
+        public virtual string configCategoryPrefix => "Modules.";
+
         /// <summary>
         /// Implement to handle AutoItemConfig binding and other related actions. With standard base plugin setup, will be performed before SetupAttributes and SetupBehavior.
         /// </summary>
         public virtual void SetupConfig() {
-            var moduleConfigName = $"Modules.{name}";
+            var moduleConfigName = $"{configCategoryPrefix}{name}";
             if(managedEnable)
                 Bind(typeof(T2Module).GetProperty(nameof(enabled)), modInfo.mainConfigFile, modInfo.displayName, moduleConfigName, new AutoConfigAttribute(
                     $"{((configDescription != null) ? (configDescription + "\n") : "")}Set to False to disable this module, and as much of its content as can be disabled after initial load. Doing so may cause changes in other modules as well.",

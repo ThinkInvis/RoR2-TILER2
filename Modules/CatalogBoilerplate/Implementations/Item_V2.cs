@@ -19,6 +19,8 @@ namespace TILER2 {
     }
     
     public abstract class Item_V2 : CatalogBoilerplate {
+        public override string configCategoryPrefix => "Items.";
+
         public ItemIndex catalogIndex {get; private set;}
         public ItemDef itemDef {get; private set;}
         public CustomItem customItem {get; private set;}

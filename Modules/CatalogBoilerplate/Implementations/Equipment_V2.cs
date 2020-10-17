@@ -15,6 +15,8 @@ namespace TILER2 {
     }
 
     public abstract class Equipment_V2 : CatalogBoilerplate {
+        public override string configCategoryPrefix => "Equipments.";
+
         public EquipmentIndex catalogIndex {get; private set;}
         public EquipmentDef equipmentDef {get; private set;}
         public CustomEquipment customEquipment {get; private set;}
