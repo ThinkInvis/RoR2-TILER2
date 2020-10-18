@@ -41,6 +41,8 @@ namespace TILER2 {
 
             T2Module.SetupAll_PluginAwake(allModules);
 
+            AutoItemConfigModule.Setup();
+            ItemBoilerplateModule.Setup();
             MiscUtil.Setup();
 
             CommandHelper.AddToConsoleWhenReady();
@@ -52,6 +54,7 @@ namespace TILER2 {
 
         private void Update() {
             AutoConfigModule.Update();
+            AutoItemConfigModule.Update();
         }
     }
 }
