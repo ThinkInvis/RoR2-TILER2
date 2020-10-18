@@ -46,6 +46,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**3.0.1**
+
+- Added automatic language reloading (fixes some unloaded language string issues in dependents).
+
 **3.0.0**
 
 - Introduces the T2Module class.
@@ -68,7 +72,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **2.2.1**
 
 - Updated BetterUI hooks for v1.5.7.
-
-**2.2.0**
-
-- Migrated and publicized mod compat classes from ClassicItems. Now provides public hooks for BetterUI, ItemStats, and ShareSuite.

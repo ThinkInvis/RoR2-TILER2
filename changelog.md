@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**3.0.1**
+
+- Added automatic language reloading (fixes some unloaded language string issues in dependents).
+
 **3.0.0**
 
 - Introduces the T2Module class.
