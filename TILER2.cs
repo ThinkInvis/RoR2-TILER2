@@ -2,6 +2,7 @@
 using R2API.Utils;
 using R2API;
 using BepInEx.Configuration;
+using static TILER2.MiscUtil;
 
 namespace TILER2 {
     [BepInDependency("com.bepis.r2api", "2.5.14")]
@@ -22,6 +23,8 @@ namespace TILER2 {
 
         internal static BepInEx.Logging.ManualLogSource _logger;
 
+        private FilingDictionary<T2Module> allModules;
+
         public void Awake() {
             _logger = Logger;
 
@@ -29,16 +32,22 @@ namespace TILER2 {
 
             T2Module.SetupModuleClass();
 
-            T2Module.InitModules(new T2Module.ModInfo {
+            allModules = T2Module.InitModules(new T2Module.ModInfo {
                 displayName="TILER2",
                 mainConfigFile=cfgFile,
                 longIdentifier="TILER2",
                 shortIdentifier="TILER2"
             });
 
+            T2Module.SetupAll_PluginAwake(allModules);
+
             MiscUtil.Setup();
 
             CommandHelper.AddToConsoleWhenReady();
+        }
+
+        private void Start() {
+            T2Module.SetupAll_PluginStart(allModules);
         }
 
         private void Update() {

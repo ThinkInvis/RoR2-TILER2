@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 using UnityEngine.Networking;
 using static TILER2.MiscUtil;
 
@@ -180,12 +181,13 @@ namespace TILER2 {
                 module.SetupBehavior();
             }
         }
-        public static void SetupAll_PluginStart(IEnumerable<T2Module> modulesToSetup) {
+
+        public static void SetupAll_PluginStart(IEnumerable<T2Module> modulesToSetup, bool installUnmanaged = false) {
             foreach(var module in modulesToSetup) {
                 module.SetupLate();
             }
             foreach(var module in modulesToSetup) {
-                if(module.enabled) {
+                if(module.enabled && (installUnmanaged || module.managedEnable)) {
                     module.InstallLanguage();
                     module.Install();
                 }
