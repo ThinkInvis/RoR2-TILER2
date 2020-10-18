@@ -1,5 +1,32 @@
 ﻿# TILER2 Changelog
 
+**3.0.3**
+
+- Additional fixes for legacy code. Should resolve NetConfig missing entry kicks.
+
+**3.0.2**
+
+- Fixed legacy code (ItemBoilerplate, AutoItemConfig) not being included in plugin setup.
+
+**3.0.1**
+
+- Added automatic language reloading (fixes some unloaded language string issues in dependents).
+
+**3.0.0**
+
+- Introduces the T2Module class.
+- Makes sweeping cosmetic renames to several modules.
+- ItemBoilerplate (now CatalogBoilerplate) main plugin setup now flows slightly differently.
+- CatalogBoilerplate language handling was overhauled to take advantage of R2API Language Overlays.
+- AutoConfig now supports using fields as nametags, not just properties.
+- SkillUtil.ReplaceVariant/RemoveVariant no longer require SkillCatalog to be initialized.
+
+**2.2.3**
+
+- FakeInventory now provides a blacklist for modded items to use.
+- Fixed some potential NullReferenceExceptions caused by using the `?.` operator on Unity objects.
+- Fixed TILER2-managed Lunar equipments having the wrong color on some highlights/outlines.
+
 **2.2.2**
 
 - Made FakeInventory more compatible with BetterUI and other item sorting mods.

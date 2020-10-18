@@ -13,28 +13,25 @@ using BepInEx.Logging;
 
 namespace TILER2 {
     /// <summary>
-    /// Provides automatic network syncing and mismatch kicking for the AutoItemConfig module.
+    /// Provides automatic network syncing and mismatch kicking for the AutoConfig module.
     /// </summary>
-    public static class NetConfig {
-        internal static readonly SimpleLocalizedKickReason kickCritMismatch = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCCRITMISMATCH");
-        internal static readonly SimpleLocalizedKickReason kickTimeout = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCTIMEOUT");
-        internal static readonly SimpleLocalizedKickReason kickMissingEntry = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCMISSINGENTRY");
+    public class NetConfig : T2Module<NetConfig> {
+        public override bool managedEnable => false;
 
-        internal static ConfigEntry<bool> gCfgEnableCheck;
-        internal static ConfigEntry<bool> gCfgMismatchKick;
-        internal static ConfigEntry<bool> gCfgBadVersionKick;
-        internal static ConfigEntry<bool> gCfgTimeoutKick;
+        public static readonly SimpleLocalizedKickReason kickCritMismatch = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCCRITMISMATCH");
+        public static readonly SimpleLocalizedKickReason kickTimeout = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCTIMEOUT");
+        public static readonly SimpleLocalizedKickReason kickMissingEntry = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCMISSINGENTRY");
 
-        internal static void Setup(ConfigFile cfgFile) {
-            gCfgEnableCheck = cfgFile.Bind(new ConfigDefinition("NetConfig", "EnableCheck"), true, new ConfigDescription(
-                "If false, NetConfig will not check for config mismatches at all."));
-            gCfgMismatchKick = cfgFile.Bind(new ConfigDefinition("NetConfig", "MismatchKick"), true, new ConfigDescription(
-                "If false, NetConfig will not kick clients that fail config checks (caused by config entries internally marked as both DeferForever and DisallowNetMismatch)."));
-            gCfgBadVersionKick = cfgFile.Bind(new ConfigDefinition("NetConfig", "BadVersionKick"), true, new ConfigDescription(
-                "If false, NetConfig will not kick clients that are missing config entries (may be caused by different mod versions on client)."));
-            gCfgTimeoutKick = cfgFile.Bind(new ConfigDefinition("NetConfig", "TimeoutKick"), true, new ConfigDescription(
-                "If false, NetConfig will not kick clients that take too long to respond to config checks (may be caused by missing mods on client)."));
+        [AutoConfig("If true, NetConfig will use the server to check for config mismatches.")]
+        public bool enableCheck {get; private set;} = true;
+        [AutoConfig("If true, NetConfig will kick clients that fail config checks (caused by config entries internally marked as both DeferForever and DisallowNetMismatch).")]
+        public bool mismatchKick {get; private set;} = true;
+        [AutoConfig("If true, NetConfig will kick clients that are missing config entries (may be caused by different mod versions on client).")]
+        public bool badVersionKick {get; private set;} = true;
+        [AutoConfig("If true, NetConfig will kick clients that take too long to respond to config checks (may be caused by missing mods on client, or by major network issues).")]
+        public bool timeoutKick {get; private set;} = true;
 
+        public override void SetupConfig() {
             var netOrchPrefabPrefab = new GameObject("TILER2NetConfigOrchestratorPrefabPrefab");
             netOrchPrefabPrefab.AddComponent<NetworkIdentity>();
             NetConfig.netOrchPrefab = netOrchPrefabPrefab.InstantiateClone("TILER2NetConfigOrchestratorPrefab");
@@ -42,10 +39,11 @@ namespace TILER2 {
             
             On.RoR2.Networking.GameNetworkManager.OnServerAddPlayerInternal += (orig, self, conn, pcid, extraMsg) => {
                 orig(self, conn, pcid, extraMsg);
-                if(!gCfgEnableCheck.Value || Util.ConnectionIsLocal(conn) || NetConfigOrchestrator.checkedConnections.Contains(conn)) return;
+                if(!enableCheck || Util.ConnectionIsLocal(conn) || NetConfigOrchestrator.checkedConnections.Contains(conn)) return;
                 NetConfigOrchestrator.checkedConnections.Add(conn);
                 NetConfig.EnsureOrchestrator();
                 NetConfigOrchestrator.AICSyncAllToOne(conn);
+                NetConfigOrchestrator.AICSyncAllToOneLegacy(conn);
             };
             
             /*On.RoR2.Run.EndStage += (orig, self) => {
@@ -74,17 +72,17 @@ namespace TILER2 {
             }
         }
 
-        private static (List<AutoItemConfig> results, string errorMsg) GetAICFromPath(string path1, string path2, string path3) {
+        private static (List<AutoConfigBinding> results, string errorMsg) GetAICFromPath(string path1, string path2, string path3) {
             var p1u = path1.ToUpper();
             var p2u = path2?.ToUpper();
             var p3u = path3?.ToUpper();
 
-            List<AutoItemConfig> matchesLevel1 = new List<AutoItemConfig>(); //no enforced order, no enforced caps, partial matches
-            List<AutoItemConfig> matchesLevel2 = new List<AutoItemConfig>(); //enforced order, no enforced caps, partial matches
-            List<AutoItemConfig> matchesLevel3 = new List<AutoItemConfig>(); //enforced order, no enforced caps, full matches
-            List<AutoItemConfig> matchesLevel4 = new List<AutoItemConfig>(); //enforced order, enforced caps, full matches
+            List<AutoConfigBinding> matchesLevel1 = new List<AutoConfigBinding>(); //no enforced order, no enforced caps, partial matches
+            List<AutoConfigBinding> matchesLevel2 = new List<AutoConfigBinding>(); //enforced order, no enforced caps, partial matches
+            List<AutoConfigBinding> matchesLevel3 = new List<AutoConfigBinding>(); //enforced order, no enforced caps, full matches
+            List<AutoConfigBinding> matchesLevel4 = new List<AutoConfigBinding>(); //enforced order, enforced caps, full matches
 
-            AutoItemConfig.instances.ForEach(x => {
+            AutoConfigBinding.instances.ForEach(x => {
                 if(!x.allowConCmd) return;
 
                 var name = x.configEntry.Definition.Key;
@@ -239,13 +237,13 @@ namespace TILER2 {
                 "\"" + matches[0].readablePath + "\" (" + matches[0].propType.Name + "): " + (matches[0].configEntry.Description?.Description ?? "[no description]"),
                 "Current value: " + matches[0].cachedValue.ToString()
             };
-            if (AutoItemConfig.stageDirtyInstances.ContainsKey(matches[0]))
-                strs.Add("Value next stage: " + AutoItemConfig.stageDirtyInstances[matches[0]].Item1.ToString());
-            if(AutoItemConfig.runDirtyInstances.ContainsKey(matches[0])) {
-                if(AutoItemConfig.runDirtyInstances[matches[0]].Equals(matches[0].configEntry.BoxedValue))
-                    strs.Add("Temp. override; original value: " + AutoItemConfig.runDirtyInstances[matches[0]].ToString());
+            if (AutoConfigBinding.stageDirtyInstances.ContainsKey(matches[0]))
+                strs.Add("Value next stage: " + AutoConfigBinding.stageDirtyInstances[matches[0]].Item1.ToString());
+            if(AutoConfigBinding.runDirtyInstances.ContainsKey(matches[0])) {
+                if(AutoConfigBinding.runDirtyInstances[matches[0]].Equals(matches[0].configEntry.BoxedValue))
+                    strs.Add("Temp. override; original value: " + AutoConfigBinding.runDirtyInstances[matches[0]].ToString());
                 else
-                    strs.Add("Value after game ends: " + AutoItemConfig.runDirtyInstances[matches[0]].ToString());
+                    strs.Add("Value after game ends: " + AutoConfigBinding.runDirtyInstances[matches[0]].ToString());
             }
 
             TILER2Plugin._logger.LogMessage(String.Join("\n", strs));
@@ -419,7 +417,7 @@ namespace TILER2 {
             connectionsToCheck.ForEach(x => {
                 x.timeRemaining -= Time.unscaledDeltaTime;
                 if(x.timeRemaining <= 0f) {
-                    if(NetConfig.gCfgTimeoutKick.Value) {
+                    if(NetConfig.instance.timeoutKick) {
                         TILER2Plugin._logger.LogWarning("Connection " + x.connection.connectionId + " took too long to respond to config check request! Kick-on-timeout option is enabled; kicking client.");
                         GameNetworkManager.singleton.ServerKickClient(x.connection, NetConfig.kickTimeout);
                     } else
@@ -449,7 +447,7 @@ namespace TILER2 {
                 TILER2Plugin._logger.LogDebug("Connection " + match.connection.connectionId + " passed config check");
                 connectionsToCheck.Remove(match);
             } else if(result == "FAILMM"){
-                if(NetConfig.gCfgMismatchKick.Value) {
+                if(NetConfig.instance.mismatchKick) {
                     TILER2Plugin._logger.LogWarning("Connection " + match.connection.connectionId + " failed config check (crit mismatch), kicking");
                     GameNetworkManager.singleton.ServerKickClient(match.connection, NetConfig.kickCritMismatch);
                 } else {
@@ -459,7 +457,7 @@ namespace TILER2 {
             } else if(result == "FAILBV"
                 || result == "FAIL") { //from old mod version
                 var msg = (result == "FAIL") ? "using old TILER2 version" : "missing entries";
-                if(NetConfig.gCfgBadVersionKick.Value) {
+                if(NetConfig.instance.badVersionKick) {
                     TILER2Plugin._logger.LogWarning("Connection " + match.connection.connectionId + " failed config check (" + msg + "), kicking");
                     GameNetworkManager.singleton.ServerKickClient(match.connection, NetConfig.kickMissingEntry);
                 } else {
@@ -472,7 +470,7 @@ namespace TILER2 {
         }
 
         internal static void AICSyncAllToOne(NetworkConnection conn) {
-            var validInsts = AutoItemConfig.instances.Where(x => !x.allowNetMismatch);
+            var validInsts = AutoConfigBinding.instances.Where(x => !x.allowNetMismatch);
             var serValues = new List<string>();
             var modnames = new List<string>();
             var categories = new List<string>();
@@ -493,6 +491,31 @@ namespace TILER2 {
             });
 
             instance.TargetAICSyncAllToOne(conn, password, modnames.ToArray(), categories.ToArray(), cfgnames.ToArray(), serValues.ToArray());
+        }
+
+        [Obsolete("Uses deprecated name AutoItemConfig.")]
+        internal static void AICSyncAllToOneLegacy(NetworkConnection conn) {
+            var validInsts = AutoItemConfig.instances.Where(x => !x.allowNetMismatch);
+            var serValues = new List<string>();
+            var modnames = new List<string>();
+            var categories = new List<string>();
+            var cfgnames = new List<string>();
+            foreach(var i in validInsts) {
+                serValues.Add(TomlTypeConverter.ConvertToString(i.cachedValue, i.propType));
+                modnames.Add(i.modName);
+                categories.Add(i.configEntry.Definition.Section);
+                cfgnames.Add(i.configEntry.Definition.Key);
+            }
+
+            string password = Guid.NewGuid().ToString("d");
+
+            connectionsToCheck.Add(new WaitingConnCheck {
+                connection = conn,
+                password = password,
+                timeRemaining = connCheckWaitTime
+            });
+
+            instance.TargetAICSyncAllToOneLegacy(conn, password, modnames.ToArray(), categories.ToArray(), cfgnames.ToArray(), serValues.ToArray());
         }
 
         [TargetRpc]
@@ -517,11 +540,43 @@ namespace TILER2 {
             RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "AIC_CheckRespond " + password + (foundWarn ? " FAILBV" : " PASS"));
         }
 
+        [TargetRpc]
+        [Obsolete("Uses deprecated name AutoItemConfig.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Target param is required by UNetWeaver")]
+        private void TargetAICSyncAllToOneLegacy(NetworkConnection target, string password, string[] modnames, string[] categories, string[] cfgnames, string[] values) {
+            int matches = 0;
+            bool foundCrit = false;
+            bool foundWarn = false;
+            for(var i = 0; i < modnames.Length; i++) {
+                var res = CliAICSyncLegacy(modnames[i], categories[i], cfgnames[i], values[i], true);
+                if(res == 1) matches++;
+                else if(res == -1) foundWarn = true;
+                else if(res == -2) foundCrit = true;
+            }
+            if(NetworkUser.readOnlyLocalPlayersList.Count == 0) TILER2Plugin._logger.LogError("Received TargetAICSyncAllToOneLegacy, but readOnlyLocalPlayersList is empty; can't send response");
+            if(foundCrit == true) {
+                TILER2Plugin._logger.LogError("(LEGACY CHECK) The above config entries marked with \"CRITICAL MISMATCH\" are different on the server, and they cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
+                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "AIC_CheckRespond " + password + " FAILMM");
+                return;
+            } else if(matches > 0) Chat.AddMessage("(LEGACY CHECK) Synced <color=#ffff00>" + matches + " setting changes</color> from the server temporarily. Check the console for details.");
+            RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "AIC_CheckRespond " + password + (foundWarn ? " FAILBV" : " PASS"));
+        }
+
         [Server]
-        internal void ServerAICSyncOneToAll(AutoItemConfig targetConfig, object newValue) {
+        internal void ServerAICSyncOneToAll(AutoConfigBinding targetConfig, object newValue) {
             foreach(var user in NetworkUser.readOnlyInstancesList) {
                 if(user.hasAuthority || (user.connectionToClient != null && Util.ConnectionIsLocal(user.connectionToClient))) continue;
                 TargetAICSyncOneToAll(user.connectionToClient, targetConfig.modName, targetConfig.configEntry.Definition.Section, targetConfig.configEntry.Definition.Key,
+                    TomlTypeConverter.ConvertToString(newValue, targetConfig.propType));
+            }
+        }
+
+        [Server]
+        [Obsolete("Uses deprecated name AutoItemConfig.")]
+        internal void ServerAICSyncOneToAllLegacy(AutoItemConfig targetConfig, object newValue) {
+            foreach(var user in NetworkUser.readOnlyInstancesList) {
+                if(user.hasAuthority || (user.connectionToClient != null && Util.ConnectionIsLocal(user.connectionToClient))) continue;
+                TargetAICSyncOneToAllLegacy(user.connectionToClient, targetConfig.modName, targetConfig.configEntry.Definition.Section, targetConfig.configEntry.Definition.Key,
                     TomlTypeConverter.ConvertToString(newValue, targetConfig.propType));
             }
         }
@@ -532,9 +587,16 @@ namespace TILER2 {
             CliAICSync(modname, category, cfgname, value, false);
         }
 
+        [TargetRpc]
+        [Obsolete("Uses deprecated name AutoItemConfig.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Target param is required by UNetWeaver")]
+        private void TargetAICSyncOneToAllLegacy(NetworkConnection target, string modname, string category, string cfgname, string value) {
+            CliAICSyncLegacy(modname, category, cfgname, value, false);
+        }
+
         [Client]
         private int CliAICSync(string modname, string category, string cfgname, string value, bool silent) {
-            var exactMatches = AutoItemConfig.instances.FindAll(x => {
+            var exactMatches = AutoConfigBinding.instances.FindAll(x => {
                 return x.configEntry.Definition.Key == cfgname
                 && x.configEntry.Definition.Section == category
                 && x.modName == modname;
@@ -551,6 +613,34 @@ namespace TILER2 {
             if(!exactMatches[0].cachedValue.Equals(newVal)) {
                 if(exactMatches[0].netMismatchCritical) {
                     TILER2Plugin._logger.LogError("CRITICAL MISMATCH on \"" + modname + "/" + category + "/" + cfgname + "\": Requested " + newVal.ToString() + " vs current " + exactMatches[0].cachedValue.ToString());
+                    return -2;
+                }
+                exactMatches[0].OverrideProperty(newVal, silent);
+                return 1;
+            }
+            return 0;
+        }
+
+        [Client]
+        [Obsolete("Uses deprecated name AutoItemConfig.")]
+        private int CliAICSyncLegacy(string modname, string category, string cfgname, string value, bool silent) {
+            var exactMatches = AutoItemConfig.instances.FindAll(x => {
+                return x.configEntry.Definition.Key == cfgname
+                && x.configEntry.Definition.Section == category
+                && x.modName == modname;
+            });
+            if(exactMatches.Count > 1) {
+                TILER2Plugin._logger.LogError("(Server requesting update, LEGACY CHECK) There are multiple config entries with the path \"" + modname + "/" + category + "/" + cfgname + "\"; this should never happen! Please report this as a bug.");
+                return -1;
+            } else if(exactMatches.Count == 0) {
+                TILER2Plugin._logger.LogError("(LEGACY CHECK) The server requested an update for a nonexistent config entry with the path \"" + modname + "/" + category + "/" + cfgname + "\". Make sure you're using the same mods AND mod versions as the server!");
+                return -1;
+            }
+
+            var newVal = TomlTypeConverter.ConvertToValue(value, exactMatches[0].propType);
+            if(!exactMatches[0].cachedValue.Equals(newVal)) {
+                if(exactMatches[0].netMismatchCritical) {
+                    TILER2Plugin._logger.LogError("(LEGACY CHECK) CRITICAL MISMATCH on \"" + modname + "/" + category + "/" + cfgname + "\": Requested " + newVal.ToString() + " vs current " + exactMatches[0].cachedValue.ToString());
                     return -2;
                 }
                 exactMatches[0].OverrideProperty(newVal, silent);

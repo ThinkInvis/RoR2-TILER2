@@ -1,6 +1,6 @@
 {
   "name": "TILER2",
-  "version_number": "2.2.2",
+  "version_number": "3.0.3",
   "website_url": "https://github.com/ThinkInvis/RoR2-TILER2",
   "description": "ThinkInvisible's Library of Extras for RoR2.",
   "dependencies": [

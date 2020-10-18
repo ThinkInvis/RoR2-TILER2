@@ -79,9 +79,9 @@ namespace TILER2 {
         /// <param name="origDef">The SkillDef to replace.</param>
         /// <param name="newDef">The SkillDef which will replace OrigDef.</param>
         public static void ReplaceVariant(this SkillFamily targetFamily, SkillDef origDef, SkillDef newDef) {
-            var ind = Array.FindIndex(targetFamily.variants, x => x.skillDef.skillIndex == origDef.skillIndex);
+            var ind = Array.FindIndex(targetFamily.variants, x => x.skillDef == origDef);
             if(ind < 0) {
-                TILER2Plugin._logger.LogError($"SkillFamily.OverrideVariant: couldn't find target skilldef {origDef} in family {targetFamily}; either it's not there or SkillCatalog needs to init first");
+                TILER2Plugin._logger.LogError($"SkillFamily.OverrideVariant: couldn't find target skilldef {origDef} in family {targetFamily}");
                 return;
             }
             targetFamily.variants[ind].skillDef = newDef;
@@ -170,8 +170,8 @@ namespace TILER2 {
         public static void RemoveVariant(this SkillFamily targetFamily, SkillDef targetDef) {
             var trimmedVariants = new List<SkillFamily.Variant>(targetFamily.variants);
             var oldLen = trimmedVariants.Count;
-            trimmedVariants.RemoveAll(x => x.skillDef.skillIndex == targetDef.skillIndex);
-            if(trimmedVariants.Count - oldLen == 0) TILER2Plugin._logger.LogError($"SkillFamily.RemoveVariant: Couldn't find SkillDef {targetDef} for removal from SkillFamily {targetFamily}; either it's not there or SkillCatalog needs to init first");
+            trimmedVariants.RemoveAll(x => x.skillDef == targetDef);
+            if(trimmedVariants.Count - oldLen == 0) TILER2Plugin._logger.LogError($"SkillFamily.RemoveVariant: Couldn't find SkillDef {targetDef} for removal from SkillFamily {targetFamily}");
             targetFamily.variants = trimmedVariants.ToArray();
         }
 

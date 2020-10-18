@@ -2,6 +2,7 @@
 using R2API.Utils;
 using R2API;
 using BepInEx.Configuration;
+using static TILER2.MiscUtil;
 
 namespace TILER2 {
     [BepInDependency("com.bepis.r2api", "2.5.14")]
@@ -12,7 +13,7 @@ namespace TILER2 {
     [BepInDependency("com.xoxfaby.BetterUI",BepInDependency.DependencyFlags.SoftDependency)]
     [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(ResourcesAPI), nameof(PlayerAPI), nameof(PrefabAPI), nameof(BuffAPI), nameof(CommandHelper), nameof(R2API.Networking.NetworkingAPI))]
     public class TILER2Plugin:BaseUnityPlugin {
-        public const string ModVer = "2.2.2";
+        public const string ModVer = "3.0.3";
         public const string ModName = "TILER2";
         public const string ModGuid = "com.ThinkInvisible.TILER2";
 
@@ -22,24 +23,37 @@ namespace TILER2 {
 
         internal static BepInEx.Logging.ManualLogSource _logger;
 
+        private FilingDictionary<T2Module> allModules;
+
         public void Awake() {
             _logger = Logger;
 
             cfgFile = new ConfigFile(System.IO.Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
-            
-            NetConfig.Setup(cfgFile);
-            StatHooks.Setup();
-            AutoItemConfigModule.Setup();
-            MiscUtil.Setup();
-            ItemBoilerplateModule.Setup();
 
-            FakeInventory.Setup();
-            ItemWard.Setup();
+            T2Module.SetupModuleClass();
+
+            allModules = T2Module.InitModules(new T2Module.ModInfo {
+                displayName="TILER2",
+                mainConfigFile=cfgFile,
+                longIdentifier="TILER2",
+                shortIdentifier="TILER2"
+            });
+
+            T2Module.SetupAll_PluginAwake(allModules);
+
+            AutoItemConfigModule.Setup();
+            ItemBoilerplateModule.Setup();
+            MiscUtil.Setup();
 
             CommandHelper.AddToConsoleWhenReady();
         }
 
+        private void Start() {
+            T2Module.SetupAll_PluginStart(allModules);
+        }
+
         private void Update() {
+            AutoConfigModule.Update();
             AutoItemConfigModule.Update();
         }
     }

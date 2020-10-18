@@ -9,18 +9,22 @@ using UnityEngine.Networking;
 namespace TILER2 {
 	[RequireComponent(typeof(TeamFilter), typeof(NetworkIdentity))]
     public class ItemWard : NetworkBehaviour {
-		public static GameObject displayPrefab;
-		internal static void Setup() {
-			R2API.Networking.NetworkingAPI.RegisterMessageType<MsgDeltaDisplay>();
-			R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSyncRadius>();
+		internal class ItemWardModule : T2Module<ItemWardModule> {
+			public override void SetupConfig() {
+				base.SetupConfig();
+				R2API.Networking.NetworkingAPI.RegisterMessageType<MsgDeltaDisplay>();
+				R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSyncRadius>();
 			
-			var displayPrefabPrefab = GameObject.Instantiate(Resources.Load<GameObject>("prefabs/effects/orbeffects/ItemTransferOrbEffect"));
-			displayPrefabPrefab.GetComponent<EffectComponent>().enabled = false;
-			displayPrefabPrefab.GetComponent<OrbEffect>().enabled = false;
-			displayPrefabPrefab.GetComponent<ItemTakenOrbEffect>().enabled = false;
+				var displayPrefabPrefab = GameObject.Instantiate(Resources.Load<GameObject>("prefabs/effects/orbeffects/ItemTransferOrbEffect"));
+				displayPrefabPrefab.GetComponent<EffectComponent>().enabled = false;
+				displayPrefabPrefab.GetComponent<OrbEffect>().enabled = false;
+				displayPrefabPrefab.GetComponent<ItemTakenOrbEffect>().enabled = false;
 
-			displayPrefab = displayPrefabPrefab.InstantiateClone("ItemWardDisplay", false);
+				displayPrefab = displayPrefabPrefab.InstantiateClone("ItemWardDisplay", false);
+			}
 		}
+
+		public static GameObject displayPrefab;
 
 		private void Awake() {
 			teamFilter = base.GetComponent<TeamFilter>();
@@ -92,7 +96,9 @@ namespace TILER2 {
 		}
 
 		private void RegObject(GameObject go) {
-			var inv = go.GetComponent<CharacterBody>()?.inventory;
+			var cb = go.GetComponent<CharacterBody>();
+			if(!cb) return;
+			var inv = cb.inventory;
 			if(inv && !trackedInventories.Contains(inv)) {
 				trackedInventories.Add(inv);
 				var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
@@ -104,7 +110,9 @@ namespace TILER2 {
 		}
 
 		private void DeregObject(GameObject go) {
-			var inv = go.GetComponent<CharacterBody>()?.inventory;
+			var cb = go.GetComponent<CharacterBody>();
+			if(!cb) return;
+			var inv = cb.inventory;
 			if(!inv) return;
 			DeregInv(inv);
 		}

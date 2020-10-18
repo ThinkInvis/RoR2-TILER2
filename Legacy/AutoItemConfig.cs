@@ -11,6 +11,7 @@ using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 
 namespace TILER2 {
+    [Obsolete("Will be renamed to AutoConfigModule in next major update.")]
     internal static class AutoItemConfigModule {
         internal static bool globalStatsDirty = false;
         internal static bool globalDropsDirty = false;
@@ -18,20 +19,20 @@ namespace TILER2 {
         internal static void Setup() {
             //this doesn't seem to fire until the title screen is up, which is good because config file changes shouldn't immediately be read during startup; watch for regression (or just implement a check anyways?)
             On.RoR2.RoR2Application.Update += AutoItemConfigContainer.FilePollUpdateHook;
-            
+
             On.RoR2.Networking.GameNetworkManager.Disconnect += On_GNMDisconnect;
-            
+
             SceneManager.sceneLoaded += Evt_USMSceneLoaded;
         }
 
         internal static void Update() {
-            if(!(Run.instance?.isActiveAndEnabled ?? false)) {
+            if(!(Run.instance != null && Run.instance.isActiveAndEnabled)) {
                 globalStatsDirty = false;
                 globalDropsDirty = false;
             } else {
                 if(globalStatsDirty) {
                     globalStatsDirty = false;
-                    MiscUtil.AliveList().ForEach(cm => {if(cm.hasBody) cm.GetBody().RecalculateStats();});
+                    MiscUtil.AliveList().ForEach(cm => { if(cm.hasBody) cm.GetBody().RecalculateStats(); });
                 }
                 if(globalDropsDirty) {
                     globalDropsDirty = false;
@@ -50,6 +51,7 @@ namespace TILER2 {
         }
     }
 
+    [Obsolete("Will be renamed to AutoConfigBinding in next major update.")]
     public class AutoItemConfig {
         internal readonly static List<AutoItemConfig> instances = new List<AutoItemConfig>();
         internal readonly static Dictionary<AutoItemConfig, (object, bool)> stageDirtyInstances = new Dictionary<AutoItemConfig, (object, bool)>();
@@ -70,33 +72,33 @@ namespace TILER2 {
             }
         }
 
-        public AutoItemConfigContainer owner {get; internal set;}
-        public object target {get; internal set;}
-        public ConfigEntryBase configEntry {get; internal set;}
-        public PropertyInfo boundProperty {get; internal set;}
-        public string modName {get; internal set;}
+        public AutoItemConfigContainer owner { get; internal set; }
+        public object target { get; internal set; }
+        public ConfigEntryBase configEntry { get; internal set; }
+        public PropertyInfo boundProperty { get; internal set; }
+        public string modName { get; internal set; }
 
-        public AutoUpdateEventInfoAttribute updateEventAttribute {get; internal set;}
+        public AutoUpdateEventInfoAttribute updateEventAttribute { get; internal set; }
 
-        public MethodInfo propGetter {get; internal set;}
-        public MethodInfo propSetter {get; internal set;}
-        public Type propType {get; internal set;}
+        public MethodInfo propGetter { get; internal set; }
+        public MethodInfo propSetter { get; internal set; }
+        public Type propType { get; internal set; }
 
-        public object boundKey {get; internal set;}
-        public bool onDict {get; internal set;}
+        public object boundKey { get; internal set; }
+        public bool onDict { get; internal set; }
 
-        public bool allowConCmd {get; internal set;}
-        public bool allowNetMismatch {get; internal set;}
-        public bool netMismatchCritical {get; internal set;}
+        public bool allowConCmd { get; internal set; }
+        public bool allowNetMismatch { get; internal set; }
+        public bool netMismatchCritical { get; internal set; }
 
-        public object cachedValue {get; internal set;}
+        public object cachedValue { get; internal set; }
 
         internal bool isOverridden = false;
 
-        public int deferType {get; internal set;}
+        public int deferType { get; internal set; }
 
         public string readablePath {
-            get {return modName + "/" + configEntry.Definition.Section + "/" + configEntry.Definition.Key;}
+            get { return modName + "/" + configEntry.Definition.Section + "/" + configEntry.Definition.Key; }
         }
 
         internal AutoItemConfig() {
@@ -115,23 +117,24 @@ namespace TILER2 {
         }
 
         private void DeferredUpdateProperty(object newValue, bool silent = false) {
-            var oldValue = propGetter.Invoke(target, onDict ? new[] {boundKey} : new object[]{ });
-            propSetter.Invoke(target, onDict ? new[]{boundKey, newValue} : new[]{newValue});
+            var oldValue = propGetter.Invoke(target, onDict ? new[] { boundKey } : new object[] { });
+            propSetter.Invoke(target, onDict ? new[] { boundKey, newValue } : new[] { newValue });
             var flags = updateEventAttribute?.flags ?? AutoUpdateEventFlags.None;
             if(updateEventAttribute?.ignoreDefault == false) flags |= owner.defaultEnabledUpdateFlags;
             cachedValue = newValue;
-            owner.OnConfigChanged(new AutoUpdateEventArgs{
+            owner.OnConfigChanged(new AutoUpdateEventArgs {
                 flags = flags,
                 oldValue = oldValue,
                 newValue = newValue,
                 target = this,
-                silent = silent});
+                silent = silent
+            });
         }
 
         internal void UpdateProperty(object newValue, bool silent = false) {
             if(NetworkServer.active && !this.allowNetMismatch) {
                 NetConfig.EnsureOrchestrator();
-                NetConfigOrchestrator.instance.ServerAICSyncOneToAll(this, newValue);
+                NetConfigOrchestrator.instance.ServerAICSyncOneToAllLegacy(this, newValue);
             }
             if(deferType == 0 || Run.instance == null || !Run.instance.enabled) {
                 DeferredUpdateProperty(newValue, silent);
@@ -145,6 +148,7 @@ namespace TILER2 {
         }
     }
 
+    [Obsolete("Will be renamed to AutoConfigContainer in next major update.")]
     public class AutoItemConfigContainer {
         /// <summary>All config entries generated by AutoItemCfg.Bind will be stored here. Use nameof(targetProperty) to access, if possible (note that this will not protect against type changes while casting to generic ConfigEntry).</summary>
         private readonly List<AutoItemConfig> autoItemConfigs = new List<AutoItemConfig>();
@@ -162,7 +166,7 @@ namespace TILER2 {
         internal void OnConfigChanged(AutoUpdateEventArgs e) {
             ConfigEntryChanged?.Invoke(this, e);
             TILER2Plugin._logger.LogDebug(e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + ": " + e.oldValue.ToString() + " > " + e.newValue.ToString());
-            if(!(Run.instance?.isActiveAndEnabled ?? false)) return;
+            if(!(Run.instance != null && Run.instance.isActiveAndEnabled)) return;
             if((e.flags & AutoUpdateEventFlags.InvalidateStats) == AutoUpdateEventFlags.InvalidateStats)
                 AutoItemConfigModule.globalStatsDirty = true;
             if((e.flags & AutoUpdateEventFlags.InvalidateDropTable) == AutoUpdateEventFlags.InvalidateDropTable)
@@ -202,17 +206,17 @@ namespace TILER2 {
             /// <summary>The current index of iteration.</summary>
             public int index;
         }
-        
+
         /// <summary>Simple tag replacer for patterns matching &lt;AIC.Param1.Param2...&gt;, using reflection information as the replacing values.<para />
         /// Supported tags: AIC.Prop.[PropName], AIC.DictKey, AIC.DictInd, AIC.DictKeyProp.[PropName]</summary>
         private string ReplaceTags(string orig, PropertyInfo prop, string categoryName, BindSubDictInfo? subDict = null) {
-            return Regex.Replace(orig, @"<AIC.([a-zA-Z\.]+)>", (m)=>{
-                string[] strParams = Regex.Split(m.Groups[0].Value.Substring(1, m.Groups[0].Value.Length - 2), @"(?<!\\)\.");;
+            return Regex.Replace(orig, @"<AIC.([a-zA-Z\.]+)>", (m) => {
+                string[] strParams = Regex.Split(m.Groups[0].Value.Substring(1, m.Groups[0].Value.Length - 2), @"(?<!\\)\."); ;
                 if(strParams.Length < 2) return m.Value;
                 var errorStr = "AutoItemConfig.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" ";
                 switch(strParams[1]) {
                     case "Prop":
-                        if(strParams.Length < 3){
+                        if(strParams.Length < 3) {
                             TILER2Plugin._logger.LogWarning(errorStr + "(not enough params for Prop tag).");
                             return m.Value;
                         }
@@ -239,7 +243,7 @@ namespace TILER2 {
                             TILER2Plugin._logger.LogWarning(errorStr + "(DictKeyProp tag used on non-BindDict).");
                             return m.Value;
                         }
-                        if(strParams.Length < 3){
+                        if(strParams.Length < 3) {
                             TILER2Plugin._logger.LogWarning(errorStr + "(not enough params for Prop tag).");
                             return m.Value;
                         }
@@ -254,7 +258,7 @@ namespace TILER2 {
                 return m.Value;
             });
         }
-        
+
         /// <summary>Binds a property to a BepInEx config file, using reflection and attributes to automatically generate much of the necessary information.</summary>
         public void Bind(PropertyInfo prop, ConfigFile cfl, string modName, string categoryName, AutoItemConfigAttribute attrib, AutoUpdateEventInfoAttribute eiattr = null, BindSubDictInfo? subDict = null) {
             string errorStr = "AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + " failed: ";
@@ -283,7 +287,7 @@ namespace TILER2 {
                     var dkeys = (from object k in idict.Keys
                                  select k).ToList();
                     foreach(object o in dkeys) {
-                        Bind(prop, cfl, modName, categoryName, attrib, eiattr, new BindSubDictInfo{key=o, val=idict[o], keyType=kTyp, index=ind});
+                        Bind(prop, cfl, modName, categoryName, attrib, eiattr, new BindSubDictInfo { key = o, val = idict[o], keyType = kTyp, index = ind });
                         ind++;
                     }
                     return;
@@ -299,7 +303,7 @@ namespace TILER2 {
                     return;
                 }
             }
-            
+
             object propObj = subDict.HasValue ? prop.GetValue(this) : this;
             var dict = subDict.HasValue ? (System.Collections.IDictionary)propObj : null;
             var propGetter = subDict.HasValue ? dict.GetType().GetProperty("Item").GetGetMethod(true)
@@ -322,10 +326,10 @@ namespace TILER2 {
             if(cfgDesc != null) {
                 cfgDesc = ReplaceTags(cfgDesc, prop, categoryName, subDict);
             } else cfgDesc = "Automatically generated from a C# " + (subDict.HasValue ? "dictionary " : "") + "property.";
-            
+
             //Matches ConfigFile.Bind<T>(ConfigDefinition configDefinition, T defaultValue, ConfigDescription configDescription)
             var genm = typeof(ConfigFile).GetMethods().First(
-                    x=>x.Name == nameof(ConfigFile.Bind)
+                    x => x.Name == nameof(ConfigFile.Bind)
                     && x.GetParameters().Length == 3
                     && x.GetParameters()[0].ParameterType == typeof(ConfigDefinition)
                     && x.GetParameters()[2].ParameterType == typeof(ConfigDescription)
@@ -338,7 +342,7 @@ namespace TILER2 {
             bool deferRun = (attrib.flags & AutoItemConfigFlags.DeferUntilEndGame) == AutoItemConfigFlags.DeferUntilEndGame;
             bool deferStage = (attrib.flags & AutoItemConfigFlags.DeferUntilNextStage) == AutoItemConfigFlags.DeferUntilNextStage;
             bool allowCon = (attrib.flags & AutoItemConfigFlags.PreventConCmd) != AutoItemConfigFlags.PreventConCmd;
-            
+
             if(deferForever && !allowMismatch) {
                 cfgDesc += "\nWARNING: THIS SETTING CANNOT BE CHANGED WHILE THE GAME IS RUNNING, AND MUST BE SYNCED MANUALLY FOR MULTIPLAYER!";
             }
@@ -374,14 +378,14 @@ namespace TILER2 {
             if(!deferForever) {
                 var gtyp = typeof(ConfigEntry<>).MakeGenericType(propType);
                 var evh = gtyp.GetEvent("SettingChanged");
-                
-                evh.ReflAddEventHandler(cfe, (object obj,EventArgs evtArgs) => {
+
+                evh.ReflAddEventHandler(cfe, (object obj, EventArgs evtArgs) => {
                     newAIC.UpdateProperty(cfe.BoxedValue);
                 });
             }
 
             if((attrib.flags & AutoItemConfigFlags.NoInitialRead) != AutoItemConfigFlags.NoInitialRead) {
-                propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
+                propSetter.Invoke(propObj, subDict.HasValue ? new[] { subDict.Value.key, cfe.BoxedValue } : new[] { cfe.BoxedValue });
                 newAIC.cachedValue = cfe.BoxedValue;
             }
         }
@@ -394,7 +398,7 @@ namespace TILER2 {
                     this.Bind(prop, cfl, modName, categoryName, attrib, prop.GetCustomAttribute<AutoUpdateEventInfoAttribute>(true));
             }
         }
-        
+
         /// <summary>All flags that are set here will override unset flags in AutoUpdateEventInfoAttribute, unless attribute.ignoreDefault is true.</summary>
         protected internal AutoUpdateEventFlags defaultEnabledUpdateFlags = AutoUpdateEventFlags.None;
 
@@ -403,6 +407,7 @@ namespace TILER2 {
 
     /// <summary>Used in AutoItemConfigAttribute to modify the behavior of AutoItemConfig.</summary>
     [Flags]
+    [Obsolete("Will be renamed to AutoConfigFlags in next major update.")]
     public enum AutoItemConfigFlags {
         None = 0,
         ///<summary>If UNSET (default): expects acceptableValues to contain 0 or 2 values, which will be added to an AcceptableValueRange. If SET: an AcceptableValueList will be used instead.</summary>
@@ -426,6 +431,7 @@ namespace TILER2 {
     ///<summary>Used in AutoUpdateEventInfoAttribute to determine which actions should be performed when the property's config entry is updated.</summary>
     ///<remarks>Implementation of these flags is left to classes that inherit AutoItemConfig, except for InvalidateStats and AnnounceToRun.</remarks>
     [Flags]
+    [Obsolete("Will be replaced by AutoUpdateEventFlags_V2 in next major update.")]
     public enum AutoUpdateEventFlags {
         None = 0,
         ///<summary>Causes an immediate update to the linked item's language registry.</summary>
@@ -446,6 +452,7 @@ namespace TILER2 {
         AnnounceToRun = 128
     }
 
+    [Obsolete("Will be replaced by AutoUpdateEventArgs_V2 in next major update.")]
     public class AutoUpdateEventArgs : EventArgs {
         ///<summary>Any flags passed to the event by an AutoUpdateEventInfoAttribute.</summary>
         public AutoUpdateEventFlags flags;
@@ -458,8 +465,9 @@ namespace TILER2 {
         ///<summary>Suppresses the AnnounceToRun flag.</summary>
         public bool silent;
     }
-    
+
     ///<summary>Causes some actions to be automatically performed when a property's config entry is updated.</summary>
+    [Obsolete("Will be replaced by AutoUpdateEventInfoAttribute_V2 in next major update.")]
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class AutoUpdateEventInfoAttribute : Attribute {
         public readonly AutoUpdateEventFlags flags;
@@ -472,6 +480,7 @@ namespace TILER2 {
 
     ///<summary>Properties in an AutoItemConfigContainer that have this attribute will be automatically bound to a BepInEx config file when AutoItemConfigContainer.BindAll is called.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    [Obsolete("Will be renamed to AutoConfigAttribute in next major update.")]
     public class AutoItemConfigAttribute : Attribute {
         public readonly string name = null;
         public readonly string desc = null;
@@ -485,7 +494,7 @@ namespace TILER2 {
         public AutoItemConfigAttribute(string desc, AutoItemConfigFlags flags = AutoItemConfigFlags.None, params object[] acceptableValues) : this(flags, acceptableValues) {
             this.desc = desc;
         }
-        
+
         public AutoItemConfigAttribute(AutoItemConfigFlags flags = AutoItemConfigFlags.None, params object[] acceptableValues) {
             if(acceptableValues.Length > 0) {
                 var avList = (flags & AutoItemConfigFlags.AVIsList) == AutoItemConfigFlags.AVIsList;

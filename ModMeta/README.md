@@ -46,23 +46,29 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
-**2.2.2**
+**3.0.3**
 
-- Made FakeInventory more compatible with BetterUI and other item sorting mods.
+- Additional fixes for legacy code. Should resolve NetConfig missing entry kicks.
 
-**2.2.1**
+**3.0.2**
 
-- Updated BetterUI hooks for v1.5.7.
+- Fixed legacy code (ItemBoilerplate, AutoItemConfig) not being included in plugin setup.
 
-**2.2.0**
+**3.0.1**
 
-- Migrated and publicized mod compat classes from ClassicItems. Now provides public hooks for BetterUI, ItemStats, and ShareSuite.
+- Added automatic language reloading (fixes some unloaded language string issues in dependents).
 
-**2.1.3**
+**3.0.0**
 
-- Fixed items dropping while disabled when R2API.ItemDropAPI was loaded by another mod.
+- Introduces the T2Module class.
+- Makes sweeping cosmetic renames to several modules.
+- ItemBoilerplate (now CatalogBoilerplate) main plugin setup now flows slightly differently.
+- CatalogBoilerplate language handling was overhauled to take advantage of R2API Language Overlays.
+- AutoConfig now supports using fields as nametags, not just properties.
+- SkillUtil.ReplaceVariant/RemoveVariant no longer require SkillCatalog to be initialized.
 
-**2.1.2**
+**2.2.3**
 
-- Fixed inability of FakeInventory to prevent item steal.
-- Bumped R2API dependency version to 2.5.14.
+- FakeInventory now provides a blacklist for modded items to use.
+- Fixed some potential NullReferenceExceptions caused by using the `?.` operator on Unity objects.
+- Fixed TILER2-managed Lunar equipments having the wrong color on some highlights/outlines.

@@ -147,7 +147,7 @@ namespace TILER2 {
             public subT Get<subT>() where subT : T {
                 return (subT)_dict[typeof(subT)];
             }
-            
+
             /// <summary>
             /// Removes the given object from the FilingDictionary.
             /// </summary>
@@ -161,7 +161,7 @@ namespace TILER2 {
             /// </summary>
             /// <param name="predicate">The predicate to filter removals by.</param>
             public void RemoveWhere(Func<T, bool> predicate) {
-                foreach (var key in _dict.Values.Where(predicate).ToList()) {
+                foreach(var key in _dict.Values.Where(predicate).ToList()) {
                     _dict.Remove(key.GetType());
                 }
             }
@@ -177,6 +177,41 @@ namespace TILER2 {
             IEnumerator IEnumerable.GetEnumerator() {
                 return GetEnumerator();
             }
+
+            /// <summary>
+            /// Returns a new ReadOnlyFilingDictionary wrapping this FilingDictionary.
+            /// </summary>
+            /// <returns>A new ReadOnlyFilingDictionary wrapping this FilingDictionary.</returns>
+            public ReadOnlyFilingDictionary<T> AsReadOnly() => new ReadOnlyFilingDictionary<T>(this);
+        }
+        
+        /// <summary>
+        /// A readonly wrapper for an instance of FilingDictionary.
+        /// </summary>
+        /// <typeparam name="T">The type to enforce inheritance from for the contents of the FilingDictionary.</typeparam>
+        public class ReadOnlyFilingDictionary<T> : IReadOnlyCollection<T> {
+            private readonly FilingDictionary<T> baseCollection;
+
+            /// <summary>
+            /// Creates a new ReadOnlyFilingDictionary wrapping a specific FilingDictionary.
+            /// </summary>
+            /// <param name="baseCollection">The FilingDictionary to create a readonly wrapper for.</param>
+            public ReadOnlyFilingDictionary(FilingDictionary<T> baseCollection) {
+                this.baseCollection = baseCollection;
+            }
+
+            /// <summary>
+            /// Gets the number of instances contained in the wrapped FilingDictionary.
+            /// </summary>
+            public int Count => baseCollection.Count;
+
+            /// <summary>
+            /// Returns an enumerator that iterates through the wrapped FilingDictionary's contained objects.
+            /// </summary>
+            /// <returns>An enumerator that iterates through the wrapped FilingDictionary's contained objects.</returns>
+            public IEnumerator<T> GetEnumerator() => baseCollection.GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator() => baseCollection.GetEnumerator();
         }
 
         /// <summary>
