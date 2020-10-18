@@ -45,11 +45,11 @@ namespace TILER2 {
 
         ///<summary>If true, Module.enabled will be registered as a config entry.</summary>
         public virtual bool managedEnable => false;
-        ///<summary>If managedEnable is true, configDescription will be appended to the module's enable/disable config description.</summary>
-        public virtual string configDescription => null;
-        ///<summary>If managedEnable is true, enabledConfigFlags will be used for the resultant config entry.</summary>
+        ///<summary>If managedEnable is true, this will be appended to the module's enable/disable config description.</summary>
+        public virtual string enabledConfigDescription => null;
+        ///<summary>If managedEnable is true, this will be used for the resultant config entry.</summary>
         public virtual AutoConfigFlags enabledConfigFlags => AutoConfigFlags.PreventNetMismatch;
-        ///<summary>If managedEnable is true, enabledConfigUpdateEventsFlags will be used for the resultant config entry.</summary>
+        ///<summary>If managedEnable is true, this will be used for the resultant config entry.</summary>
         public virtual AutoConfigUpdateActionTypes enabledConfigUpdateActionTypes => AutoConfigUpdateActionTypes.InvalidateLanguage;
 
         protected readonly List<LanguageAPI.LanguageOverlay> languageOverlays = new List<LanguageAPI.LanguageOverlay>();
@@ -73,7 +73,7 @@ namespace TILER2 {
             var moduleConfigName = $"{configCategoryPrefix}{name}";
             if(managedEnable)
                 Bind(typeof(T2Module).GetProperty(nameof(enabled)), modInfo.mainConfigFile, modInfo.displayName, moduleConfigName, new AutoConfigAttribute(
-                    $"{((configDescription != null) ? (configDescription + "\n") : "")}Set to False to disable this module, and as much of its content as can be disabled after initial load. Doing so may cause changes in other modules as well.",
+                    $"{((enabledConfigDescription != null) ? (enabledConfigDescription + "\n") : "")}Set to False to disable this module, and as much of its content as can be disabled after initial load. Doing so may cause changes in other modules as well.",
                     enabledConfigFlags), enabledConfigUpdateActionTypes != AutoConfigUpdateActionTypes.None ? new AutoConfigUpdateActionsAttribute(enabledConfigUpdateActionTypes) : null);
             BindAll(modInfo.mainConfigFile, modInfo.displayName, moduleConfigName);
             ConfigEntryChanged += (sender, args) => {
