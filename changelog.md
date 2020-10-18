@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**3.0.2**
+
+- Fixed legacy code (ItemBoilerplate, AutoItemConfig) not being included in plugin setup.
+
 **3.0.1**
 
 - Added automatic language reloading (fixes some unloaded language string issues in dependents).

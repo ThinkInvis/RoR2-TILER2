@@ -46,6 +46,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**3.0.2**
+
+- Fixed legacy code (ItemBoilerplate, AutoItemConfig) not being included in plugin setup.
+
 **3.0.1**
 
 - Added automatic language reloading (fixes some unloaded language string issues in dependents).
@@ -68,7 +72,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **2.2.2**
 
 - Made FakeInventory more compatible with BetterUI and other item sorting mods.
-
-**2.2.1**
-
-- Updated BetterUI hooks for v1.5.7.
