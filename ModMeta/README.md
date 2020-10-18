@@ -53,6 +53,7 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - ItemBoilerplate (now CatalogBoilerplate) main plugin setup now flows slightly differently.
 - CatalogBoilerplate language handling was overhauled to take advantage of R2API Language Overlays.
 - AutoConfig now supports using fields as nametags, not just properties.
+- SkillUtil.ReplaceVariant/RemoveVariant no longer require SkillCatalog to be initialized.
 
 **2.2.3**
 
