@@ -548,17 +548,17 @@ namespace TILER2 {
             bool foundCrit = false;
             bool foundWarn = false;
             for(var i = 0; i < modnames.Length; i++) {
-                var res = CliAICSync(modnames[i], categories[i], cfgnames[i], values[i], true);
+                var res = CliAICSyncLegacy(modnames[i], categories[i], cfgnames[i], values[i], true);
                 if(res == 1) matches++;
                 else if(res == -1) foundWarn = true;
                 else if(res == -2) foundCrit = true;
             }
-            if(NetworkUser.readOnlyLocalPlayersList.Count == 0) TILER2Plugin._logger.LogError("Received TargetAICSyncAllToOne, but readOnlyLocalPlayersList is empty; can't send response");
+            if(NetworkUser.readOnlyLocalPlayersList.Count == 0) TILER2Plugin._logger.LogError("Received TargetAICSyncAllToOneLegacy, but readOnlyLocalPlayersList is empty; can't send response");
             if(foundCrit == true) {
-                TILER2Plugin._logger.LogError("The above config entries marked with \"CRITICAL MISMATCH\" are different on the server, and they cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
+                TILER2Plugin._logger.LogError("(LEGACY CHECK) The above config entries marked with \"CRITICAL MISMATCH\" are different on the server, and they cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
                 RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "AIC_CheckRespond " + password + " FAILMM");
                 return;
-            } else if(matches > 0) Chat.AddMessage("Synced <color=#ffff00>" + matches + " setting changes</color> from the server temporarily. Check the console for details.");
+            } else if(matches > 0) Chat.AddMessage("(LEGACY CHECK) Synced <color=#ffff00>" + matches + " setting changes</color> from the server temporarily. Check the console for details.");
             RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "AIC_CheckRespond " + password + (foundWarn ? " FAILBV" : " PASS"));
         }
 
@@ -630,17 +630,17 @@ namespace TILER2 {
                 && x.modName == modname;
             });
             if(exactMatches.Count > 1) {
-                TILER2Plugin._logger.LogError("(Server requesting update) There are multiple config entries with the path \"" + modname + "/" + category + "/" + cfgname + "\"; this should never happen! Please report this as a bug.");
+                TILER2Plugin._logger.LogError("(Server requesting update, LEGACY CHECK) There are multiple config entries with the path \"" + modname + "/" + category + "/" + cfgname + "\"; this should never happen! Please report this as a bug.");
                 return -1;
             } else if(exactMatches.Count == 0) {
-                TILER2Plugin._logger.LogError("The server requested an update for a nonexistent config entry with the path \"" + modname + "/" + category + "/" + cfgname + "\". Make sure you're using the same mods AND mod versions as the server!");
+                TILER2Plugin._logger.LogError("(LEGACY CHECK) The server requested an update for a nonexistent config entry with the path \"" + modname + "/" + category + "/" + cfgname + "\". Make sure you're using the same mods AND mod versions as the server!");
                 return -1;
             }
 
             var newVal = TomlTypeConverter.ConvertToValue(value, exactMatches[0].propType);
             if(!exactMatches[0].cachedValue.Equals(newVal)) {
                 if(exactMatches[0].netMismatchCritical) {
-                    TILER2Plugin._logger.LogError("CRITICAL MISMATCH on \"" + modname + "/" + category + "/" + cfgname + "\": Requested " + newVal.ToString() + " vs current " + exactMatches[0].cachedValue.ToString());
+                    TILER2Plugin._logger.LogError("(LEGACY CHECK) CRITICAL MISMATCH on \"" + modname + "/" + category + "/" + cfgname + "\": Requested " + newVal.ToString() + " vs current " + exactMatches[0].cachedValue.ToString());
                     return -2;
                 }
                 exactMatches[0].OverrideProperty(newVal, silent);
