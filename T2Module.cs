@@ -85,7 +85,6 @@ namespace TILER2 {
                         Uninstall();
                         if(languageInstalled) {
                             UninstallLanguage();
-                            Language.CCLanguageReload(new ConCommandArgs());
                         }
                     }
                 }
@@ -93,7 +92,6 @@ namespace TILER2 {
                     if(languageInstalled)
                         UninstallLanguage();
                     InstallLanguage();
-                    Language.CCLanguageReload(new ConCommandArgs());
                 }
             };
         }
@@ -120,6 +118,7 @@ namespace TILER2 {
             languageOverlays.Add(LanguageAPI.AddOverlay(genericLanguageTokens));
             languageOverlays.Add(LanguageAPI.AddOverlay(specificLanguageTokens));
             languageInstalled = true;
+            AutoConfigModule.globalLanguageDirty = true;
         }
 
         ///<summary>Will be called if/when the module is uninstalled after setup, and before any language installation after the first. Automatically undoes all R2API Language Overlays registered to languageOverlays.</summary>
@@ -129,6 +128,7 @@ namespace TILER2 {
             }
             languageOverlays.Clear();
             languageInstalled = false;
+            AutoConfigModule.globalLanguageDirty = true;
         }
 
         /// <summary>

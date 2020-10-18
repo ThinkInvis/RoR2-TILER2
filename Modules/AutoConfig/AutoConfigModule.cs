@@ -3,6 +3,7 @@ using System;
 using RoR2;
 using RoR2.Networking;
 using UnityEngine.SceneManagement;
+using UnityEngine;
 
 namespace TILER2 {
     internal class AutoConfigModule : T2Module<AutoConfigModule> {
@@ -10,6 +11,7 @@ namespace TILER2 {
 
         internal static bool globalStatsDirty = false;
         internal static bool globalDropsDirty = false;
+        internal static bool globalLanguageDirty = false;
 
         public override void SetupConfig() {
             //this doesn't seem to fire until the title screen is up, which is good because config file changes shouldn't immediately be read during startup; watch for regression (or just implement a check anyways?)
@@ -33,6 +35,10 @@ namespace TILER2 {
                     globalDropsDirty = false;
                     Run.instance.BuildDropTable();
                 }
+            }
+            if(globalLanguageDirty) {
+                globalLanguageDirty = false;
+                Language.CCLanguageReload(new ConCommandArgs());
             }
         }
 
