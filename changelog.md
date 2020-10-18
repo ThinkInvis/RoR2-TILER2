@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**3.0.3**
+
+- Additional fixes for legacy code. Should resolve NetConfig missing entry kicks.
+
 **3.0.2**
 
 - Fixed legacy code (ItemBoilerplate, AutoItemConfig) not being included in plugin setup.
