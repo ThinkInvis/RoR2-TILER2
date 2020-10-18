@@ -78,12 +78,13 @@ namespace TILER2 {
                 x=>x.MatchLdcR4(out _));
 
             if(ILFound) {
-                c.EmitDelegate<Func<float, float>>((origHealthMult) => {
-                    return origHealthMult + statMods.healthMultAdd;
-                });
-                c.Index -= 3;
+                c.Index -= 2;
                 c.EmitDelegate<Func<float, float>>((origMaxHealth) => {
                     return origMaxHealth + statMods.baseHealthAdd;
+                });
+                c.Index += 2;
+                c.EmitDelegate<Func<float, float>>((origHealthMult) => {
+                    return origHealthMult + statMods.healthMultAdd;
                 });
             } else {
                 TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (health modifier)");
