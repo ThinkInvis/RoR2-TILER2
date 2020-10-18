@@ -136,7 +136,7 @@ namespace TILER2 {
         /// </summary>
         /// <returns>A FilingDictionary containing all instances that this method just initialized.</returns>
         public static FilingDictionary<T> InitDirect<T>(ModInfo modInfo) where T:T2Module {
-            return InitAll<T>(modInfo, t => (t.BaseType.IsGenericType
+            return InitAll<T>(modInfo, Assembly.GetCallingAssembly(), t => (t.BaseType.IsGenericType
                 ? (t.BaseType.GenericTypeArguments[0] == t && t.BaseType.BaseType == typeof(T))
                 : t.BaseType == typeof(T)));
         }
@@ -146,9 +146,13 @@ namespace TILER2 {
         /// </summary>
         /// <returns>A FilingDictionary containing all instances that this method just initialized.</returns>
         public static FilingDictionary<T> InitAll<T>(ModInfo modInfo, Func<Type, bool> extraTypeChecks = null) where T:T2Module {
+            return InitAll<T>(modInfo, Assembly.GetCallingAssembly(), extraTypeChecks);
+        }
+
+        private static FilingDictionary<T> InitAll<T>(ModInfo modInfo, Assembly callingAssembly, Func<Type, bool> extraTypeChecks) where T:T2Module {
             var f = new FilingDictionary<T>();
-            foreach(Type type in Assembly.GetCallingAssembly().GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(T)) && (extraTypeChecks?.Invoke(t) ?? true))) {
-                var newModule = (T)Activator.CreateInstance(type, nonPublic:true);
+            foreach(Type type in callingAssembly.GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(T)) && (extraTypeChecks?.Invoke(t) ?? true))) {
+                var newModule = (T)Activator.CreateInstance(type, nonPublic: true);
                 newModule.modInfo = modInfo;
                 f.Add(newModule);
             }
@@ -160,7 +164,9 @@ namespace TILER2 {
         /// </summary>
         /// <returns>A FilingDictionary containing all instances that this method just initialized.</returns>
         public static FilingDictionary<T2Module> InitModules(ModInfo modInfo) {
-            return InitDirect<T2Module>(modInfo);
+            return InitAll<T2Module>(modInfo, Assembly.GetCallingAssembly(), t => (t.BaseType.IsGenericType
+                ? (t.BaseType.GenericTypeArguments[0] == t && t.BaseType.BaseType == typeof(T2Module))
+                : t.BaseType == typeof(T2Module)));
         }
 
         public static void SetupAll_PluginAwake(IEnumerable<T2Module> modulesToSetup) {
