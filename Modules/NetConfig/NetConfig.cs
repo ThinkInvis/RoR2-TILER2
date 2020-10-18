@@ -16,6 +16,8 @@ namespace TILER2 {
     /// Provides automatic network syncing and mismatch kicking for the AutoConfig module.
     /// </summary>
     public class NetConfig : T2Module<NetConfig> {
+        public override bool managedEnable => false;
+
         public static readonly SimpleLocalizedKickReason kickCritMismatch = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCCRITMISMATCH");
         public static readonly SimpleLocalizedKickReason kickTimeout = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCTIMEOUT");
         public static readonly SimpleLocalizedKickReason kickMissingEntry = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCMISSINGENTRY");

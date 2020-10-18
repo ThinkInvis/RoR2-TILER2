@@ -7,6 +7,8 @@ using static TILER2.MiscUtil;
 
 namespace TILER2 {
     internal class CatalogBoilerplateModule : T2Module<CatalogBoilerplateModule> {
+        public override bool managedEnable => false;
+
         internal static readonly FilingDictionary<CatalogBoilerplate> allInstances = new FilingDictionary<CatalogBoilerplate>();
 
         public override void SetupConfig() {

@@ -44,7 +44,7 @@ namespace TILER2 {
         public readonly string name;
 
         ///<summary>If true, Module.enabled will be registered as a config entry.</summary>
-        public virtual bool managedEnable => false;
+        public virtual bool managedEnable => true;
         ///<summary>If managedEnable is true, this will be appended to the module's enable/disable config description.</summary>
         public virtual string enabledConfigDescription => null;
         ///<summary>If managedEnable is true, this will be used for the resultant config entry.</summary>

@@ -6,6 +6,8 @@ using UnityEngine.SceneManagement;
 
 namespace TILER2 {
     internal class AutoConfigModule : T2Module<AutoConfigModule> {
+        public override bool managedEnable => false;
+
         internal static bool globalStatsDirty = false;
         internal static bool globalDropsDirty = false;
 
