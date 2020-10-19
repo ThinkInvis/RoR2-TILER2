@@ -62,28 +62,6 @@ namespace TILER2 {
         /// </summary>
         public static event StatHookEventHandler GetStatCoefficients;
 
-        /// <summary>
-        /// Matches the basic pattern of load base stat and level stat --> store combined as next stloc -->  read combined, then multiplier, and store result of multiplication.
-        /// </summary>
-        public static bool ILTryMatchBasicStatPattern(ILCursor c, string statName, ref int locBaseIndex, ref int locMultIndex) {
-            int _locBaseIndex = -1;
-            int _locMultIndex = -1;
-            bool ILFound = c.TryGotoNext(
-                x => x.MatchLdfld<CharacterBody>($"base{statName}"),
-                x => x.MatchLdarg(0),
-                x => x.MatchLdfld<CharacterBody>($"level{statName}"))
-                && c.TryGotoNext(
-                x => x.MatchStloc(out _locBaseIndex))
-                && c.TryGotoNext(
-                    x => x.MatchLdloc(_locBaseIndex),
-                    x => x.MatchLdloc(out _locMultIndex),
-                    x => x.MatchMul(),
-                    x => x.MatchStloc(_locBaseIndex));
-            locBaseIndex = _locBaseIndex;
-            locMultIndex = _locMultIndex;
-            return ILFound;
-        }
-
         //TODO: backup modifiers in an On. hook
         internal static void IL_CBRecalcStats(ILContext il) {
             ILCursor c = new ILCursor(il);
