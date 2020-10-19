@@ -44,6 +44,7 @@ namespace TILER2 {
             AutoItemConfigModule.Setup();
             ItemBoilerplateModule.Setup();
             MiscUtil.Setup();
+            DebugUtil.Setup();
 
             CommandHelper.AddToConsoleWhenReady();
         }
