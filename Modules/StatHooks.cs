@@ -127,9 +127,9 @@ namespace TILER2 {
 
             int locBaseShieldIndex = -1;
             ILFound = c.TryGotoNext(
-                x => x.MatchLdfld<CharacterBody>("baseShield"),
+                x => x.MatchLdfld<CharacterBody>("baseMaxShield"),
                 x => x.MatchLdarg(0),
-                x => x.MatchLdfld<CharacterBody>("levelShield"))
+                x => x.MatchLdfld<CharacterBody>("levelMaxShield"))
                 && c.TryGotoNext(
                     x => x.MatchStloc(out locBaseShieldIndex));
 
@@ -143,42 +143,31 @@ namespace TILER2 {
 
             c.Index = 0;
 
-            int locBaseRegenIndex = -1;
+            int locRegenMultIndex = -1;
+            int locFinalRegenIndex = -1;
             ILFound = c.TryGotoNext(
-                x=>x.MatchLdfld<CharacterBody>("baseRegen"),
-                x=>x.MatchLdarg(0),
-                x=>x.MatchLdfld<CharacterBody>("levelRegen"))
-                && c.TryGotoNext(
-                    x => x.MatchStloc(out locBaseRegenIndex));
+                x => x.MatchLdloc(out locFinalRegenIndex),
+                x =>x.MatchCallOrCallvirt<CharacterBody>("set_regen"))
+                && c.TryGotoPrev(
+                    x => x.MatchAdd(),
+                    x => x.MatchLdloc(out locRegenMultIndex),
+                    x => x.MatchMul(),
+                    x => x.MatchStloc(out locFinalRegenIndex));
 
             if(ILFound) {
-                c.EmitDelegate<Func<float, float>>((origBaseRegen)=>{
-                    return origBaseRegen + statMods.baseRegenAdd;
-                });
-            } else {
-                TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (base regen modifier)");
-            }
-
-            c.Index = 0;
-
-            ILFound = c.TryGotoNext(MoveType.After,
-                x=>x.MatchLdloc(locBaseRegenIndex),
-                x=>x.MatchAdd(),
-                x=>x.OpCode == OpCodes.Ldloc_S,
-                x=>x.MatchAdd(),
-                x=>x.OpCode == OpCodes.Ldloc_S,
-                x=>x.MatchAdd(),
-                x=>x.OpCode == OpCodes.Ldloc_S,
-                x=>x.MatchAdd());
-            if(ILFound) {
+                c.GotoNext(x => x.MatchLdloc(out locRegenMultIndex));
                 c.EmitDelegate<Func<float>>(()=>{
-                    return statMods.regenMultAdd;
+                    return statMods.baseRegenAdd;
                 });
                 c.Emit(OpCodes.Add);
+                c.GotoNext(x => x.MatchMul());
+                c.EmitDelegate<Func<float, float>>((origRegenMult) => {
+                    return origRegenMult + statMods.regenMultAdd;
+                });
             } else {
-                TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (regen multiplier modifier)");
+                TILER2Plugin._logger.LogError("StatHooks: failed to apply IL patch (regen modifiers)");
             }
-            
+
             c.Index = 0;
 
             int locBaseSpeedIndex = -1;
