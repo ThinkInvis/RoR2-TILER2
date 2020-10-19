@@ -1,5 +1,13 @@
 ﻿# TILER2 Changelog
 
+**3.0.4**
+
+- General stability patch for StatHooks.
+	- IL patches should now be less fragile in general, and slightly less prone to breaking if another mod gets to modify RecalculateStats first.
+	- Added a handful of new hook locations (baseShieldAdd, baseMoveSpeedAdd, baseAttackSpeedAdd).
+	- Fixes an issue with strange and incorrect behavior on both health modifiers.
+- Added the concmd t2_stat for debugging StatHooks.
+
 **3.0.3**
 
 - Additional fixes for legacy code. Should resolve NetConfig missing entry kicks.

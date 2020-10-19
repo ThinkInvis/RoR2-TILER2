@@ -20,9 +20,10 @@ TILER2 mostly contains features that are useful for mod developers, but it also 
 
 #### DebugUtil
 
-The DebugUtil module adds the console command `evo_setitem`.
+The DebugUtil module adds the console commands `evo_setitem` and `t2_stat`.
 
 - `evo_setitem itemIndexOrName count`: Sets the count of the target item in the Artifact of Evolution item pool. Marked as a cheat command.
+- `t2_stat statType value`: Adds a value to one of the stats supported by the StatHooks module for all players. See source code for valid names (Modules/StatHooks.cs, any member of StatHookEventArgs).
 
 #### NetConfig
 
@@ -46,6 +47,14 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**3.0.4**
+
+- General stability patch for StatHooks.
+	- IL patches should now be less fragile in general, and slightly less prone to breaking if another mod gets to modify RecalculateStats first.
+	- Added a handful of new hook locations (baseShieldAdd, baseMoveSpeedAdd, baseAttackSpeedAdd).
+	- Fixes an issue with strange and incorrect behavior on both health modifiers.
+- Added the concmd t2_stat for debugging StatHooks.
+
 **3.0.3**
 
 - Additional fixes for legacy code. Should resolve NetConfig missing entry kicks.
@@ -66,9 +75,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - CatalogBoilerplate language handling was overhauled to take advantage of R2API Language Overlays.
 - AutoConfig now supports using fields as nametags, not just properties.
 - SkillUtil.ReplaceVariant/RemoveVariant no longer require SkillCatalog to be initialized.
-
-**2.2.3**
-
-- FakeInventory now provides a blacklist for modded items to use.
-- Fixed some potential NullReferenceExceptions caused by using the `?.` operator on Unity objects.
-- Fixed TILER2-managed Lunar equipments having the wrong color on some highlights/outlines.
