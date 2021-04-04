@@ -5,14 +5,11 @@ using System;
 using UnityEngine;
 
 namespace TILER2 {
-    [Obsolete("Migrated to TILER2.CatalogBoilerplates.Equipment. This alias will be removed in the next minor patch.")]
-    public abstract class Equipment_V2 : CatalogBoilerplates.Equipment { }
-    [Obsolete("Migrated to TILER2.CatalogBoilerplates.Equipment<T>. This alias will be removed in the next minor patch.")]
-    public abstract class Equipment_V2<T> : CatalogBoilerplates.Equipment<T> where T : CatalogBoilerplates.Equipment<T> { }
-}
+    [Obsolete("Migrated to TILER2.Equipment. This alias will be removed in the next minor patch.")]
+    public abstract class Equipment_V2 : Equipment { }
+    [Obsolete("Migrated to TILER2.Equipment<T>. This alias will be removed in the next minor patch.")]
+    public abstract class Equipment_V2<T> : Equipment<T> where T : Equipment<T> { }
 
-
-namespace TILER2.CatalogBoilerplates {
     public abstract class Equipment<T>:Equipment where T : Equipment<T> {
         public static T instance {get;private set;}
 

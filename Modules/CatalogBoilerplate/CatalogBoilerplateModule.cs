@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Networking;
-using TILER2.CatalogBoilerplates;
 using static TILER2.MiscUtil;
 
 namespace TILER2 {

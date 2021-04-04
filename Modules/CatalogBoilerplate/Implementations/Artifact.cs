@@ -5,13 +5,11 @@ using System;
 using UnityEngine;
 
 namespace TILER2 {
-    [Obsolete("Migrated to TILER2.CatalogBoilerplates.Artifact. This alias will be removed in the next minor patch.")]
-    public abstract class Artifact_V2 : CatalogBoilerplates.Artifact { }
-    [Obsolete("Migrated to TILER2.CatalogBoilerplates.Artifact<T>. This alias will be removed in the next minor patch.")]
-    public abstract class Artifact_V2<T> : CatalogBoilerplates.Artifact<T> where T : CatalogBoilerplates.Artifact<T> { }
-}
+    [Obsolete("Migrated to TILER2.Artifact. This alias will be removed in the next minor patch.")]
+    public abstract class Artifact_V2 : Artifact { }
+    [Obsolete("Migrated to TILER2.Artifact<T>. This alias will be removed in the next minor patch.")]
+    public abstract class Artifact_V2<T> : Artifact<T> where T : Artifact<T> { }
 
-namespace TILER2.CatalogBoilerplates {
     public abstract class Artifact<T>:Artifact where T : Artifact<T> {
         public static T instance {get;private set;}
 
