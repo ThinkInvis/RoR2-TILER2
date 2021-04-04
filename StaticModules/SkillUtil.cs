@@ -230,12 +230,12 @@ namespace TILER2 {
             newDef.fullRestockOnAssign = oldDef.fullRestockOnAssign;
             newDef.dontAllowPastMaxStocks = oldDef.dontAllowPastMaxStocks;
 
-            newDef.isBullets = oldDef.isBullets;
-            newDef.shootDelay = oldDef.shootDelay;
+            newDef.canceledFromSprinting = oldDef.canceledFromSprinting;
 
             newDef.isCombatSkill = oldDef.isCombatSkill;
+            newDef.resetCooldownTimerOnUse = oldDef.resetCooldownTimerOnUse;
 
-            newDef.noSprint = oldDef.noSprint;
+            newDef.cancelSprintingOnActivation = oldDef.cancelSprintingOnActivation;
             newDef.canceledFromSprinting = oldDef.canceledFromSprinting;
             newDef.forceSprintDuringState = oldDef.forceSprintDuringState;
 
