@@ -24,7 +24,8 @@ namespace TILER2 {
 				R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSyncAll>();
 
 				//Main itemcount handler
-				On.RoR2.Inventory.GetItemCount += On_InvGetItemCount;
+				On.RoR2.Inventory.GetItemCount_ItemDef += On_InvGetItemCountByDef;
+				On.RoR2.Inventory.GetItemCount_ItemIndex += On_InvGetItemCountByIndex;
 
 				//Ignore fake items in:
 				On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.IsAffordable += LunarItemOrEquipmentCostTypeHelper_IsAffordable;
@@ -264,14 +265,22 @@ namespace TILER2 {
 			return retv;
 		}
 		
-		private static int On_InvGetItemCount(On.RoR2.Inventory.orig_GetItemCount orig, Inventory self, ItemIndex itemIndex) {
+		private static int On_InvGetItemCountByDef(On.RoR2.Inventory.orig_GetItemCount_ItemDef orig, Inventory self, ItemDef itemDef) {
+			var origVal = orig(self, itemDef);
+			if(ignoreFakes || !self) return origVal;
+			var fakeinv = self.gameObject.GetComponent<FakeInventory>();
+			if(!fakeinv) return origVal;
+			return origVal + fakeinv._itemStacks[(int)itemDef.itemIndex];//fakeinv.GetItemCount(itemIndex);
+		}
+
+		private static int On_InvGetItemCountByIndex(On.RoR2.Inventory.orig_GetItemCount_ItemIndex orig, Inventory self, ItemIndex itemIndex) {
 			var origVal = orig(self, itemIndex);
 			if(ignoreFakes || !self) return origVal;
 			var fakeinv = self.gameObject.GetComponent<FakeInventory>();
 			if(!fakeinv) return origVal;
 			return origVal + fakeinv._itemStacks[(int)itemIndex];//fakeinv.GetItemCount(itemIndex);
 		}
-		
+
 		private static void On_IIDInventoryChanged(On.RoR2.UI.ItemInventoryDisplay.orig_OnInventoryChanged orig, RoR2.UI.ItemInventoryDisplay self) {
 			orig(self);
 			if(!self || !self.isActiveAndEnabled || !self.inventory) return;
