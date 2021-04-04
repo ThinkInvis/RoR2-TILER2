@@ -5,7 +5,7 @@ using BepInEx.Configuration;
 using static TILER2.MiscUtil;
 
 namespace TILER2 {
-    [BepInDependency("com.bepis.r2api", "3.0.0")]
+    [BepInDependency("com.bepis.r2api")]//, "3.0.0")]
     [BepInPlugin(ModGuid, ModName, ModVer)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     [BepInDependency("com.funkfrog_sipondo.sharesuite",BepInDependency.DependencyFlags.SoftDependency)]
