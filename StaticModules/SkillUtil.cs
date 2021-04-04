@@ -34,7 +34,7 @@ namespace TILER2 {
         /// <returns>The resultant SkillFamily if lookup was successful, null otherwise.</returns>
         public static SkillFamily FindSkillFamilyFromBody(string bodyName, int slotIndex) {
             var targetBodyIndex = BodyCatalog.FindBodyIndex(bodyName);
-            if(targetBodyIndex == -1) {
+            if(targetBodyIndex == BodyIndex.None) {
                 TILER2Plugin._logger.LogError($"FindSkillFamilyFromBody: Couldn't find body with name {bodyName}");
                 return null;
             }
@@ -54,7 +54,7 @@ namespace TILER2 {
         /// <returns>The resultant SkillFamily if lookup was successful, null otherwise.</returns>
         public static SkillFamily FindSkillFamilyFromBody(string bodyName, SkillSlot slot) {
             var targetBodyIndex = BodyCatalog.FindBodyIndex(bodyName);
-            if(targetBodyIndex == -1) {
+            if(targetBodyIndex == BodyIndex.None) {
                 TILER2Plugin._logger.LogError($"FindSkillFamilyFromBody: Couldn't find body with name {bodyName}");
                 return null;
             }
