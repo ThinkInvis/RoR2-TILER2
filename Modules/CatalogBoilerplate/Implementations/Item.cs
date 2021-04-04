@@ -7,21 +7,30 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace TILER2 {
-    public abstract class Item_V2<T>:Item_V2 where T : Item_V2<T> {
+    [Obsolete("Migrated to TILER2.CatalogBoilerplates.Item. Will be removed in next minor patch.")]
+    public abstract class Item_V2 : CatalogBoilerplates.Item { }
+    [Obsolete("Migrated to TILER2.CatalogBoilerplates.Item<T>. Will be removed in next minor patch.")]
+    public abstract class Item_V2<T> : CatalogBoilerplates.Item<T> where T : CatalogBoilerplates.Item<T> { }
+}
+
+
+namespace TILER2.CatalogBoilerplates {
+    public abstract class Item<T>:Item where T : Item<T> {
         public static T instance {get;private set;}
 
-        public Item_V2() {
+        public Item() {
             if(instance != null) throw new InvalidOperationException("Singleton class \"" + typeof(T).Name + "\" inheriting ItemBoilerplate/Item was instantiated twice");
             instance = this as T;
         }
     }
     
-    public abstract class Item_V2 : CatalogBoilerplate {
+    public abstract class Item : CatalogBoilerplate {
         public override string configCategoryPrefix => "Items.";
 
-        public ItemIndex catalogIndex {get; private set;}
+        public ItemIndex catalogIndex => itemDef.itemIndex;
         public ItemDef itemDef {get; private set;}
         public CustomItem customItem {get; private set;}
 
@@ -49,6 +58,7 @@ namespace TILER2 {
                     }
                 } else if(args.target.boundProperty.Name == nameof(itemIsAIBlacklisted)) {
                     var hasAIB = itemDef.tags.Contains(ItemTag.AIBlacklist);
+
                     if(hasAIB && !itemIsAIBlacklisted) {
                         itemDef.tags = itemDef.tags.Where(tag => tag != ItemTag.AIBlacklist).ToArray();
                     } else if(!hasAIB && itemIsAIBlacklisted) {
@@ -56,6 +66,8 @@ namespace TILER2 {
                         nl.Add(ItemTag.AIBlacklist);
                         itemDef.tags = nl.ToArray();
                     }
+
+                    if(Run.instance && Run.instance.isActiveAndEnabled && NetworkServer.active) RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.GenerateAvailableItemsSet();
                 }
             };
         }
@@ -80,7 +92,7 @@ namespace TILER2 {
 
             itemTags = Array.AsReadOnly(iarr);
             customItem = new CustomItem(itemDef, displayRules);
-            catalogIndex = ItemAPI.Add(customItem);
+            ItemAPI.Add(customItem);
         }
 
         public int GetCount(Inventory inv) {

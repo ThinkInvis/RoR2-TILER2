@@ -5,19 +5,27 @@ using System;
 using UnityEngine;
 
 namespace TILER2 {
-    public abstract class Equipment_V2<T>:Equipment_V2 where T : Equipment_V2<T> {
+    [Obsolete("Migrated to TILER2.CatalogBoilerplates.Equipment. This alias will be removed in the next minor patch.")]
+    public abstract class Equipment_V2 : CatalogBoilerplates.Equipment { }
+    [Obsolete("Migrated to TILER2.CatalogBoilerplates.Equipment<T>. This alias will be removed in the next minor patch.")]
+    public abstract class Equipment_V2<T> : CatalogBoilerplates.Equipment<T> where T : CatalogBoilerplates.Equipment<T> { }
+}
+
+
+namespace TILER2.CatalogBoilerplates {
+    public abstract class Equipment<T>:Equipment where T : Equipment<T> {
         public static T instance {get;private set;}
 
-        public Equipment_V2() {
+        public Equipment() {
             if(instance != null) throw new InvalidOperationException("Singleton class \"" + typeof(T).Name + "\" inheriting ItemBoilerplate/Equipment was instantiated twice");
             instance = this as T;
         }
     }
 
-    public abstract class Equipment_V2 : CatalogBoilerplate {
+    public abstract class Equipment : CatalogBoilerplate {
         public override string configCategoryPrefix => "Equipments.";
 
-        public EquipmentIndex catalogIndex {get; private set;}
+        public EquipmentIndex catalogIndex => equipmentDef.equipmentIndex;
         public EquipmentDef equipmentDef {get; private set;}
         public CustomEquipment customEquipment {get; private set;}
 
@@ -63,7 +71,7 @@ namespace TILER2 {
             if(isLunar) 
 				equipmentDef.colorIndex = ColorCatalog.ColorIndex.LunarItem;
             customEquipment = new CustomEquipment(equipmentDef, displayRules);
-            catalogIndex = ItemAPI.Add(customEquipment);
+            ItemAPI.Add(customEquipment);
         }
 
         public override void Install() {
@@ -76,9 +84,9 @@ namespace TILER2 {
             On.RoR2.EquipmentSlot.PerformEquipmentAction -= Evt_ESPerformEquipmentAction;
         }
 
-        private bool Evt_ESPerformEquipmentAction(On.RoR2.EquipmentSlot.orig_PerformEquipmentAction orig, EquipmentSlot self, EquipmentIndex ind) {
-            if(enabled && ind == catalogIndex) return PerformEquipmentAction(self);
-            else return orig(self, ind);
+        private bool Evt_ESPerformEquipmentAction(On.RoR2.EquipmentSlot.orig_PerformEquipmentAction orig, EquipmentSlot self, EquipmentDef def) {
+            if(enabled && def.equipmentIndex == catalogIndex) return PerformEquipmentAction(self);
+            else return orig(self, def);
         }
 
         protected abstract bool PerformEquipmentAction(EquipmentSlot slot);

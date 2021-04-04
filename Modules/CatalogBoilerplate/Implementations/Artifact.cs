@@ -5,23 +5,30 @@ using System;
 using UnityEngine;
 
 namespace TILER2 {
-    public abstract class Artifact_V2<T>:Artifact_V2 where T : Artifact_V2<T> {
+    [Obsolete("Migrated to TILER2.CatalogBoilerplates.Artifact. This alias will be removed in the next minor patch.")]
+    public abstract class Artifact_V2 : CatalogBoilerplates.Artifact { }
+    [Obsolete("Migrated to TILER2.CatalogBoilerplates.Artifact<T>. This alias will be removed in the next minor patch.")]
+    public abstract class Artifact_V2<T> : CatalogBoilerplates.Artifact<T> where T : CatalogBoilerplates.Artifact<T> { }
+}
+
+namespace TILER2.CatalogBoilerplates {
+    public abstract class Artifact<T>:Artifact where T : Artifact<T> {
         public static T instance {get;private set;}
 
-        public Artifact_V2() {
-            if(instance != null) throw new InvalidOperationException("Singleton class \"" + typeof(T).Name + "\" inheriting ItemBoilerplate/Artifact was instantiated twice");
+        public Artifact() {
+            if(instance != null) throw new InvalidOperationException("Singleton class \"" + typeof(T).Name + "\" inheriting CatalogBoilerplate/Artifact was instantiated twice");
             instance = this as T;
         }
     }
 
-    public abstract class Artifact_V2 : CatalogBoilerplate {
+    public abstract class Artifact : CatalogBoilerplate {
         public override string configCategoryPrefix => "Artifacts.";
         protected override string GetLoreString(string langID = null) => null;
         protected override string GetPickupString(string langID = null) => null;
 
         public string iconResourcePathDisabled {get; protected set;} = null;
 
-        public ArtifactIndex catalogIndex {get; private set;}
+        public ArtifactIndex catalogIndex => artifactDef.artifactIndex;
         public ArtifactDef artifactDef {get; private set;}
         
         public override void SetupConfig() {
@@ -55,10 +62,6 @@ namespace TILER2 {
             artifactDef.smallIconSelectedSprite = Resources.Load<Sprite>(iconResourcePath);
             ArtifactCatalog.getAdditionalEntries += (list) => {
                 list.Add(artifactDef);
-            };
-            On.RoR2.ArtifactCatalog.SetArtifactDefs += (orig, self) => {
-                orig(self);
-                catalogIndex = artifactDef.artifactIndex;
             };
         }
 

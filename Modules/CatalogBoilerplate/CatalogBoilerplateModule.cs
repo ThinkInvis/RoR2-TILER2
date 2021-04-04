@@ -1,8 +1,10 @@
 ﻿using R2API;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Networking;
+using TILER2.CatalogBoilerplates;
 using static TILER2.MiscUtil;
 
 namespace TILER2 {
@@ -22,11 +24,11 @@ namespace TILER2 {
             var newEqpMask = self.availableEquipment;
             foreach(CatalogBoilerplate bpl in allInstances) {
                 if(!bpl.enabled) {
-                    if(bpl is Equipment_V2 eqp) newEqpMask.Remove(eqp.catalogIndex);
-                    else if(bpl is Item_V2 item) newItemMask.Remove(item.catalogIndex);
+                    if(bpl is Equipment eqp) newEqpMask.Remove(eqp.catalogIndex);
+                    else if(bpl is Item item) newItemMask.Remove(item.catalogIndex);
                 } else {
-                    if(bpl is Equipment_V2 eqp) newEqpMask.Add(eqp.catalogIndex);
-                    else if(bpl is Item_V2 item) newItemMask.Add(item.catalogIndex);
+                    if(bpl is Equipment eqp) newEqpMask.Add(eqp.catalogIndex);
+                    else if(bpl is Item item) newItemMask.Add(item.catalogIndex);
                 }
             }
 
@@ -68,8 +70,8 @@ namespace TILER2 {
 
             foreach(CatalogBoilerplate bpl in allInstances) {
                 PickupIndex pind;
-                if(bpl is Equipment_V2) pind = PickupCatalog.FindPickupIndex(((Equipment_V2)bpl).catalogIndex);
-                else if(bpl is Item_V2) pind = PickupCatalog.FindPickupIndex(((Item_V2)bpl).catalogIndex);
+                if(bpl is Equipment) pind = PickupCatalog.FindPickupIndex(((Equipment)bpl).catalogIndex);
+                else if(bpl is Item) pind = PickupCatalog.FindPickupIndex(((Item)bpl).catalogIndex);
                 else continue;
                 var pickup = PickupCatalog.GetPickupDef(pind);
 
