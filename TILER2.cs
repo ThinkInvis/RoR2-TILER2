@@ -41,8 +41,6 @@ namespace TILER2 {
 
             T2Module.SetupAll_PluginAwake(allModules);
 
-            AutoItemConfigModule.Setup();
-            ItemBoilerplateModule.Setup();
             MiscUtil.Setup();
             DebugUtil.Setup();
 
@@ -55,7 +53,6 @@ namespace TILER2 {
 
         private void Update() {
             AutoConfigModule.Update();
-            AutoItemConfigModule.Update();
         }
     }
 }

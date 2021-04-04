@@ -43,7 +43,6 @@ namespace TILER2 {
                 NetConfigOrchestrator.checkedConnections.Add(conn);
                 NetConfig.EnsureOrchestrator();
                 NetConfigOrchestrator.AICSyncAllToOne(conn);
-                NetConfigOrchestrator.AICSyncAllToOneLegacy(conn);
             };
             
             /*On.RoR2.Run.EndStage += (orig, self) => {
@@ -493,31 +492,6 @@ namespace TILER2 {
             instance.TargetAICSyncAllToOne(conn, password, modnames.ToArray(), categories.ToArray(), cfgnames.ToArray(), serValues.ToArray());
         }
 
-        [Obsolete("Uses deprecated name AutoItemConfig.")]
-        internal static void AICSyncAllToOneLegacy(NetworkConnection conn) {
-            var validInsts = AutoItemConfig.instances.Where(x => !x.allowNetMismatch);
-            var serValues = new List<string>();
-            var modnames = new List<string>();
-            var categories = new List<string>();
-            var cfgnames = new List<string>();
-            foreach(var i in validInsts) {
-                serValues.Add(TomlTypeConverter.ConvertToString(i.cachedValue, i.propType));
-                modnames.Add(i.modName);
-                categories.Add(i.configEntry.Definition.Section);
-                cfgnames.Add(i.configEntry.Definition.Key);
-            }
-
-            string password = Guid.NewGuid().ToString("d");
-
-            connectionsToCheck.Add(new WaitingConnCheck {
-                connection = conn,
-                password = password,
-                timeRemaining = connCheckWaitTime
-            });
-
-            instance.TargetAICSyncAllToOneLegacy(conn, password, modnames.ToArray(), categories.ToArray(), cfgnames.ToArray(), serValues.ToArray());
-        }
-
         [TargetRpc]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Target param is required by UNetWeaver")]
         private void TargetAICSyncAllToOne(NetworkConnection target, string password, string[] modnames, string[] categories, string[] cfgnames, string[] values) {
@@ -540,28 +514,6 @@ namespace TILER2 {
             RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "AIC_CheckRespond " + password + (foundWarn ? " FAILBV" : " PASS"));
         }
 
-        [TargetRpc]
-        [Obsolete("Uses deprecated name AutoItemConfig.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Target param is required by UNetWeaver")]
-        private void TargetAICSyncAllToOneLegacy(NetworkConnection target, string password, string[] modnames, string[] categories, string[] cfgnames, string[] values) {
-            int matches = 0;
-            bool foundCrit = false;
-            bool foundWarn = false;
-            for(var i = 0; i < modnames.Length; i++) {
-                var res = CliAICSyncLegacy(modnames[i], categories[i], cfgnames[i], values[i], true);
-                if(res == 1) matches++;
-                else if(res == -1) foundWarn = true;
-                else if(res == -2) foundCrit = true;
-            }
-            if(NetworkUser.readOnlyLocalPlayersList.Count == 0) TILER2Plugin._logger.LogError("Received TargetAICSyncAllToOneLegacy, but readOnlyLocalPlayersList is empty; can't send response");
-            if(foundCrit == true) {
-                TILER2Plugin._logger.LogError("(LEGACY CHECK) The above config entries marked with \"CRITICAL MISMATCH\" are different on the server, and they cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
-                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "AIC_CheckRespond " + password + " FAILMM");
-                return;
-            } else if(matches > 0) Chat.AddMessage("(LEGACY CHECK) Synced <color=#ffff00>" + matches + " setting changes</color> from the server temporarily. Check the console for details.");
-            RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "AIC_CheckRespond " + password + (foundWarn ? " FAILBV" : " PASS"));
-        }
-
         [Server]
         internal void ServerAICSyncOneToAll(AutoConfigBinding targetConfig, object newValue) {
             foreach(var user in NetworkUser.readOnlyInstancesList) {
@@ -571,27 +523,10 @@ namespace TILER2 {
             }
         }
 
-        [Server]
-        [Obsolete("Uses deprecated name AutoItemConfig.")]
-        internal void ServerAICSyncOneToAllLegacy(AutoItemConfig targetConfig, object newValue) {
-            foreach(var user in NetworkUser.readOnlyInstancesList) {
-                if(user.hasAuthority || (user.connectionToClient != null && Util.ConnectionIsLocal(user.connectionToClient))) continue;
-                TargetAICSyncOneToAllLegacy(user.connectionToClient, targetConfig.modName, targetConfig.configEntry.Definition.Section, targetConfig.configEntry.Definition.Key,
-                    TomlTypeConverter.ConvertToString(newValue, targetConfig.propType));
-            }
-        }
-
         [TargetRpc]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Target param is required by UNetWeaver")]
         private void TargetAICSyncOneToAll(NetworkConnection target, string modname, string category, string cfgname, string value) {
             CliAICSync(modname, category, cfgname, value, false);
-        }
-
-        [TargetRpc]
-        [Obsolete("Uses deprecated name AutoItemConfig.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Target param is required by UNetWeaver")]
-        private void TargetAICSyncOneToAllLegacy(NetworkConnection target, string modname, string category, string cfgname, string value) {
-            CliAICSyncLegacy(modname, category, cfgname, value, false);
         }
 
         [Client]
@@ -613,34 +548,6 @@ namespace TILER2 {
             if(!exactMatches[0].cachedValue.Equals(newVal)) {
                 if(exactMatches[0].netMismatchCritical) {
                     TILER2Plugin._logger.LogError("CRITICAL MISMATCH on \"" + modname + "/" + category + "/" + cfgname + "\": Requested " + newVal.ToString() + " vs current " + exactMatches[0].cachedValue.ToString());
-                    return -2;
-                }
-                exactMatches[0].OverrideProperty(newVal, silent);
-                return 1;
-            }
-            return 0;
-        }
-
-        [Client]
-        [Obsolete("Uses deprecated name AutoItemConfig.")]
-        private int CliAICSyncLegacy(string modname, string category, string cfgname, string value, bool silent) {
-            var exactMatches = AutoItemConfig.instances.FindAll(x => {
-                return x.configEntry.Definition.Key == cfgname
-                && x.configEntry.Definition.Section == category
-                && x.modName == modname;
-            });
-            if(exactMatches.Count > 1) {
-                TILER2Plugin._logger.LogError("(Server requesting update, LEGACY CHECK) There are multiple config entries with the path \"" + modname + "/" + category + "/" + cfgname + "\"; this should never happen! Please report this as a bug.");
-                return -1;
-            } else if(exactMatches.Count == 0) {
-                TILER2Plugin._logger.LogError("(LEGACY CHECK) The server requested an update for a nonexistent config entry with the path \"" + modname + "/" + category + "/" + cfgname + "\". Make sure you're using the same mods AND mod versions as the server!");
-                return -1;
-            }
-
-            var newVal = TomlTypeConverter.ConvertToValue(value, exactMatches[0].propType);
-            if(!exactMatches[0].cachedValue.Equals(newVal)) {
-                if(exactMatches[0].netMismatchCritical) {
-                    TILER2Plugin._logger.LogError("(LEGACY CHECK) CRITICAL MISMATCH on \"" + modname + "/" + category + "/" + cfgname + "\": Requested " + newVal.ToString() + " vs current " + exactMatches[0].cachedValue.ToString());
                     return -2;
                 }
                 exactMatches[0].OverrideProperty(newVal, silent);
