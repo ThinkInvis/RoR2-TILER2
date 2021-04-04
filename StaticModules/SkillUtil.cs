@@ -122,13 +122,13 @@ namespace TILER2 {
         /// </summary>
         /// <param name="targetFamily">The SkillFamily to perform an addition on.</param>
         /// <param name="newDef">The SkillDef to add.</param>
-        /// <param name="unlockableName">The name of the unlockable which should restrict access to this variant until unlocked. Default value results in no unlockable.</param>
-        public static void AddVariant(this SkillFamily targetFamily, SkillDef newDef, string unlockableName = "") {
+        /// <param name="unlockableDef">An unlockable which should restrict access to this variant until unlocked. Default value results in no unlockable.</param>
+        public static void AddVariant(this SkillFamily targetFamily, SkillDef newDef, UnlockableDef unlockableDef = null) {
             Array.Resize(ref targetFamily.variants, targetFamily.variants.Length + 1);
             targetFamily.variants[targetFamily.variants.Length - 1] = new SkillFamily.Variant {
                 skillDef = newDef,
                 viewableNode = new ViewablesCatalog.Node(newDef.skillNameToken, false, null),
-                unlockableName = unlockableName
+                unlockableDef = unlockableDef
             };
         }
 
@@ -138,11 +138,11 @@ namespace TILER2 {
         /// <param name="targetBodyName">The body name to search for. Case sensitive.</param>
         /// <param name="targetSlot">The skillslot index to search for. Must be positive and within range of the target body's skillslot count.</param>
         /// <param name="newDef">The SkillDef to add.</param>
-        /// <param name="unlockableName">The name of the unlockable which should restrict access to this variant until unlocked. Default value results in no unlockable.</param>
-        public static void AddVariant(string targetBodyName, int targetSlot, SkillDef newDef, string unlockableName = "") {
+        /// <param name="unlockableDef">An unlockable which should restrict access to this variant until unlocked. Default value results in no unlockable.</param>
+        public static void AddVariant(string targetBodyName, int targetSlot, SkillDef newDef, UnlockableDef unlockableDef = null) {
             var targetFamily = FindSkillFamilyFromBody(targetBodyName, targetSlot);
             if(targetFamily != null)
-                targetFamily.AddVariant(newDef, unlockableName);
+                targetFamily.AddVariant(newDef, unlockableDef);
             else
                 TILER2Plugin._logger.LogError("Failed to AddVariant for bodyname+slot (target not found)");
         }
@@ -153,11 +153,11 @@ namespace TILER2 {
         /// <param name="targetBodyName">The body name to search for. Case sensitive.</param>
         /// <param name="targetSlot">The skillslot name to search for.</param>
         /// <param name="newDef">The SkillDef to add.</param>
-        /// <param name="unlockableName">The name of the unlockable which should restrict access to this variant until unlocked. Default value results in no unlockable.</param>
-        public static void AddVariant(string targetBodyName, SkillSlot targetSlot, SkillDef newDef, string unlockableName = "") {
+        /// <param name="unlockableDef">An unlockable which should restrict access to this variant until unlocked. Default value results in no unlockable.</param>
+        public static void AddVariant(string targetBodyName, SkillSlot targetSlot, SkillDef newDef, UnlockableDef unlockableDef = null) {
             var targetFamily = FindSkillFamilyFromBody(targetBodyName, targetSlot);
             if(targetFamily != null)
-                targetFamily.AddVariant(newDef, unlockableName);
+                targetFamily.AddVariant(newDef, unlockableDef);
             else
                 TILER2Plugin._logger.LogError("Failed to AddVariant for bodyname+slotname (target not found)");
         }
