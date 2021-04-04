@@ -60,9 +60,8 @@ namespace TILER2.CatalogBoilerplates {
             artifactDef.descriptionToken = descToken;
             artifactDef.smallIconDeselectedSprite = Resources.Load<Sprite>(iconResourcePathDisabled);
             artifactDef.smallIconSelectedSprite = Resources.Load<Sprite>(iconResourcePath);
-            ArtifactCatalog.getAdditionalEntries += (list) => {
-                list.Add(artifactDef);
-            };
+
+            ArtifactAPI.Add(artifactDef);
         }
 
         public bool IsActiveAndEnabled() {
