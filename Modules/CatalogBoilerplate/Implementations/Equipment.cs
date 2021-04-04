@@ -57,8 +57,8 @@ namespace TILER2.CatalogBoilerplates {
 
             equipmentDef = new EquipmentDef {
                 name = modInfo.shortIdentifier + name,
-                pickupModelPath = modelResourcePath,
-                pickupIconPath = iconResourcePath,
+                pickupModelPrefab = Resources.Load<GameObject>(modelResourcePath),
+                pickupIconSprite = Resources.Load<Sprite>(iconResourcePath),
                 nameToken = this.nameToken,
                 pickupToken = this.pickupToken,
                 descriptionToken = this.descToken,
