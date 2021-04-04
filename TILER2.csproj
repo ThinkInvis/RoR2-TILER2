@@ -16,12 +16,14 @@
     <Reference Include="BetterUI">
       <HintPath>lib\BetterUI.dll</HintPath>
     </Reference>
+    <Reference Include="HGCSharpUtils">
+      <HintPath>lib\HGCSharpUtils.dll</HintPath>
+    </Reference>
     <Reference Include="ItemStats">
       <HintPath>lib\ItemStats.dll</HintPath>
     </Reference>
     <Reference Include="MMHOOK_Assembly-CSharp">
       <HintPath>lib\MMHOOK_Assembly-CSharp.dll</HintPath>
-      <Private>false</Private>
     </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>lib\Mono.Cecil.dll</HintPath>
