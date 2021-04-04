@@ -33,28 +33,22 @@ namespace TILER2 {
             }
 
             //ItemDropAPI completely overwrites drop tables; need to perform separate removal
+            //TODO: determine whether this is necessary in new IDAPI
             if(ItemDropAPI.Loaded) {
-                ItemDropAPI.RemoveFromDefaultByTier(
-                    allInstances.Where(bpl => bpl is Item_V2 && !bpl.enabled)
-                    .Select(bpl => {
-                        return new KeyValuePair<ItemIndex, ItemTier>(((Item_V2)bpl).catalogIndex, ((Item_V2)bpl).itemTier);
-                    })
-                    .ToArray());
-                ItemDropAPI.RemoveFromDefaultEquipment(
-                    allInstances.Where(bpl => bpl is Equipment_V2 && !bpl.enabled)
-                    .Select(bpl => ((Equipment_V2)bpl).catalogIndex)
-                    .ToArray());
-
-                ItemDropAPI.AddToDefaultByTier(
-                    allInstances.Where(bpl => bpl is Item_V2 && bpl.enabled)
-                    .Select(bpl => {
-                        return new KeyValuePair<ItemIndex, ItemTier>(((Item_V2)bpl).catalogIndex, ((Item_V2)bpl).itemTier);
-                    })
-                    .ToArray());
-                ItemDropAPI.AddToDefaultEquipment(
-                    allInstances.Where(bpl => bpl is Equipment_V2 && bpl.enabled)
-                    .Select(bpl => ((Equipment_V2)bpl).catalogIndex)
-                    .ToArray());
+                //remove disabled items
+                foreach(Item item in allInstances) {
+                    //TODO: do we need to check whether it's already (not) contained?
+                    if(item.enabled)
+                        ItemDropAPI.AddItemByTier(item.itemTier, item.catalogIndex);
+                    else
+                        ItemDropAPI.RemoveItemByTier(item.itemTier, item.catalogIndex);
+                }
+                foreach(Equipment equipment in allInstances) {
+                    if(equipment.enabled)
+                        ItemDropAPI.AddEquipment(equipment.catalogIndex);
+                    else
+                        ItemDropAPI.RemoveEquipment(equipment.catalogIndex);
+                }
             }
             orig(self);
             //should force-update most cached drop tables
