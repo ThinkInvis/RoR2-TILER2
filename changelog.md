@@ -1,5 +1,10 @@
 ﻿# TILER2 Changelog
 
+**4.0.1**
+
+- Changed FakeInventory.blacklist from a HashSet<ItemIndex> to a HashSet<ItemDef>. ItemIndex now appears to be populated later in setup; ItemDef is more reliable.
+- Fixed duplicate hook in FakeInventory.GetItemCount. No related issues were observed, but some probably existed.
+
 **4.0.0**
 
 - Compatibility changes for Risk of Rain 2 Anniversary Update.

@@ -47,6 +47,11 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**4.0.1**
+
+- Changed FakeInventory.blacklist from a HashSet<ItemIndex> to a HashSet<ItemDef>. ItemIndex now appears to be populated later in setup; ItemDef is more reliable.
+- Fixed duplicate hook in FakeInventory.GetItemCount. No related issues were observed, but some probably existed.
+
 **4.0.0**
 
 - Compatibility changes for Risk of Rain 2 Anniversary Update.
@@ -70,7 +75,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **3.0.2**
 
 - Fixed legacy code (ItemBoilerplate, AutoItemConfig) not being included in plugin setup.
-
-**3.0.1**
-
-- Added automatic language reloading (fixes some unloaded language string issues in dependents).
