@@ -35,18 +35,19 @@ namespace TILER2 {
             //TODO: determine whether this is necessary in new IDAPI
             if(ItemDropAPI.Loaded) {
                 //remove disabled items
-                foreach(Item item in allInstances) {
-                    //TODO: do we need to check whether it's already (not) contained?
-                    if(item.enabled && item.itemDef.DoesNotContainTag(ItemTag.WorldUnique))
-                        ItemDropAPI.AddItemByTier(item.itemTier, item.catalogIndex);
-                    else
-                        ItemDropAPI.RemoveItemByTier(item.itemTier, item.catalogIndex);
-                }
-                foreach(Equipment equipment in allInstances) {
-                    if(equipment.enabled)
-                        ItemDropAPI.AddEquipment(equipment.catalogIndex);
-                    else
-                        ItemDropAPI.RemoveEquipment(equipment.catalogIndex);
+                foreach(CatalogBoilerplate bpl in allInstances) {
+                    if(bpl is Item item) {
+                        //TODO: do we need to check whether it's already (not) contained?
+                        if(item.enabled && item.itemDef.DoesNotContainTag(ItemTag.WorldUnique))
+                            ItemDropAPI.AddItemByTier(item.itemTier, item.catalogIndex);
+                        else
+                            ItemDropAPI.RemoveItemByTier(item.itemTier, item.catalogIndex);
+                    } else if(bpl is Equipment equipment) {
+                        if(equipment.enabled)
+                            ItemDropAPI.AddEquipment(equipment.catalogIndex);
+                        else
+                            ItemDropAPI.RemoveEquipment(equipment.catalogIndex);
+                    }
                 }
             }
             orig(self);
