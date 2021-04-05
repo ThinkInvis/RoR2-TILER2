@@ -47,6 +47,14 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**4.0.0**
+
+- Compatibility changes for Risk of Rain 2 Anniversary Update.
+- Removed deprecated content.
+	- Item_V2, Equipment_V2, Artifact_V2 now alias to Item, Equipment, Artifact and these aliases will be removed in the next minor version.
+	- AutoItemConfig has been removed.
+- Attempted to fix WorldUnique items being added to drop pools.
+
 **3.0.4**
 
 - General stability patch for StatHooks.
@@ -66,12 +74,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **3.0.1**
 
 - Added automatic language reloading (fixes some unloaded language string issues in dependents).
-
-**3.0.0**
-
-- Introduces the T2Module class.
-- Makes sweeping cosmetic renames to several modules.
-- ItemBoilerplate (now CatalogBoilerplate) main plugin setup now flows slightly differently.
-- CatalogBoilerplate language handling was overhauled to take advantage of R2API Language Overlays.
-- AutoConfig now supports using fields as nametags, not just properties.
-- SkillUtil.ReplaceVariant/RemoveVariant no longer require SkillCatalog to be initialized.

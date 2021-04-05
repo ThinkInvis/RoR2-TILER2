@@ -13,7 +13,7 @@ namespace TILER2 {
     [BepInDependency("com.xoxfaby.BetterUI",BepInDependency.DependencyFlags.SoftDependency)]
     [R2APISubmoduleDependency(nameof(ItemAPI), nameof(ArtifactAPI), nameof(LanguageAPI), nameof(ResourcesAPI), nameof(PrefabAPI), nameof(BuffAPI), nameof(CommandHelper), nameof(R2API.Networking.NetworkingAPI))]
     public class TILER2Plugin:BaseUnityPlugin {
-        public const string ModVer = "3.0.4";
+        public const string ModVer = "4.0.0";
         public const string ModName = "TILER2";
         public const string ModGuid = "com.ThinkInvisible.TILER2";
 

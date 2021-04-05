@@ -1,5 +1,13 @@
 ﻿# TILER2 Changelog
 
+**4.0.0**
+
+- Compatibility changes for Risk of Rain 2 Anniversary Update.
+- Removed deprecated content.
+	- Item_V2, Equipment_V2, Artifact_V2 now alias to Item, Equipment, Artifact and these aliases will be removed in the next minor version.
+	- AutoItemConfig has been removed.
+- Attempted to fix WorldUnique items being added to drop pools.
+
 **3.0.4**
 
 - General stability patch for StatHooks.
