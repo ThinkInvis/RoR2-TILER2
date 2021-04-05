@@ -24,7 +24,7 @@ namespace TILER2 {
         protected override string GetLoreString(string langID = null) => null;
         protected override string GetPickupString(string langID = null) => null;
 
-        public string iconResourcePathDisabled {get; protected set;} = null;
+        public Sprite iconResourceDisabled {get; protected set;} = null;
 
         public ArtifactIndex catalogIndex => artifactDef.artifactIndex;
         public ArtifactDef artifactDef {get; private set;}
@@ -37,8 +37,8 @@ namespace TILER2 {
                         if((bool)args.newValue == true) {
                             if(Run.instance != null && Run.instance.enabled) Chat.AddMessage(displayName + " is <color=#aaffaa>NO LONGER FORCE-DISABLED</color>, and it will now take effect if enabled ingame.");
                             artifactDef.descriptionToken = descToken;
-                            artifactDef.smallIconDeselectedSprite = Resources.Load<Sprite>(iconResourcePathDisabled);
-                            artifactDef.smallIconSelectedSprite = Resources.Load<Sprite>(iconResourcePath);
+                            artifactDef.smallIconDeselectedSprite = iconResourceDisabled;
+                            artifactDef.smallIconSelectedSprite = iconResource;
                         } else {
                             if(Run.instance != null && Run.instance.enabled) Chat.AddMessage(displayName + " has been <color=#ffaaaa>FORCE-DISABLED</color>. If enabled ingame, it will not have any effect.");
                             artifactDef.descriptionToken = "TILER2_DISABLED_ARTIFACT";
@@ -56,8 +56,8 @@ namespace TILER2 {
             artifactDef = ScriptableObject.CreateInstance<ArtifactDef>();
             artifactDef.nameToken = nameToken;
             artifactDef.descriptionToken = descToken;
-            artifactDef.smallIconDeselectedSprite = Resources.Load<Sprite>(iconResourcePathDisabled);
-            artifactDef.smallIconSelectedSprite = Resources.Load<Sprite>(iconResourcePath);
+            artifactDef.smallIconDeselectedSprite = iconResourceDisabled;
+            artifactDef.smallIconSelectedSprite = iconResource;
 
             ArtifactAPI.Add(artifactDef);
         }

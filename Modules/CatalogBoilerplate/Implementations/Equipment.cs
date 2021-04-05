@@ -54,8 +54,8 @@ namespace TILER2 {
 
             equipmentDef = new EquipmentDef {
                 name = modInfo.shortIdentifier + name,
-                pickupModelPrefab = Resources.Load<GameObject>(modelResourcePath),
-                pickupIconSprite = Resources.Load<Sprite>(iconResourcePath),
+                pickupModelPrefab = modelResource,
+                pickupIconSprite = iconResource,
                 nameToken = this.nameToken,
                 pickupToken = this.pickupToken,
                 descriptionToken = this.descToken,

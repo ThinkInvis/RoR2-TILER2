@@ -86,10 +86,10 @@ namespace TILER2 {
         public override AutoConfigFlags enabledConfigFlags => AutoConfigFlags.PreventNetMismatch | AutoConfigFlags.DeferUntilNextStage;
         public override AutoConfigUpdateActionTypes enabledConfigUpdateActionTypes => AutoConfigUpdateActionTypes.InvalidateLanguage | AutoConfigUpdateActionTypes.InvalidateStats | AutoConfigUpdateActionTypes.InvalidateDropTable;
 
-        ///<summary>A resource string pointing to the object's model.</summary>
-        public string modelResourcePath {get; protected set;} = null;
-        ///<summary>A resource string pointing to the object's icon.</summary>
-        public string iconResourcePath {get; protected set;} = null;
+        ///<summary>A generic GameObject to use as the object's model.</summary>
+        public GameObject modelResource {get; protected set;} = null;
+        ///<summary>A sprite object to use as the object's icon.</summary>
+        public Sprite iconResource {get; protected set;} = null;
         
         ///<summary>The object's display name in the mod's default language. Will be used in config files; should also be used in generic language tokens.</summary>
         public abstract string displayName {get;}

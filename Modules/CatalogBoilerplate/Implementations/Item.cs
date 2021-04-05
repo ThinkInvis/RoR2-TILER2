@@ -78,8 +78,8 @@ namespace TILER2 {
             itemDef = new ItemDef {
                 name = modInfo.shortIdentifier+name,
                 tier = itemTier,
-                pickupModelPrefab = Resources.Load<GameObject>(modelResourcePath),
-                pickupIconSprite = Resources.Load<Sprite>(iconResourcePath),
+                pickupModelPrefab = modelResource,
+                pickupIconSprite = iconResource,
                 nameToken = this.nameToken,
                 pickupToken = this.pickupToken,
                 descriptionToken = this.descToken,
