@@ -75,17 +75,16 @@ namespace TILER2 {
             var _itemTags = new List<ItemTag>(itemTags);
             if(itemIsAIBlacklisted) _itemTags.Add(ItemTag.AIBlacklist);
             var iarr = _itemTags.ToArray();
-            itemDef = new ItemDef {
-                name = modInfo.shortIdentifier+name,
-                tier = itemTier,
-                pickupModelPrefab = modelResource,
-                pickupIconSprite = iconResource,
-                nameToken = this.nameToken,
-                pickupToken = this.pickupToken,
-                descriptionToken = this.descToken,
-                loreToken = this.loreToken,
-                tags = iarr
-            };
+            itemDef = ScriptableObject.CreateInstance<ItemDef>();
+            itemDef.name = modInfo.shortIdentifier + name;
+            itemDef.tier = itemTier;
+            itemDef.pickupModelPrefab = modelResource;
+            itemDef.pickupIconSprite = iconResource;
+            itemDef.nameToken = this.nameToken;
+            itemDef.pickupToken = this.pickupToken;
+            itemDef.descriptionToken = this.descToken;
+            itemDef.loreToken = this.loreToken;
+            itemDef.tags = iarr;
 
             itemTags = Array.AsReadOnly(iarr);
             customItem = new CustomItem(itemDef, displayRules);

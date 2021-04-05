@@ -52,19 +52,18 @@ namespace TILER2 {
         public override void SetupAttributes() {
             base.SetupAttributes();
 
-            equipmentDef = new EquipmentDef {
-                name = modInfo.shortIdentifier + name,
-                pickupModelPrefab = modelResource,
-                pickupIconSprite = iconResource,
-                nameToken = this.nameToken,
-                pickupToken = this.pickupToken,
-                descriptionToken = this.descToken,
-                loreToken = this.loreToken,
-                cooldown = cooldown,
-                enigmaCompatible = isEnigmaCompatible,
-                isLunar = isLunar,
-                canDrop = true
-            };
+            equipmentDef = ScriptableObject.CreateInstance<EquipmentDef>();
+            equipmentDef.name = modInfo.shortIdentifier + name;
+            equipmentDef.pickupModelPrefab = modelResource;
+            equipmentDef.pickupIconSprite = iconResource;
+            equipmentDef.nameToken = this.nameToken;
+            equipmentDef.pickupToken = this.pickupToken;
+            equipmentDef.descriptionToken = this.descToken;
+            equipmentDef.loreToken = this.loreToken;
+            equipmentDef.cooldown = cooldown;
+            equipmentDef.enigmaCompatible = isEnigmaCompatible;
+            equipmentDef.isLunar = isLunar;
+            equipmentDef.canDrop = true;
             if(isLunar) 
 				equipmentDef.colorIndex = ColorCatalog.ColorIndex.LunarItem;
             customEquipment = new CustomEquipment(equipmentDef, displayRules);
