@@ -88,7 +88,10 @@ namespace TILER2 {
         protected abstract bool PerformEquipmentAction(EquipmentSlot slot);
         
         public bool HasEquipment(Inventory inv, bool inMain = true, bool inAlt = false) {
-            return (inMain && (inv != null ? inv.currentEquipmentIndex : EquipmentIndex.None) == catalogIndex) || (inAlt && (inv != null ? inv.alternateEquipmentIndex : EquipmentIndex.None) == catalogIndex);
+            return (inMain &&
+                (inv != null ? inv.currentEquipmentIndex : EquipmentIndex.None) == catalogIndex)
+                || (inAlt &&
+                (inv != null ? inv.alternateEquipmentIndex : EquipmentIndex.None) == catalogIndex);
         }
 
         public bool HasEquipment(CharacterBody body) {
