@@ -26,7 +26,7 @@ namespace TILER2 {
         public EquipmentDef equipmentDef {get; private set;}
         public CustomEquipment customEquipment {get; private set;}
 
-        protected ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
+        protected ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict();
 
         [AutoConfig("The base cooldown of the equipment, in seconds.", AutoConfigFlags.DeferUntilNextStage, 0f, float.MaxValue)]
         public virtual float cooldown {get; protected set;} = 45f; //TODO: add a getter function to update ingame cooldown properly if in use; marked as DeferUntilNextStage until then
