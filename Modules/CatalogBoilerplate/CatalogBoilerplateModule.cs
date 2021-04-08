@@ -54,9 +54,10 @@ namespace TILER2 {
             //should force-update most cached drop tables
             PickupDropTable.RegenerateAll(Run.instance);
             //update existing Command droplets. part of an effort to disable items mid-stage, may not be necessary while that's prevented
-            foreach(var picker in UnityEngine.Object.FindObjectsOfType<PickupPickerController>()) {
+            //may be causing issues with command droplet selections as of Anniversary Update
+            /*foreach(var picker in UnityEngine.Object.FindObjectsOfType<PickupPickerController>()) {
                 picker.SetOptionsFromPickupForCommandArtifact(picker.options[0].pickupIndex);
-            }
+            }*/
         }
 
         private void On_PickupCatalogInit(On.RoR2.PickupCatalog.orig_Init orig) {
