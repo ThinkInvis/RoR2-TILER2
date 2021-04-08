@@ -47,6 +47,11 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**4.0.2**
+
+- Fixed defaulting to null values instead of empty arrays in ItemDisplayRuleDict.
+- Updated R2API dependency to 3.0.11. Additional removal of a mostly unused feature may have also assisted in resolving issues with Artifact of Command.
+
 **4.0.1**
 
 - Changed FakeInventory.blacklist from a HashSet<ItemIndex> to a HashSet<ItemDef>. ItemIndex now appears to be populated later in setup; ItemDef is more reliable.
@@ -71,7 +76,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **3.0.3**
 
 - Additional fixes for legacy code. Should resolve NetConfig missing entry kicks.
-
-**3.0.2**
-
-- Fixed legacy code (ItemBoilerplate, AutoItemConfig) not being included in plugin setup.
