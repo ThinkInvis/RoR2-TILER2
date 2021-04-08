@@ -37,7 +37,6 @@ namespace TILER2 {
                 //remove disabled items
                 foreach(CatalogBoilerplate bpl in allInstances) {
                     if(bpl is Item item) {
-                        //TODO: do we need to check whether it's already (not) contained?
                         if(item.enabled && item.itemDef.DoesNotContainTag(ItemTag.WorldUnique))
                             ItemDropAPI.AddItemByTier(item.itemTier, item.catalogIndex);
                         else
