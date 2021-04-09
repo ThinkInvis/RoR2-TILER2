@@ -43,12 +43,6 @@ namespace TILER2 {
                 }) : null);
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        [Obsolete("Hook for deprecated form of AddEffect. Use delegate form instead.")]
-        public static void AddEffect(ItemIndex itemIndex, ProcEffect procEffect, float value, float stackAmount, Stacking stacking = Stacking.Linear) {
-            BetterUI.ProcItemsCatalog.AddEffect(itemIndex, (BetterUI.ProcItemsCatalog.ProcEffect)procEffect, value, stackAmount, (BetterUI.ProcItemsCatalog.Stacking)stacking);
-        }
-        
         public static EffectFormatterWrapper ChanceFormatter;
         public static EffectFormatterWrapper RangeFormatter;
         public static EffectFormatterWrapper HPFormatter;
