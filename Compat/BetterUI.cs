@@ -21,8 +21,16 @@ namespace TILER2 {
                 : (1f - Mathf.Pow(1f - (chance % 1f), 1f + luck)));
         }
 
+        public static void AddEffect(ItemDef itemDef, float value, float? extraStackValue = null, EffectFormatterWrapper formatter = null, StackingFormulaWrapper stackFormula = null, CapFormulaWrapper capFormula = null) {
+            ItemCatalog.availability.CallWhenAvailable(() => {AddEffect(itemDef.itemIndex, value, extraStackValue, formatter, stackFormula, capFormula);});
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void AddEffect(ItemIndex itemIndex, float value, float? extraStackValue = null, EffectFormatterWrapper formatter = null, StackingFormulaWrapper stackFormula = null, CapFormulaWrapper capFormula = null) {
+            if(!ItemCatalog.availability.available) {
+                TILER2Plugin._logger.LogError("Compat_BetterUI.AddEffect (itemIndex) cannot be used before ItemCatalog setup");
+                return;
+            }
             BetterUI.ProcItemsCatalog.AddEffect(itemIndex, value, extraStackValue,
                 formatter != null ? (BetterUI.ProcItemsCatalog.EffectFormatter)((calcValue, procCoef, luck, canCap, cap) => {
                     return formatter(calcValue, procCoef, luck, canCap, cap);
