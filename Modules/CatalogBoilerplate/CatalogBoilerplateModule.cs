@@ -16,16 +16,21 @@ namespace TILER2 {
             On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
             On.RoR2.UI.LogBook.LogBookController.BuildPickupEntries += On_LogbookBuildPickupEntries;
             On.RoR2.Run.BuildDropTable += On_RunBuildDropTable;
-            ItemDropAPI.ChestItems.Equipment += CatalogBoilerplateEquipmentListProvider;
+            ItemDropAPI.ChestItems.NormalEquipment += CatalogBoilerplateNonLunarEquipmentListProvider;
+            ItemDropAPI.ChestItems.LunarEquipment += CatalogBoilerplateLunarEquipmentListProvider;
         }
 
-        private IEnumerable<PickupIndex> CatalogBoilerplateEquipmentListProvider(IEnumerable<PickupIndex> input) {
-            return input.Except(CollectEquipment(false)).Concat(CollectEquipment(true));
+        private IEnumerable<PickupIndex> CatalogBoilerplateLunarEquipmentListProvider(IEnumerable<PickupIndex> input) {
+            return input.Except(CollectEquipment(false, true)).Concat(CollectEquipment(true, true));
         }
 
-        private IEnumerable<PickupIndex> CollectEquipment(bool mustBeEnabled) {
+        private IEnumerable<PickupIndex> CatalogBoilerplateNonLunarEquipmentListProvider(IEnumerable<PickupIndex> input) {
+            return input.Except(CollectEquipment(false, false)).Concat(CollectEquipment(true, false));
+        }
+
+        private IEnumerable<PickupIndex> CollectEquipment(bool mustBeEnabled, bool mustBeLunar) {
             foreach(CatalogBoilerplate bpl in allInstances) {
-                if(bpl is Equipment equipment && (equipment.enabled == mustBeEnabled))
+                if(bpl is Equipment equipment && (equipment.enabled == mustBeEnabled) && (equipment.isLunar == mustBeLunar))
                     yield return equipment.pickupIndex;
             }
         }
