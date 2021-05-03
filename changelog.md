@@ -1,5 +1,12 @@
 ﻿# TILER2 Changelog
 
+**4.0.3**
+
+- Compatibility updates for recent Risk of Rain 2 patches.
+- Updated R2API dependency to 3.0.30.
+- Updated BetterUI compat hooks for 2.0.2.
+- KNOWN ISSUE: Disabled items/equipments will appear in command droplets.
+
 **4.0.2**
 
 - Fixed defaulting to null values instead of empty arrays in ItemDisplayRuleDict.

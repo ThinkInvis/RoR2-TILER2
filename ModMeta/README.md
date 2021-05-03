@@ -14,6 +14,8 @@ If the versions of TILER2 (or possibly any other mods) are different between you
 
 TILER2 is a library mod. It won't do much on its own, but it may be required for some other mods.
 
+**IMPORTANT KNOWN ISSUE** in current version: When disabled as managed by TILER2, items/equipments will erroneously appear in command droplets. This is currently being investigated.
+
 ### User-Facing Features
 
 TILER2 mostly contains features that are useful for mod developers, but it also adds some things that normal users can take advantage of.
@@ -47,6 +49,13 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**4.0.3**
+
+- Compatibility updates for recent Risk of Rain 2 patches.
+- Updated R2API dependency to 3.0.30.
+- Updated BetterUI compat hooks for 2.0.2.
+- KNOWN ISSUE: Disabled items/equipments will appear in command droplets.
+
 **4.0.2**
 
 - Fixed defaulting to null values instead of empty arrays in ItemDisplayRuleDict.
@@ -72,7 +81,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 	- Added a handful of new hook locations (baseShieldAdd, baseMoveSpeedAdd, baseAttackSpeedAdd).
 	- Fixes an issue with strange and incorrect behavior on both health modifiers.
 - Added the concmd t2_stat for debugging StatHooks.
-
-**3.0.3**
-
-- Additional fixes for legacy code. Should resolve NetConfig missing entry kicks.
