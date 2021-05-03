@@ -25,27 +25,32 @@ namespace TILER2 {
 
         private IEnumerable<PickupIndex> CollectEquipment(bool mustBeEnabled) {
             foreach(CatalogBoilerplate bpl in allInstances) {
-                    if(bpl is Equipment eqp) newEqpMask.Add(eqp.catalogIndex);
-                    else if(bpl is Item item) newItemMask.Add(item.catalogIndex);
-                }
+                if(bpl is Equipment equipment && (equipment.enabled == mustBeEnabled))
+                    yield return equipment.pickupIndex;
             }
+        }
 
-            //ItemDropAPI completely overwrites drop tables; need to perform separate removal
-            //TODO: determine whether this is necessary in new IDAPI
-            if(ItemDropAPI.Loaded) {
-                //remove disabled items
-                foreach(CatalogBoilerplate bpl in allInstances) {
-                    if(bpl is Item item) {
-                        if(item.enabled && item.itemDef.DoesNotContainTag(ItemTag.WorldUnique))
-                            ItemDropAPI.AddItemByTier(item.itemTier, item.catalogIndex);
-                        else
-                            ItemDropAPI.RemoveItemByTier(item.itemTier, item.catalogIndex);
-                    } else if(bpl is Equipment equipment) {
-                        if(equipment.enabled)
-                            ItemDropAPI.AddEquipment(equipment.catalogIndex);
-                        else
-                            ItemDropAPI.RemoveEquipment(equipment.catalogIndex);
-                    }
+        private IEnumerable<ItemIndex> CollectItemsOfTier(ItemTier tier, bool mustBeEnabled) {
+            foreach(CatalogBoilerplate bpl in allInstances) {
+                if(bpl is Item item && (mustBeEnabled == item.enabled) && item.itemDef.DoesNotContainTag(ItemTag.WorldUnique))
+                    yield return item.catalogIndex;
+            }
+        }
+
+        readonly ItemTier[] TIERS_TO_SCAN = { ItemTier.Tier1, ItemTier.Tier2, ItemTier.Tier3, ItemTier.Lunar, ItemTier.Boss };
+
+        private void On_RunBuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self) {
+            //remove disabled items
+            foreach(var tier in TIERS_TO_SCAN) {
+                ItemDropAPI.AddItemByTier(tier, CollectItemsOfTier(tier, true).ToArray());
+                ItemDropAPI.RemoveItemByTier(tier, CollectItemsOfTier(tier, false).ToArray());
+            }
+            foreach(CatalogBoilerplate bpl in allInstances) {
+                if(bpl is Item item) {
+                    if(item.enabled && item.itemDef.DoesNotContainTag(ItemTag.WorldUnique))
+                        ItemDropAPI.AddItemByTier(item.itemTier, item.catalogIndex);
+                    else
+                        ItemDropAPI.RemoveItemByTier(item.itemTier, item.catalogIndex);
                 }
             }
             orig(self);
