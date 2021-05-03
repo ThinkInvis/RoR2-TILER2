@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**4.0.5**
+
+- Fixed CatalogBoilerplate equipments being added to both Lunar and non-Lunar sources regardless of actual IsLunar flag.
+
 **4.0.4**
 
 - Fixed CatalogBoilerplate items being added to all tiers instead of only the intended tier.
