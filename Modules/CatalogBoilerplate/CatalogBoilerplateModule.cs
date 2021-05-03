@@ -16,47 +16,31 @@ namespace TILER2 {
             On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
             On.RoR2.UI.LogBook.LogBookController.BuildPickupEntries += On_LogbookBuildPickupEntries;
             On.RoR2.Run.BuildDropTable += On_RunBuildDropTable;
-            ItemDropAPI.ChestItems.NormalEquipment += CatalogBoilerplateNonLunarEquipmentListProvider;
-            ItemDropAPI.ChestItems.LunarEquipment += CatalogBoilerplateLunarEquipmentListProvider;
         }
-
-        private IEnumerable<PickupIndex> CatalogBoilerplateLunarEquipmentListProvider(IEnumerable<PickupIndex> input) {
-            return input.Except(CollectEquipment(false, true)).Concat(CollectEquipment(true, true));
-        }
-
-        private IEnumerable<PickupIndex> CatalogBoilerplateNonLunarEquipmentListProvider(IEnumerable<PickupIndex> input) {
-            return input.Except(CollectEquipment(false, false)).Concat(CollectEquipment(true, false));
-        }
-
-        private IEnumerable<PickupIndex> CollectEquipment(bool mustBeEnabled, bool mustBeLunar) {
-            foreach(CatalogBoilerplate bpl in allInstances) {
-                if(bpl is Equipment equipment && (equipment.enabled == mustBeEnabled) && (equipment.isLunar == mustBeLunar))
-                    yield return equipment.pickupIndex;
-            }
-        }
-
-        private IEnumerable<ItemIndex> CollectItemsOfTier(ItemTier tier, bool mustBeEnabled) {
-            foreach(CatalogBoilerplate bpl in allInstances) {
-                if(bpl is Item item && item.itemTier == tier && (mustBeEnabled == item.enabled) && (mustBeEnabled ? item.itemDef.DoesNotContainTag(ItemTag.WorldUnique) : true))
-                    yield return item.catalogIndex;
-            }
-        }
-
-        readonly ItemTier[] TIERS_TO_SCAN = { ItemTier.Tier1, ItemTier.Tier2, ItemTier.Tier3, ItemTier.Lunar, ItemTier.Boss };
 
         private void On_RunBuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self) {
-            foreach(var tier in TIERS_TO_SCAN) {
-                ItemDropAPI.AddItemByTier(tier, CollectItemsOfTier(tier, true).ToArray());
-                ItemDropAPI.RemoveItemByTier(tier, CollectItemsOfTier(tier, false).ToArray());
+            var newItemMask = self.availableItems;
+            var newEqpMask = self.availableEquipment;
+            foreach(CatalogBoilerplate bpl in allInstances) {
+                if(bpl is Item item) {
+                    bool shouldDrop = item.enabled && item.itemDef.DoesNotContainTag(ItemTag.WorldUnique);
+                    if(shouldDrop)
+                        newItemMask.Add(item.catalogIndex);
+                    else
+                        newItemMask.Remove(item.catalogIndex);
+                } else if(bpl is Equipment equipment) {
+                    bool shouldDrop = equipment.enabled;
+                    if(shouldDrop)
+                        newEqpMask.Add(equipment.catalogIndex);
+                    else
+                        newEqpMask.Remove(equipment.catalogIndex);
+                }
             }
+            self.availableItems = newItemMask;
+            self.availableEquipment = newEqpMask;
             orig(self);
             //should force-update most cached drop tables
             PickupDropTable.RegenerateAll(Run.instance);
-            //update existing Command droplets. part of an effort to disable items mid-stage, may not be necessary while that's prevented
-            //may be causing issues with command droplet selections as of Anniversary Update
-            /*foreach(var picker in UnityEngine.Object.FindObjectsOfType<PickupPickerController>()) {
-                picker.SetOptionsFromPickupForCommandArtifact(picker.options[0].pickupIndex);
-            }*/
         }
 
         private void On_PickupCatalogInit(On.RoR2.PickupCatalog.orig_Init orig) {
