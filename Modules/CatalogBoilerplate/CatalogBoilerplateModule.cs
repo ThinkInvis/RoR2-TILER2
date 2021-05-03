@@ -16,16 +16,15 @@ namespace TILER2 {
             On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
             On.RoR2.UI.LogBook.LogBookController.BuildPickupEntries += On_LogbookBuildPickupEntries;
             On.RoR2.Run.BuildDropTable += On_RunBuildDropTable;
+            ItemDropAPI.ChestItems.Equipment += CatalogBoilerplateEquipmentListProvider;
         }
 
-        private void On_RunBuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self) {
-            var newItemMask = self.availableItems;
-            var newEqpMask = self.availableEquipment;
+        private IEnumerable<PickupIndex> CatalogBoilerplateEquipmentListProvider(IEnumerable<PickupIndex> input) {
+            return input.Except(CollectEquipment(false)).Concat(CollectEquipment(true));
+        }
+
+        private IEnumerable<PickupIndex> CollectEquipment(bool mustBeEnabled) {
             foreach(CatalogBoilerplate bpl in allInstances) {
-                if(!bpl.enabled) {
-                    if(bpl is Equipment eqp) newEqpMask.Remove(eqp.catalogIndex);
-                    else if(bpl is Item item) newItemMask.Remove(item.catalogIndex);
-                } else {
                     if(bpl is Equipment eqp) newEqpMask.Add(eqp.catalogIndex);
                     else if(bpl is Item item) newItemMask.Add(item.catalogIndex);
                 }
