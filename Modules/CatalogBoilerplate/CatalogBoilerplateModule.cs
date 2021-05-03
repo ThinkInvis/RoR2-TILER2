@@ -32,7 +32,7 @@ namespace TILER2 {
 
         private IEnumerable<ItemIndex> CollectItemsOfTier(ItemTier tier, bool mustBeEnabled) {
             foreach(CatalogBoilerplate bpl in allInstances) {
-                if(bpl is Item item && (mustBeEnabled == item.enabled) && item.itemDef.DoesNotContainTag(ItemTag.WorldUnique))
+                if(bpl is Item item && item.itemTier == tier && (mustBeEnabled == item.enabled) && (mustBeEnabled ? item.itemDef.DoesNotContainTag(ItemTag.WorldUnique) : true))
                     yield return item.catalogIndex;
             }
         }
