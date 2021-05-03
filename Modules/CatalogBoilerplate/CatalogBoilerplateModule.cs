@@ -44,14 +44,6 @@ namespace TILER2 {
                 ItemDropAPI.AddItemByTier(tier, CollectItemsOfTier(tier, true).ToArray());
                 ItemDropAPI.RemoveItemByTier(tier, CollectItemsOfTier(tier, false).ToArray());
             }
-            foreach(CatalogBoilerplate bpl in allInstances) {
-                if(bpl is Item item) {
-                    if(item.enabled && item.itemDef.DoesNotContainTag(ItemTag.WorldUnique))
-                        ItemDropAPI.AddItemByTier(item.itemTier, item.catalogIndex);
-                    else
-                        ItemDropAPI.RemoveItemByTier(item.itemTier, item.catalogIndex);
-                }
-            }
             orig(self);
             //should force-update most cached drop tables
             PickupDropTable.RegenerateAll(Run.instance);
