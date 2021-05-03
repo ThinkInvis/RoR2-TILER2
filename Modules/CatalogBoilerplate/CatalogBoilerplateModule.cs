@@ -40,7 +40,6 @@ namespace TILER2 {
         readonly ItemTier[] TIERS_TO_SCAN = { ItemTier.Tier1, ItemTier.Tier2, ItemTier.Tier3, ItemTier.Lunar, ItemTier.Boss };
 
         private void On_RunBuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self) {
-            //remove disabled items
             foreach(var tier in TIERS_TO_SCAN) {
                 ItemDropAPI.AddItemByTier(tier, CollectItemsOfTier(tier, true).ToArray());
                 ItemDropAPI.RemoveItemByTier(tier, CollectItemsOfTier(tier, false).ToArray());
