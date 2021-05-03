@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**4.0.4**
+
+- Fixed CatalogBoilerplate items being added to all tiers instead of only the intended tier.
+
 **4.0.3**
 
 - Compatibility updates for recent Risk of Rain 2 patches.

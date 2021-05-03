@@ -49,6 +49,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**4.0.4**
+
+- Fixed CatalogBoilerplate items being added to all tiers instead of only the intended tier.
+
 **4.0.3**
 
 - Compatibility updates for recent Risk of Rain 2 patches.
@@ -73,11 +77,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 	- Item_V2, Equipment_V2, Artifact_V2 now alias to Item, Equipment, Artifact and these aliases will be removed in the next minor version.
 	- AutoItemConfig has been removed.
 - Attempted to fix WorldUnique items being added to drop pools.
-
-**3.0.4**
-
-- General stability patch for StatHooks.
-	- IL patches should now be less fragile in general, and slightly less prone to breaking if another mod gets to modify RecalculateStats first.
-	- Added a handful of new hook locations (baseShieldAdd, baseMoveSpeedAdd, baseAttackSpeedAdd).
-	- Fixes an issue with strange and incorrect behavior on both health modifiers.
-- Added the concmd t2_stat for debugging StatHooks.
