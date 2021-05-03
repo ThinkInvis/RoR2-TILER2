@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**4.0.6**
+
+- Reverted from R2API.ItemDropAPI to an internal implementation for drop table management. Resolves the command droplet issue, in addition to several other drop table errors (e.g. duplication --> chance skewing).
+
 **4.0.5**
 
 - Fixed CatalogBoilerplate equipments being added to both Lunar and non-Lunar sources regardless of actual IsLunar flag.
