@@ -269,7 +269,7 @@ namespace TILER2 {
 			if(ignoreFakes || !self) return origVal;
 			var fakeinv = self.gameObject.GetComponent<FakeInventory>();
 			if(!fakeinv) return origVal;
-			return origVal + fakeinv._itemStacks[(int)itemIndex];//fakeinv.GetItemCount(itemIndex);
+			return origVal + HG.ArrayUtils.GetSafe(fakeinv._itemStacks, (int)itemIndex);
 		}
 
 		private static void On_IIDInventoryChanged(On.RoR2.UI.ItemInventoryDisplay.orig_OnInventoryChanged orig, RoR2.UI.ItemInventoryDisplay self) {
