@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**4.0.7**
+
+- Increased FakeInventory GetItemCount hook safety to parallel vanilla code.
+
 **4.0.6**
 
 - Reverted from R2API.ItemDropAPI to an internal implementation for drop table management. Resolves the command droplet issue, in addition to several other drop table errors (e.g. duplication --> chance skewing).

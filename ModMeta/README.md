@@ -47,6 +47,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**4.0.7**
+
+- Increased FakeInventory GetItemCount hook safety to parallel vanilla code.
+
 **4.0.6**
 
 - Reverted from R2API.ItemDropAPI to an internal implementation for drop table management. Resolves the command droplet issue, in addition to several other drop table errors (e.g. duplication --> chance skewing).
@@ -65,8 +69,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - Updated R2API dependency to 3.0.30.
 - Updated BetterUI compat hooks for 2.0.2.
 - KNOWN ISSUE: Disabled items/equipments will appear in command droplets.
-
-**4.0.2**
-
-- Fixed defaulting to null values instead of empty arrays in ItemDisplayRuleDict.
-- Updated R2API dependency to 3.0.11. Additional removal of a mostly unused feature may have also assisted in resolving issues with Artifact of Command.
