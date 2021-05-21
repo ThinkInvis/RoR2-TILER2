@@ -16,6 +16,16 @@ namespace TILER2 {
             On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
             On.RoR2.UI.LogBook.LogBookController.BuildPickupEntries += On_LogbookBuildPickupEntries;
             On.RoR2.Run.BuildDropTable += On_RunBuildDropTable;
+            On.RoR2.PickupPickerController.GetOptionsFromPickupIndex += PickupPickerController_GetOptionsFromPickupIndex;
+        }
+
+        private PickupPickerController.Option[] PickupPickerController_GetOptionsFromPickupIndex(On.RoR2.PickupPickerController.orig_GetOptionsFromPickupIndex orig, PickupIndex pickupIndex) {
+            var origv = orig(pickupIndex);
+            var remv = new HashSet<PickupIndex>();
+            foreach(CatalogBoilerplate bpl in allInstances) {
+                if((bpl is Item || bpl is Equipment) && !bpl.enabled && bpl.pickupIndex != PickupIndex.none) remv.Add(bpl.pickupIndex);
+            }
+            return origv.Where(x => !remv.Contains(x.pickupIndex)).ToArray();
         }
 
         private void On_RunBuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self) {

@@ -50,6 +50,7 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **4.0.7**
 
 - Increased FakeInventory GetItemCount hook safety to parallel vanilla code.
+- Disabled items are now hidden in Command droplets.
 
 **4.0.6**
 
