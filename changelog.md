@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**5.0.0**
+
+- Removed the StatHooks module (now migrated to R2API).
+
 **4.0.7**
 
 - Increased FakeInventory GetItemCount hook safety to parallel vanilla code.

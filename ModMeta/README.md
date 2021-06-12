@@ -47,6 +47,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**5.0.0**
+
+- Removed the StatHooks module (now migrated to R2API).
+
 **4.0.7**
 
 - Increased FakeInventory GetItemCount hook safety to parallel vanilla code.
@@ -63,10 +67,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **4.0.4**
 
 - Fixed CatalogBoilerplate items being added to all tiers instead of only the intended tier.
-
-**4.0.3**
-
-- Compatibility updates for recent Risk of Rain 2 patches.
-- Updated R2API dependency to 3.0.30.
-- Updated BetterUI compat hooks for 2.0.2.
-- KNOWN ISSUE: Disabled items/equipments will appear in command droplets.
