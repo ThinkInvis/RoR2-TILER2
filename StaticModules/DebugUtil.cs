@@ -9,44 +9,6 @@ using System.Collections.Generic;
 namespace TILER2 {
     internal static class DebugUtil {
         internal static void Setup() {
-            StatHooks.GetStatCoefficients += StatHooks_GetStatCoefficients;
-        }
-
-        private static readonly StatHooks.StatHookEventArgs fixedDebugStatArgs = new StatHooks.StatHookEventArgs();
-        private static readonly IEnumerable<FieldInfo> debugStatArgsFields = typeof(StatHooks.StatHookEventArgs).GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-        private static void StatHooks_GetStatCoefficients(CharacterBody sender, StatHooks.StatHookEventArgs args) {
-            foreach(var stat in debugStatArgsFields) {
-                stat.SetValue(args, (float)stat.GetValue(args) + (float)stat.GetValue(fixedDebugStatArgs));
-            }
-        }
-
-        [ConCommand(commandName = "t2_stat", flags = ConVarFlags.ExecuteOnServer
-            #if !DEBUG
-            | ConVarFlags.Cheat
-            #endif
-            , helpText = "Used for debugging TILER2.StatHooks. Argument 1: name of stat to modify. Argument 2: new additional value to assign to stat.")]
-        private static void CCModifyStat(ConCommandArgs args) {
-            if(args.Count < 1) {
-                TILER2Plugin._logger.LogError("t2_stat: missing argument 1 (stat ID)!");
-                return;
-            }
-            if(args.Count < 2) {
-                TILER2Plugin._logger.LogError("t2_stat: missing argument 2 (stat value)!");
-                return;
-            }
-            var searchStr = args.TryGetArgString(0);
-            var searchList = debugStatArgsFields.Where(x => x.Name == searchStr);
-            if(searchList.Count() == 0) {
-                TILER2Plugin._logger.LogError($"t2_stat: could not find stat with name \"{searchStr}\"!");
-                return;
-            }
-            float? setVal = args.TryGetArgFloat(1);
-            if(!setVal.HasValue) {
-                TILER2Plugin._logger.LogError($"t2_stat: argument 2 (stat value) is badly formatted!");
-                return;
-            }
-            searchList.First().SetValue(fixedDebugStatArgs, setVal.Value);
         }
 
         [ConCommand(commandName = "evo_setitem", flags = ConVarFlags.ExecuteOnServer
