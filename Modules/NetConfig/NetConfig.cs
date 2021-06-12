@@ -34,7 +34,7 @@ namespace TILER2 {
         public override void SetupConfig() {
             var netOrchPrefabPrefab = new GameObject("TILER2NetConfigOrchestratorPrefabPrefab");
             netOrchPrefabPrefab.AddComponent<NetworkIdentity>();
-            NetConfig.netOrchPrefab = netOrchPrefabPrefab.InstantiateClone("TILER2NetConfigOrchestratorPrefab");
+            NetConfig.netOrchPrefab = netOrchPrefabPrefab.InstantiateClone("TILER2NetConfigOrchestratorPrefab", true);
             NetConfig.netOrchPrefab.AddComponent<NetConfigOrchestrator>();
             
             On.RoR2.Networking.GameNetworkManager.OnServerAddPlayerInternal += (orig, self, conn, pcid, extraMsg) => {
