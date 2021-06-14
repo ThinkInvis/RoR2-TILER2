@@ -14,6 +14,7 @@ namespace TILER2 {
         internal static bool globalLanguageDirty = false;
 
         public override void SetupConfig() {
+            base.SetupConfig();
             //this doesn't seem to fire until the title screen is up, which is good because config file changes shouldn't immediately be read during startup; watch for regression (or just implement a check anyways?)
             On.RoR2.RoR2Application.Update += AutoConfigContainer.FilePollUpdateHook;
             
