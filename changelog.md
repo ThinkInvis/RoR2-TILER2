@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**5.0.1**
+
+- Fixed missing config on several modules (AutoConfig, CatalogBoilerplate).
+
 **5.0.0**
 
 - Removed the StatHooks module (now migrated to R2API).

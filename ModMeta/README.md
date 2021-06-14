@@ -47,6 +47,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**5.0.1**
+
+- Fixed missing config on several modules (AutoConfig, CatalogBoilerplate).
+
 **5.0.0**
 
 - Removed the StatHooks module (now migrated to R2API).
@@ -63,7 +67,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **4.0.5**
 
 - Fixed CatalogBoilerplate equipments being added to both Lunar and non-Lunar sources regardless of actual IsLunar flag.
-
-**4.0.4**
-
-- Fixed CatalogBoilerplate items being added to all tiers instead of only the intended tier.
