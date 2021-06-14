@@ -32,6 +32,7 @@ namespace TILER2 {
         public bool timeoutKick {get; private set;} = true;
 
         public override void SetupConfig() {
+            base.SetupConfig();
             var netOrchPrefabPrefab = new GameObject("TILER2NetConfigOrchestratorPrefabPrefab");
             netOrchPrefabPrefab.AddComponent<NetworkIdentity>();
             NetConfig.netOrchPrefab = netOrchPrefabPrefab.InstantiateClone("TILER2NetConfigOrchestratorPrefab", true);
