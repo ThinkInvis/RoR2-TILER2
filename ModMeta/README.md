@@ -40,12 +40,20 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 ## Issues/TODO
 
 - Items which players have but were disabled mid-run need a UI indicator for such.
-- If a client gets kicked by R2API mod mismatch, NetConfig will attempt kick them again (to no effect) due to timeout.
+- If a client gets kicked by R2API mod mismatch, NetConfig will attempt to kick them again (to no effect) due to timeout.
 - See the GitHub repo for more!
 
 ## Changelog
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
+
+**5.1.0**
+
+- Compatibility update for Risk of Rain 2 Expansion 1 (SotV).
+- Updated R2API dependency to 4.0.11.
+- Updated BepInEx dependency to 5.4.1902.
+- Updated BetterUI and ShareSuite compat hooks; no changes appeared to be necessary.
+- Removed ItemStats compat hook, as ItemStats is currently outdated and nonfunctional.
 
 **5.0.1**
 
@@ -63,7 +71,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **4.0.6**
 
 - Reverted from R2API.ItemDropAPI to an internal implementation for drop table management. Resolves the command droplet issue, in addition to several other drop table errors (e.g. duplication --> chance skewing).
-
-**4.0.5**
-
-- Fixed CatalogBoilerplate equipments being added to both Lunar and non-Lunar sources regardless of actual IsLunar flag.

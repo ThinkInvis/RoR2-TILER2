@@ -1,5 +1,13 @@
 ﻿# TILER2 Changelog
 
+**5.1.0**
+
+- Compatibility update for Risk of Rain 2 Expansion 1 (SotV).
+- Updated R2API dependency to 4.0.11.
+- Updated BepInEx dependency to 5.4.1902.
+- Updated BetterUI and ShareSuite compat hooks; no changes appeared to be necessary.
+- Removed ItemStats compat hook, as ItemStats is currently outdated and nonfunctional.
+
 **5.0.1**
 
 - Fixed missing config on several modules (AutoConfig, CatalogBoilerplate).
