@@ -63,8 +63,6 @@ namespace TILER2 {
                         nl.Add(ItemTag.AIBlacklist);
                         itemDef.tags = nl.ToArray();
                     }
-
-                    if(Run.instance && Run.instance.isActiveAndEnabled && NetworkServer.active) RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.GenerateAvailableItemsSet();
                 }
             };
         }
