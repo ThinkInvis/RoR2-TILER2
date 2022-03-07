@@ -69,8 +69,8 @@ namespace TILER2 {
             }
         }
 
-        private RoR2.UI.LogBook.Entry[] On_LogbookBuildPickupEntries(On.RoR2.UI.LogBook.LogBookController.orig_BuildPickupEntries orig) {
-            var retv = orig();
+        private RoR2.UI.LogBook.Entry[] On_LogbookBuildPickupEntries(On.RoR2.UI.LogBook.LogBookController.orig_BuildPickupEntries orig, Dictionary<RoR2.ExpansionManagement.ExpansionDef, bool> expansionAvailability) {
+            var retv = orig(expansionAvailability);
             var bplsLeft = allInstances.ToList();
             foreach(var entry in retv) {
                 if(!(entry.extraData is PickupIndex)) continue;
