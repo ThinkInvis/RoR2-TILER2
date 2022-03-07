@@ -33,7 +33,6 @@
     </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>lib\Mono.Cecil.dll</HintPath>
-      <Private>false</Private>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
       <HintPath>lib\MonoMod.RuntimeDetour.dll</HintPath>
