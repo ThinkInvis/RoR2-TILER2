@@ -279,10 +279,10 @@ namespace TILER2 {
                     spawnList = Run.instance.availableTier3DropList;
                     break;
                 case 3:
-                    spawnList = Run.instance.availableLunarDropList;
+                    spawnList = Run.instance.availableLunarItemDropList;
                     break;
                 case 4:
-                    spawnList = Run.instance.availableNormalEquipmentDropList;
+                    spawnList = Run.instance.availableEquipmentDropList;
                     break;
                 case 5:
                     spawnList = Run.instance.availableLunarEquipmentDropList;
