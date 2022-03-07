@@ -11,8 +11,8 @@ namespace TILER2 {
     [BepInDependency("com.funkfrog_sipondo.sharesuite",BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("dev.ontrigger.itemstats",BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.xoxfaby.BetterUI",BepInDependency.DependencyFlags.SoftDependency)]
-    [R2APISubmoduleDependency(nameof(ItemAPI), nameof(ArtifactAPI), nameof(LanguageAPI),
-        nameof(PrefabAPI), nameof(BuffAPI), nameof(CommandHelper), nameof(R2API.Networking.NetworkingAPI))]
+    [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI),
+        nameof(PrefabAPI), nameof(CommandHelper), nameof(R2API.Networking.NetworkingAPI))]
     public class TILER2Plugin:BaseUnityPlugin {
         public const string ModVer = "5.0.1";
         public const string ModName = "TILER2";
