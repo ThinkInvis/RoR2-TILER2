@@ -47,10 +47,11 @@ namespace TILER2 {
                     if(runIsActive)
                         Run.instance.BuildDropTable();
                     if(args.oldValue != args.newValue) {
+                        var itemColor = ItemTierCatalog.GetItemTierDef(itemDef.tier).colorIndex;
                         if((bool)args.newValue == true) {
-                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage($"<color=#{ColorCatalog.GetColorHexString(itemDef.colorIndex)}>{displayName}</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
+                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage($"<color=#{ColorCatalog.GetColorHexString(itemColor)}>{displayName}</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
                         } else {
-                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage($"<color=#{ColorCatalog.GetColorHexString(itemDef.colorIndex)}>{displayName}</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
+                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage($"<color=#{ColorCatalog.GetColorHexString(itemColor)}>{displayName}</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
                         }
                     }
                 } else if(args.target.boundProperty.Name == nameof(itemIsAIBlacklisted)) {
