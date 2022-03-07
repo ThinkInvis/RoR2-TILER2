@@ -25,6 +25,9 @@
     <Reference Include="ItemStats">
       <HintPath>lib\ItemStats.dll</HintPath>
     </Reference>
+    <Reference Include="LegacyResourcesAPI">
+      <HintPath>lib\LegacyResourcesAPI.dll</HintPath>
+    </Reference>
     <Reference Include="MMHOOK_RoR2">
       <HintPath>lib\MMHOOK_RoR2.dll</HintPath>
     </Reference>

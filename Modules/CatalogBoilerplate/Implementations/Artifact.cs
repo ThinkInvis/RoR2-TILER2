@@ -42,8 +42,8 @@ namespace TILER2 {
                         } else {
                             if(Run.instance != null && Run.instance.enabled) Chat.AddMessage(displayName + " has been <color=#ffaaaa>FORCE-DISABLED</color>. If enabled ingame, it will not have any effect.");
                             artifactDef.descriptionToken = "TILER2_DISABLED_ARTIFACT";
-                            artifactDef.smallIconDeselectedSprite = Resources.Load<Sprite>("textures/miscicons/texUnlockIcon");
-                            artifactDef.smallIconSelectedSprite = Resources.Load<Sprite>("textures/miscicons/texUnlockIcon");
+                            artifactDef.smallIconDeselectedSprite = LegacyResourcesAPI.Load<Sprite>("textures/miscicons/texUnlockIcon");
+                            artifactDef.smallIconSelectedSprite = LegacyResourcesAPI.Load<Sprite>("textures/miscicons/texUnlockIcon");
                         }
                     }
                 }
