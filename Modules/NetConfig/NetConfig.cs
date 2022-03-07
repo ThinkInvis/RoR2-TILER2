@@ -8,7 +8,7 @@ using RoR2.Networking;
 using UnityEngine.Networking;
 using System.Collections.Generic;
 using BepInEx.Configuration;
-using static RoR2.Networking.GameNetworkManager;
+using static RoR2.Networking.NetworkManagerSystem;
 using BepInEx.Logging;
 
 namespace TILER2 {
@@ -38,7 +38,7 @@ namespace TILER2 {
             NetConfig.netOrchPrefab = netOrchPrefabPrefab.InstantiateClone("TILER2NetConfigOrchestratorPrefab", true);
             NetConfig.netOrchPrefab.AddComponent<NetConfigOrchestrator>();
             
-            On.RoR2.Networking.GameNetworkManager.OnServerAddPlayerInternal += (orig, self, conn, pcid, extraMsg) => {
+            On.RoR2.Networking.NetworkManagerSystem.OnServerAddPlayerInternal += (orig, self, conn, pcid, extraMsg) => {
                 orig(self, conn, pcid, extraMsg);
                 if(!enableCheck || Util.ConnectionIsLocal(conn) || NetConfigOrchestrator.checkedConnections.Contains(conn)) return;
                 NetConfigOrchestrator.checkedConnections.Add(conn);
@@ -419,7 +419,7 @@ namespace TILER2 {
                 if(x.timeRemaining <= 0f) {
                     if(NetConfig.instance.timeoutKick) {
                         TILER2Plugin._logger.LogWarning("Connection " + x.connection.connectionId + " took too long to respond to config check request! Kick-on-timeout option is enabled; kicking client.");
-                        GameNetworkManager.singleton.ServerKickClient(x.connection, NetConfig.kickTimeout);
+                        NetworkManagerSystem.singleton.ServerKickClient(x.connection, NetConfig.kickTimeout);
                     } else
                         TILER2Plugin._logger.LogWarning("Connection " + x.connection.connectionId + " took too long to respond to config check request! Kick-on-timeout option is disabled.");
                 }
@@ -449,7 +449,7 @@ namespace TILER2 {
             } else if(result == "FAILMM"){
                 if(NetConfig.instance.mismatchKick) {
                     TILER2Plugin._logger.LogWarning("Connection " + match.connection.connectionId + " failed config check (crit mismatch), kicking");
-                    GameNetworkManager.singleton.ServerKickClient(match.connection, NetConfig.kickCritMismatch);
+                    NetworkManagerSystem.singleton.ServerKickClient(match.connection, NetConfig.kickCritMismatch);
                 } else {
                     TILER2Plugin._logger.LogWarning("Connection " + match.connection.connectionId + " failed config check (crit mismatch)");
                 }
@@ -459,7 +459,7 @@ namespace TILER2 {
                 var msg = (result == "FAIL") ? "using old TILER2 version" : "missing entries";
                 if(NetConfig.instance.badVersionKick) {
                     TILER2Plugin._logger.LogWarning("Connection " + match.connection.connectionId + " failed config check (" + msg + "), kicking");
-                    GameNetworkManager.singleton.ServerKickClient(match.connection, NetConfig.kickMissingEntry);
+                    NetworkManagerSystem.singleton.ServerKickClient(match.connection, NetConfig.kickMissingEntry);
                 } else {
                     TILER2Plugin._logger.LogWarning("Connection " + match.connection.connectionId + " failed config check (" + msg + ")");
                 }

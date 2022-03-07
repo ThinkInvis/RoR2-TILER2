@@ -18,7 +18,7 @@ namespace TILER2 {
             //this doesn't seem to fire until the title screen is up, which is good because config file changes shouldn't immediately be read during startup; watch for regression (or just implement a check anyways?)
             On.RoR2.RoR2Application.Update += AutoConfigContainer.FilePollUpdateHook;
             
-            On.RoR2.Networking.GameNetworkManager.Disconnect += On_GNMDisconnect;
+            On.RoR2.Networking.NetworkManagerSystem.Disconnect += On_GNMDisconnect;
             
             SceneManager.sceneLoaded += Evt_USMSceneLoaded;
         }
@@ -43,7 +43,7 @@ namespace TILER2 {
             }
         }
 
-        internal static void On_GNMDisconnect(On.RoR2.Networking.GameNetworkManager.orig_Disconnect orig, GameNetworkManager self) {
+        internal static void On_GNMDisconnect(On.RoR2.Networking.NetworkManagerSystem.orig_Disconnect orig, NetworkManagerSystem self) {
             orig(self);
             AutoConfigBinding.CleanupDirty(true);
         }
