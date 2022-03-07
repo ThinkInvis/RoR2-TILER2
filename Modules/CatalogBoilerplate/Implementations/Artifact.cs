@@ -59,7 +59,7 @@ namespace TILER2 {
             artifactDef.smallIconDeselectedSprite = iconResourceDisabled;
             artifactDef.smallIconSelectedSprite = iconResource;
 
-            ArtifactAPI.Add(artifactDef);
+            ContentAddition.AddArtifactDef(artifactDef);
         }
 
         public bool IsActiveAndEnabled() {
