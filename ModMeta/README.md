@@ -47,7 +47,7 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
-**5.1.0**
+**5.0.2**
 
 - Compatibility update for Risk of Rain 2 Expansion 1 (SotV).
 - Updated R2API dependency to 4.0.11.
