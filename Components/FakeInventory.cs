@@ -153,12 +153,18 @@ namespace TILER2 {
 		}
 
 		private void Awake() {
-			new MsgSyncAll(GetComponent<NetworkIdentity>().netId, _itemStacks).Send(R2API.Networking.NetworkDestination.Clients);
+			if(NetworkServer.active) {
+				var netId = GetComponent<NetworkIdentity>().netId;
+				if(netId.Value == 0) return;
+				new MsgSyncAll(netId, _itemStacks).Send(R2API.Networking.NetworkDestination.Clients);
+			}
 		}
 
 		private void Update() {
 			if(itemsDirty && NetworkServer.active) {
-				new MsgSyncAll(GetComponent<NetworkIdentity>().netId, _itemStacks).Send(R2API.Networking.NetworkDestination.Clients);
+				var netId = GetComponent<NetworkIdentity>().netId;
+				if(netId.Value == 0) return;
+				new MsgSyncAll(netId, _itemStacks).Send(R2API.Networking.NetworkDestination.Clients);
 				itemsDirty = false;
 			}
 		}
