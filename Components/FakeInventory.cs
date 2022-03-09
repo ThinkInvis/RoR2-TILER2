@@ -53,7 +53,7 @@ namespace TILER2 {
 				var subMethod = cClass.GetMethod("<Init>g__PayCostItems|5_1", BindingFlags.NonPublic | BindingFlags.Instance);
 				MonoMod.RuntimeDetour.HookGen.HookEndpointManager.Modify(subMethod, (Action<ILContext>)gPayCostItemsHook);
 			}
-		}
+        }
 
 		private int[] _itemStacks = ItemCatalog.RequestItemStackArray();
 		public readonly ReadOnlyCollection<int> itemStacks;
