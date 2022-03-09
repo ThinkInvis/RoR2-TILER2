@@ -39,6 +39,11 @@ namespace TILER2 {
 				On.RoR2.ShrineCleanseBehavior.InventoryIsCleansable += ShrineCleanseBehavior_InventoryIsCleansable;
 				On.RoR2.Util.GetItemCountForTeam += Util_GetItemCountForTeam;
 				IL.RoR2.PickupPickerController.SetOptionsFromInteractor += PickupPickerController_SetOptionsFromInteractor;
+                On.RoR2.Items.ContagiousItemManager.StepInventoryInfection += ContagiousItemManager_StepInventoryInfection;
+                On.RoR2.Items.ContagiousItemManager.OnInventoryChangedGlobal += ContagiousItemManager_OnInventoryChangedGlobal;
+                On.RoR2.Items.SuppressedItemManager.OnInventoryChangedGlobal += SuppressedItemManager_OnInventoryChangedGlobal;
+                On.RoR2.Items.SuppressedItemManager.SuppressItem += SuppressedItemManager_SuppressItem;
+                On.RoR2.Items.SuppressedItemManager.TransformItem += SuppressedItemManager_TransformItem;
 
 				//Display hooks
 				On.RoR2.UI.ItemInventoryDisplay.UpdateDisplay += On_IIDUpdateDisplay;
@@ -268,6 +273,38 @@ namespace TILER2 {
 			var retv = orig(costTypeDef, context);
 			ignoreFakes = false;
 			return retv;
+		}
+
+		private static bool ContagiousItemManager_StepInventoryInfection(On.RoR2.Items.ContagiousItemManager.orig_StepInventoryInfection orig, Inventory inventory, ItemIndex originalItem, int limit, bool isForced) {
+			ignoreFakes = true;
+			var retv = orig(inventory, originalItem, limit, isForced);
+			ignoreFakes = false;
+			return retv;
+		}
+
+		private static void ContagiousItemManager_OnInventoryChangedGlobal(On.RoR2.Items.ContagiousItemManager.orig_OnInventoryChangedGlobal orig, Inventory inventory) {
+			ignoreFakes = true;
+			orig(inventory);
+			ignoreFakes = false;
+		}
+
+		private static void SuppressedItemManager_OnInventoryChangedGlobal(On.RoR2.Items.SuppressedItemManager.orig_OnInventoryChangedGlobal orig, Inventory inventory) {
+			ignoreFakes = true;
+			orig(inventory);
+			ignoreFakes = false;
+		}
+
+		private static bool SuppressedItemManager_SuppressItem(On.RoR2.Items.SuppressedItemManager.orig_SuppressItem orig, ItemIndex suppressedIndex, ItemIndex transformedIndex) {
+			ignoreFakes = true;
+			var retv = orig(suppressedIndex, transformedIndex);
+			ignoreFakes = false;
+			return retv;
+		}
+
+		private static void SuppressedItemManager_TransformItem(On.RoR2.Items.SuppressedItemManager.orig_TransformItem orig, Inventory inventory, ItemIndex suppressedIndex, ItemIndex transformedIndex) {
+			ignoreFakes = true;
+			orig(inventory, suppressedIndex, transformedIndex);
+			ignoreFakes = false;
 		}
 
 		private static int On_InvGetItemCountByIndex(On.RoR2.Inventory.orig_GetItemCount_ItemIndex orig, Inventory self, ItemIndex itemIndex) {
