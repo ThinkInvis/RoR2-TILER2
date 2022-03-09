@@ -47,6 +47,10 @@ NetConfig also adds the console commands `aic_get`, `aic_set`, `aic_settemp`, an
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**5.0.3**
+
+- Tentative fix for FakeInventory spam-cloning Void items.
+
 **5.0.2**
 
 - Compatibility update for Risk of Rain 2 Expansion 1 (SotV).
@@ -66,7 +70,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 
 - Increased FakeInventory GetItemCount hook safety to parallel vanilla code.
 - Disabled items are now hidden in Command droplets.
-
-**4.0.6**
-
-- Reverted from R2API.ItemDropAPI to an internal implementation for drop table management. Resolves the command droplet issue, in addition to several other drop table errors (e.g. duplication --> chance skewing).

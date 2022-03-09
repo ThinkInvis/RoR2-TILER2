@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**5.0.3**
+
+- Tentative fix for FakeInventory spam-cloning Void items.
+
 **5.0.2**
 
 - Compatibility update for Risk of Rain 2 Expansion 1 (SotV).
