@@ -25,7 +25,7 @@ namespace TILER2 {
         /// <summary>Internal handler for ConfigEntryChanged event.</summary>
         internal void OnConfigChanged(AutoConfigUpdateActionEventArgs e) {
             ConfigEntryChanged?.Invoke(this, e);
-            TILER2Plugin._logger.LogDebug(e.target.modName + "/" + e.target.configEntry.Definition.Section + "/" + e.target.configEntry.Definition.Key + ": " + e.oldValue.ToString() + " > " + e.newValue.ToString());
+            TILER2Plugin._logger.LogDebug($"{e.target.readablePath}: {e.oldValue} > {e.newValue}");
             if(!(Run.instance != null && Run.instance.isActiveAndEnabled)) return;
             if((e.flags & AutoConfigUpdateActionTypes.InvalidateStats) == AutoConfigUpdateActionTypes.InvalidateStats)
                 AutoConfigModule.globalStatsDirty = true;
@@ -48,7 +48,7 @@ namespace TILER2 {
                     var thisup = System.IO.File.GetLastWriteTime(cfl.ConfigFilePath);
                     if(observedFiles[cfl] < thisup) {
                         observedFiles[cfl] = thisup;
-                        TILER2Plugin._logger.LogDebug("A config file tracked by AutoItemConfig has been changed: " + cfl.ConfigFilePath);
+                        TILER2Plugin._logger.LogDebug($"A config file tracked by AutoItemConfig has been changed: {cfl.ConfigFilePath}");
                         cfl.Reload();
                     }
                 }
@@ -73,99 +73,99 @@ namespace TILER2 {
             return Regex.Replace(orig, @"<AIC.([a-zA-Z\.]+)>", (m)=>{
                 string[] strParams = Regex.Split(m.Groups[0].Value.Substring(1, m.Groups[0].Value.Length - 2), @"(?<!\\)\.");;
                 if(strParams.Length < 2) return m.Value;
-                var errorStr = "AutoItemConfig.Bind on property " + prop.Name + " in category " + categoryName + ": malformed string param \"" + m.Value + "\" ";
+                var errorStr = $"AutoItemConfig.Bind on property {prop.Name} in category {categoryName}: malformed string param \"{m.Value}\" ";
                 switch(strParams[1]) {
                     case "Prop":
                         if(strParams.Length < 3){
-                            TILER2Plugin._logger.LogWarning(errorStr + "(not enough params for Prop tag).");
+                            TILER2Plugin._logger.LogWarning($"{errorStr}(not enough params for Prop tag).");
                             return m.Value;
                         }
                         var iprop = prop.DeclaringType.GetProperty(strParams[2], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                         if(iprop == null) {
-                            TILER2Plugin._logger.LogWarning(errorStr + "(could not find Prop \"" + strParams[2] + "\").");
+                            TILER2Plugin._logger.LogWarning($"{errorStr}(could not find Prop \"{strParams[2]}\").");
                             return m.Value;
                         }
                         return iprop.GetValue(this).ToString();
                     case "Field":
                         if(strParams.Length < 3) {
-                            TILER2Plugin._logger.LogWarning(errorStr + "(not enough params for Field tag).");
+                            TILER2Plugin._logger.LogWarning($"{errorStr}(not enough params for Field tag).");
                             return m.Value;
                         }
                         var ifld = prop.DeclaringType.GetField(strParams[2], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                         if(ifld == null) {
-                            TILER2Plugin._logger.LogWarning(errorStr + "(could not find Field \"" + strParams[2] + "\").");
+                            TILER2Plugin._logger.LogWarning($"{errorStr}(could not find Field \"{strParams[2]}\").");
                             return m.Value;
                         }
                         return ifld.GetValue(this).ToString();
                     case "DictKey":
                         if(!subDict.HasValue) {
-                            TILER2Plugin._logger.LogWarning(errorStr + "(DictKey tag used on non-BindDict).");
+                            TILER2Plugin._logger.LogWarning($"{errorStr}(DictKey tag used on non-BindDict).");
                             return m.Value;
                         }
                         return subDict.Value.key.ToString();
                     case "DictInd":
                         if(!subDict.HasValue) {
-                            TILER2Plugin._logger.LogWarning(errorStr + "(DictInd tag used on non-BindDict).");
+                            TILER2Plugin._logger.LogWarning($"{errorStr}(DictInd tag used on non-BindDict).");
                             return m.Value;
                         }
                         return subDict.Value.index.ToString();
                     case "DictKeyProp":
                         if(!subDict.HasValue) {
-                            TILER2Plugin._logger.LogWarning(errorStr + "(DictKeyProp tag used on non-BindDict).");
+                            TILER2Plugin._logger.LogWarning($"{errorStr}(DictKeyProp tag used on non-BindDict).");
                             return m.Value;
                         }
                         if(strParams.Length < 3){
-                            TILER2Plugin._logger.LogWarning(errorStr + "(not enough params for DictKeyProp tag).");
+                            TILER2Plugin._logger.LogWarning($"{errorStr}(not enough params for DictKeyProp tag).");
                             return m.Value;
                         }
                         PropertyInfo kprop = subDict.Value.key.GetType().GetProperty(strParams[2], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                         if(kprop == null) {
-                            TILER2Plugin._logger.LogWarning(errorStr + "(could not find DictKeyProp \"" + strParams[2] + "\").");
+                            TILER2Plugin._logger.LogWarning($"{errorStr}(could not find DictKeyProp \"{strParams[2]}\").");
                             return m.Value;
                         }
                         return kprop.GetValue(subDict.Value.key).ToString();
                     case "DictKeyField":
                         if(!subDict.HasValue) {
-                            TILER2Plugin._logger.LogWarning(errorStr + "(DictKeyField tag used on non-BindDict).");
+                            TILER2Plugin._logger.LogWarning($"{errorStr}(DictKeyField tag used on non-BindDict).");
                             return m.Value;
                         }
                         if(strParams.Length < 3) {
-                            TILER2Plugin._logger.LogWarning(errorStr + "(not enough params for DictKeyField tag).");
+                            TILER2Plugin._logger.LogWarning($"{errorStr}(not enough params for DictKeyField tag).");
                             return m.Value;
                         }
                         FieldInfo kfld = subDict.Value.key.GetType().GetField(strParams[2], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                         if(kfld == null) {
-                            TILER2Plugin._logger.LogWarning(errorStr + "(could not find DictKeyField \"" + strParams[2] + "\").");
+                            TILER2Plugin._logger.LogWarning($"{errorStr}(could not find DictKeyField \"{strParams[2]}\").");
                             return m.Value;
                         }
                         return kfld.GetValue(subDict.Value.key).ToString();
                 }
-                TILER2Plugin._logger.LogWarning(errorStr + "(unknown tag \"" + strParams[1] + "\").");
+                TILER2Plugin._logger.LogWarning($"{errorStr}(unknown tag \"{strParams[1]}\").");
                 return m.Value;
             });
         }
         
         /// <summary>Binds a property to a BepInEx config file, using reflection and attributes to automatically generate much of the necessary information.</summary>
         public void Bind(PropertyInfo prop, ConfigFile cfl, string modName, string categoryName, AutoConfigAttribute attrib, AutoConfigUpdateActionsAttribute eiattr = null, BindSubDictInfo? subDict = null) {
-            string errorStr = "AutoItemCfg.Bind on property " + prop.Name + " in category " + categoryName + " failed: ";
+            string errorStr = $"AutoItemCfg.Bind on property {prop.Name} in category {categoryName} failed: ";
             if(!subDict.HasValue) {
                 if(this.bindings.Exists(x => x.boundProperty == prop)) {
-                    TILER2Plugin._logger.LogError(errorStr + "this property has already been bound.");
+                    TILER2Plugin._logger.LogError($"{errorStr}this property has already been bound.");
                     return;
                 }
                 if((attrib.flags & AutoConfigFlags.BindDict) == AutoConfigFlags.BindDict) {
                     if(!prop.PropertyType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDictionary<,>))) {
-                        TILER2Plugin._logger.LogError(errorStr + "BindDict flag cannot be used on property types which don't implement IDictionary.");
+                        TILER2Plugin._logger.LogError($"{errorStr}BindDict flag cannot be used on property types which don't implement IDictionary.");
                         return;
                     }
                     var kTyp = prop.PropertyType.GetGenericArguments()[1];
                     if(attrib.avb != null && attrib.avbType != kTyp) {
-                        TILER2Plugin._logger.LogError(errorStr + "dict value and AcceptableValue types must match (received " + kTyp.Name + " and " + attrib.avbType.Name + ").");
+                        TILER2Plugin._logger.LogError($"{errorStr}dict value and AcceptableValue types must match (received {kTyp.Name} and {attrib.avbType.Name}).");
                         return;
 
                     }
                     if(!TomlTypeConverter.CanConvert(kTyp)) {
-                        TILER2Plugin._logger.LogError(errorStr + "dict value type cannot be converted by BepInEx.Configuration.TomlTypeConverter (received " + kTyp.Name + ").");
+                        TILER2Plugin._logger.LogError($"{errorStr}dict value type cannot be converted by BepInEx.Configuration.TomlTypeConverter (received {kTyp.Name}).");
                         return;
                     }
                     var idict = (System.Collections.IDictionary)prop.GetValue(this, null);
@@ -181,11 +181,11 @@ namespace TILER2 {
             }
             if(!subDict.HasValue) {
                 if(attrib.avb != null && attrib.avbType != prop.PropertyType) {
-                    TILER2Plugin._logger.LogError(errorStr + "property and AcceptableValue types must match (received " + prop.PropertyType.Name + " and " + attrib.avbType.Name + ").");
+                    TILER2Plugin._logger.LogError($"{errorStr}property and AcceptableValue types must match (received {prop.PropertyType.Name} and {attrib.avbType.Name}).");
                     return;
                 }
                 if(!TomlTypeConverter.CanConvert(prop.PropertyType)) {
-                    TILER2Plugin._logger.LogError(errorStr + "property type cannot be converted by BepInEx.Configuration.TomlTypeConverter (received " + prop.PropertyType.Name + ").");
+                    TILER2Plugin._logger.LogError($"{errorStr}property type cannot be converted by BepInEx.Configuration.TomlTypeConverter (received {prop.PropertyType.Name}).");
                     return;
                 }
             }
@@ -199,19 +199,19 @@ namespace TILER2 {
             var propType = subDict.HasValue ? subDict.Value.keyType : prop.PropertyType;
 
             if(propGetter == null || propSetter == null) {
-                TILER2Plugin._logger.LogError(errorStr + "property (or IDictionary Item property, if using BindDict flag) must have both a getter and a setter.");
+                TILER2Plugin._logger.LogError($"{errorStr}property (or IDictionary Item property, if using BindDict flag) must have both a getter and a setter.");
                 return;
             }
 
             string cfgName = attrib.name;
             if(cfgName != null) {
                 cfgName = ReplaceTags(cfgName, prop, categoryName, subDict);
-            } else cfgName = char.ToUpperInvariant(prop.Name[0]) + prop.Name.Substring(1) + (subDict.HasValue ? ":" + subDict.Value.index : "");
+            } else cfgName = $"{char.ToUpperInvariant(prop.Name[0])}{prop.Name.Substring(1)}{(subDict.HasValue ? ":" + subDict.Value.index : "")}";
 
             string cfgDesc = attrib.desc;
             if(cfgDesc != null) {
                 cfgDesc = ReplaceTags(cfgDesc, prop, categoryName, subDict);
-            } else cfgDesc = "Automatically generated from a C# " + (subDict.HasValue ? "dictionary " : "") + "property.";
+            } else cfgDesc = $"Automatically generated from a C# {(subDict.HasValue ? "dictionary " : "")}property.";
             
             //Matches ConfigFile.Bind<T>(ConfigDefinition configDefinition, T defaultValue, ConfigDescription configDescription)
             var genm = typeof(ConfigFile).GetMethods().First(

@@ -12,13 +12,13 @@ namespace TILER2 {
         internal readonly static Dictionary<AutoConfigBinding, object> runDirtyInstances = new Dictionary<AutoConfigBinding, object>();
 
         internal static void CleanupDirty(bool isRunEnd) {
-            TILER2Plugin._logger.LogDebug("Stage ended; applying " + stageDirtyInstances.Count + " deferred config changes...");
+            TILER2Plugin._logger.LogDebug($"Stage ended; applying {stageDirtyInstances.Count} deferred config changes...");
             foreach(AutoConfigBinding k in stageDirtyInstances.Keys) {
                 k.DeferredUpdateProperty(stageDirtyInstances[k].Item1, stageDirtyInstances[k].Item2);
             }
             stageDirtyInstances.Clear();
             if(isRunEnd) {
-                TILER2Plugin._logger.LogDebug("Run ended; applying " + runDirtyInstances.Count + " deferred config changes...");
+                TILER2Plugin._logger.LogDebug($"Run ended; applying {runDirtyInstances.Count} deferred config changes...");
                 foreach(AutoConfigBinding k in runDirtyInstances.Keys) {
                     k.DeferredUpdateProperty(runDirtyInstances[k], true);
                 }
@@ -55,7 +55,7 @@ namespace TILER2 {
         public DeferType deferType {get; internal set;}
 
         public string readablePath {
-            get {return modName + "/" + configEntry.Definition.Section + "/" + configEntry.Definition.Key;}
+            get {return $"{modName}/{configEntry.Definition.Section}/{configEntry.Definition.Key}"; }
         }
 
         internal AutoConfigBinding() {
@@ -98,7 +98,7 @@ namespace TILER2 {
             } else if(deferType == DeferType.WaitForRunEnd) {
                 AutoConfigBinding.runDirtyInstances[this] = newValue;
             } else {
-                TILER2Plugin._logger.LogWarning("Something attempted to set the value of an AutoConfigBinding with the DeferForever flag: \"" + readablePath + "\"");
+                TILER2Plugin._logger.LogWarning($"Something attempted to set the value of an AutoConfigBinding with the DeferForever flag: \"{readablePath}\"");
             }
         }
     }

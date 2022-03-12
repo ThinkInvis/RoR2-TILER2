@@ -70,7 +70,7 @@ namespace TILER2 {
 
             int diffCount = icnt-inv.GetItemCount(item);
             inv.GiveItem(item, diffCount);
-            TILER2Plugin._logger.LogMessage("evo_setitem: " + (diffCount > 0 ? "added " : "removed ") + Mathf.Abs(diffCount) + "x " + Language.GetString(ItemCatalog.GetItemDef(item).nameToken));
+            TILER2Plugin._logger.LogMessage($"evo_setitem: {(diffCount > 0 ? "added " : "removed ")}{Mathf.Abs(diffCount)}x {Language.GetString(ItemCatalog.GetItemDef(item).nameToken)}");
         }
     }
 }
