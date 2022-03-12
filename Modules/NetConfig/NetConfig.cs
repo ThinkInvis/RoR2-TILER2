@@ -148,7 +148,7 @@ namespace TILER2 {
             if(matchesLevel4.Count == 0) return (matchesLevel3, "multiple level 3 matches, no level 4 matches");
             else if(matchesLevel4.Count == 1) return (matchesLevel4, null);
             else {
-                TILER2Plugin._logger.LogError("There are multiple config entries with the path \"" + matchesLevel4[0].readablePath + "\"; this should never happen! Please report this as a bug.");
+                Debug.LogError($"TILER2 NetConfig: There are multiple config entries with the path \"{matchesLevel4[0].readablePath}\"; this should never happen! Please report this as a bug.");
                 return (matchesLevel4, "multiple level 4 matches");
             }
         }
@@ -193,11 +193,11 @@ namespace TILER2 {
         [ConCommand(commandName = "aic_get", helpText = "Prints an ingame value managed by TILER2.AutoItemConfig to console.")]
         public static void ConCmdAICGet(ConCommandArgs args) {
             if(args.Count < 1) {
-                TILER2Plugin._logger.LogWarning($"{AIC_GET_WRONG_ARGS_PRE}not enough arguments{AIC_GET_USAGE_POST}");
+                Debug.LogWarning($"{AIC_GET_WRONG_ARGS_PRE}not enough arguments{AIC_GET_USAGE_POST}");
                 return;
             }
             if(args.Count > 3) {
-                TILER2Plugin._logger.LogWarning($"{AIC_GET_WRONG_ARGS_PRE}too many arguments{AIC_GET_USAGE_POST}");
+                Debug.LogWarning($"{AIC_GET_WRONG_ARGS_PRE}too many arguments{AIC_GET_USAGE_POST}");
                 return;
             }
 
@@ -205,9 +205,9 @@ namespace TILER2 {
 
             if(errmsg != null) {
                 if(matches != null)
-                    TILER2Plugin._logger.LogMessage($"The following config settings match that path:\n{String.Join(", ", matches.Select(x => "\"" + x.readablePath + "\""))}");
+                    Debug.Log($"The following config settings match that path:\n{String.Join(", ", matches.Select(x => "\"" + x.readablePath + "\""))}");
                 else
-                    TILER2Plugin._logger.LogMessage("There are no config settings with complete nor partial matches for that path.");
+                    Debug.Log("There are no config settings with complete nor partial matches for that path.");
                 return;
             }
 
@@ -224,7 +224,7 @@ namespace TILER2 {
                     strs.Add($"Value after game ends: {AutoConfigBinding.runDirtyInstances[matches[0]]}");
             }
 
-            TILER2Plugin._logger.LogMessage(String.Join("\n", strs));
+            Debug.Log(String.Join("\n", strs));
         }
 
         private static void AICSet(ConCommandArgs args, bool isTemporary) {
@@ -267,7 +267,7 @@ namespace TILER2 {
                 matches[0].configEntry.BoxedValue = convObj;
                 if(!matches[0].configEntry.ConfigFile.SaveOnConfigSet) matches[0].configEntry.ConfigFile.Save();
             } else matches[0].OverrideProperty(convObj);
-            if(args.sender && !args.sender.hasAuthority) TILER2Plugin._logger.LogMessage($"ConCmd {targetCmd} from client {args.sender.userName} passed. Changed config setting {matches[0].readablePath} to {convObj}.");
+            if(args.sender && !args.sender.hasAuthority) Debug.Log($"TILER2 NetConfig: ConCmd {targetCmd} from client {args.sender.userName} passed. Changed config setting {matches[0].readablePath} to {convObj}.");
             NetUtil.ServerSendConMsg(args.sender, $"ConCmd {targetCmd} successfully updated config entry!");
         }
 
@@ -292,7 +292,7 @@ namespace TILER2 {
         public static void ConCmdAICSetTemp(ConCommandArgs args) {
 #if !DEBUG
             if((!args.sender.hasAuthority) && !allowClientAICSet.value) {
-                TILER2Plugin._logger.LogWarning($"Client {args.sender.userName} tried to use ConCmd aic_settemp, but ConVar aic_allowclientset is set to false. DO NOT change this convar to true, unless you trust everyone who is in or may later join the server; doing so will allow them to temporarily change some config settings.");
+                Debug.LogWarning($"TILER2 NetConfig: Client {args.sender.userName} tried to use ConCmd aic_settemp, but ConVar aic_allowclientset is set to false. DO NOT change this convar to true, unless you trust everyone who is in or may later join the server; doing so will allow them to temporarily change some config settings.");
                 NetUtil.ServerSendConMsg(args.sender, "ConCmd aic_settemp cannot be used on this server by anyone other than the host.", LogLevel.Warning);
                 return;
             }
@@ -308,7 +308,7 @@ namespace TILER2 {
         [ConCommand(commandName = "aic", helpText = "Routes to other AutoItemConfig commands (aic_get, aic_set, aic_settemp). For when you forget the underscore.")]
         public static void ConCmdAIC(ConCommandArgs args) {
             if(args.Count == 0) {
-                TILER2Plugin._logger.LogWarning("ConCmd aic was not passed enough arguments (needs at least 1 to determine which command to route to).");
+                Debug.LogWarning("ConCmd aic was not passed enough arguments (needs at least 1 to determine which command to route to).");
                 return;
             }
             string cmdToCall;
@@ -316,7 +316,7 @@ namespace TILER2 {
             else if(args[0].ToUpper() == "SET") cmdToCall = "aic_set";
             else if(args[0].ToUpper() == "SETTEMP") cmdToCall = "aic_settemp";
             else {
-                TILER2Plugin._logger.LogWarning($"ConCmd aic_{args[0]} does not exist. Valid commands include: aic_get, aic_set, aic_settemp.");
+                Debug.LogWarning($"ConCmd aic_{args[0]} does not exist. Valid commands include: aic_get, aic_set, aic_settemp.");
                 return;
             }
             RoR2.Console.instance.RunClientCmd(args.sender, cmdToCall, args.userArgs.Skip(1).ToArray());
@@ -454,7 +454,7 @@ namespace TILER2 {
                 }
                 var result = AICSyncResult.PASS;
                 if(foundCrit) {
-                    TILER2Plugin._logger.LogError("The above config entries marked with \"UNRESOLVABLE MISMATCH\" are different on the server, must be identical between server and client, and cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
+                    Debug.LogError("TILER2 NetConfig: The above config entries marked with \"UNRESOLVABLE MISMATCH\" are different on the server, must be identical between server and client, and cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
                     result = AICSyncResult.FAIL;
                 } else if(matches > 0) Chat.AddMessage($"Synced <color=#ffff00>{matches} setting changes</color> from the server temporarily. Check the console for details.");
                 if(foundWarn)
@@ -565,19 +565,19 @@ namespace TILER2 {
             });
             if(exactMatches.Count > 1) {
                 var msg = $"(TILER2: Server requesting update) There are multiple config entries with the path \"{modname}/{category}/{cfgname}\"; this should never happen! Please report this as a bug.";
-                TILER2Plugin._logger.LogError(msg);
+                Debug.LogError(msg);
                 //important, make sure user knows
                 Chat.AddMessage(msg);
                 return AICSyncResult.WARN;
             } else if(exactMatches.Count == 0) {
-                TILER2Plugin._logger.LogError($"The server requested an update for a nonexistent config entry with the path \"{modname}/{category}/{cfgname}\". Make sure you're using the same mods AND mod versions as the server!");
+                Debug.LogError($"The server requested an update for a nonexistent config entry with the path \"{modname}/{category}/{cfgname}\". Make sure you're using the same mods AND mod versions as the server!");
                 return AICSyncResult.WARN;
             }
 
             var newVal = TomlTypeConverter.ConvertToValue(value, exactMatches[0].propType);
             if(!exactMatches[0].cachedValue.Equals(newVal)) {
                 if(exactMatches[0].netMismatchCritical) {
-                    TILER2Plugin._logger.LogError($"UNRESOLVABLE MISMATCH on \"{modname}/{category}/{cfgname}\": Requested {newVal} vs current {exactMatches[0].cachedValue}");
+                    Debug.LogError($"TILER2 NetConfig: UNRESOLVABLE MISMATCH on \"{modname}/{category}/{cfgname}\": Requested {newVal} vs current {exactMatches[0].cachedValue}");
                     return AICSyncResult.FAIL;
                 }
                 exactMatches[0].OverrideProperty(newVal, silent);

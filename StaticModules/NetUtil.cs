@@ -55,7 +55,17 @@ namespace TILER2 {
             }
 
             public void OnReceived() {
-                TILER2Plugin._logger.Log(_severity, _msg);
+                switch(_severity) {
+                    case LogLevel.Warning:
+                        UnityEngine.Debug.LogWarning(_msg);
+                        break;
+                    case LogLevel.Error:
+                        UnityEngine.Debug.LogError(_msg);
+                        break;
+                    default:
+                        UnityEngine.Debug.Log(_msg);
+                        break;
+                }
             }
 
             public CmdSendConMsg(string msg, LogLevel severity = LogLevel.Message) {
