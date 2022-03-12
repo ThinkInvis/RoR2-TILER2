@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using BepInEx.Configuration;
 using static RoR2.Networking.NetworkManagerSystem;
 using BepInEx.Logging;
+using R2API.Networking.Interfaces;
 
 namespace TILER2 {
     /// <summary>
@@ -33,19 +34,15 @@ namespace TILER2 {
 
         public override void SetupConfig() {
             base.SetupConfig();
-            var netOrchPrefabPrefab = new GameObject("TILER2NetConfigOrchestratorPrefabPrefab");
-            netOrchPrefabPrefab.AddComponent<NetworkIdentity>();
-            NetConfig.netOrchPrefab = netOrchPrefabPrefab.InstantiateClone("TILER2NetConfigOrchestratorPrefab", true);
-            NetConfig.netOrchPrefab.AddComponent<NetConfigOrchestrator>();
-            
+
             On.RoR2.Networking.NetworkManagerSystem.OnServerAddPlayerInternal += (orig, self, conn, pcid, extraMsg) => {
                 orig(self, conn, pcid, extraMsg);
-                if(!enableCheck || Util.ConnectionIsLocal(conn) || NetConfigOrchestrator.checkedConnections.Contains(conn)) return;
-                NetConfigOrchestrator.checkedConnections.Add(conn);
-                NetConfig.EnsureOrchestrator();
-                NetConfigOrchestrator.AICSyncAllToOne(conn);
+                if(!enableCheck || Util.ConnectionIsLocal(conn) || checkedConnections.Contains(conn)) return;
+                checkedConnections.Add(conn);
+                ServerAICSyncAllToOne(conn);
             };
-            
+            RoR2.RoR2Application.onUpdate += UpdateConnections;
+
             /*On.RoR2.Run.EndStage += (orig, self) => {
                 orig(self);
                 AutoItemConfig.CleanupDirty(false);
@@ -57,20 +54,7 @@ namespace TILER2 {
             LanguageAPI.Add("TILER2_DISABLED_ARTIFACT", "This artifact is <color=#ff7777>force-disabled</color>; it will have no effect ingame.");
         }
 
-        internal static GameObject netOrchPrefab;
-        internal static GameObject netOrchestrator;
-
         private static readonly RoR2.ConVar.BoolConVar allowClientAICSet = new RoR2.ConVar.BoolConVar("aic_allowclientset", ConVarFlags.None, "false", "If true, clients may use the ConCmds aic_set or aic_settemp to temporarily set config values on the server. If false, aic_set and aic_settemp will not work for clients.");
-
-        internal static void EnsureOrchestrator() {
-            if(!NetworkServer.active) {
-                TILER2Plugin._logger.LogError("EnsureOrchestrator called on client");
-            }
-            if(!netOrchestrator) {
-                netOrchestrator = UnityEngine.Object.Instantiate(netOrchPrefab);
-                NetworkServer.Spawn(netOrchestrator);
-            }
-        }
 
         private static (List<AutoConfigBinding> results, string errorMsg) GetAICFromPath(string path1, string path2, string path3) {
             var p1u = path1.ToUpper();
@@ -151,16 +135,16 @@ namespace TILER2 {
                         matchesLevel4.Add(x);
                 }
             });
-            
+
             if(matchesLevel1.Count == 0) return (null, "no level 1 matches");
             else if(matchesLevel1.Count == 1) return (matchesLevel1, null);
 
             if(matchesLevel2.Count == 0) return (matchesLevel1, "multiple level 1 matches, no level 2 matches");
             else if(matchesLevel2.Count == 1) return (matchesLevel2, null);
-            
+
             if(matchesLevel3.Count == 0) return (matchesLevel2, "multiple level 2 matches, no level 3 matches");
             else if(matchesLevel3.Count == 1) return (matchesLevel3, null);
-            
+
             if(matchesLevel4.Count == 0) return (matchesLevel3, "multiple level 3 matches, no level 4 matches");
             else if(matchesLevel4.Count == 1) return (matchesLevel4, null);
             else {
@@ -169,7 +153,8 @@ namespace TILER2 {
             }
         }
 
-        #if DEBUG
+        #region Console Commands
+#if DEBUG
         [ConCommand(commandName = "aic_scramble")]
         public static void ConCmdAICScramble(ConCommandArgs args) {
             var rng = new Xoroshiro128Plus(0);
@@ -197,29 +182,22 @@ namespace TILER2 {
                 }
             });
         }
-        #endif
+#endif
 
-        [ConCommand(commandName = "aic_checkrespond", flags = ConVarFlags.ExecuteOnServer)]
-        internal static void ConCmdAICCheckRespond(ConCommandArgs args) {
-            EnsureOrchestrator();
-            NetConfigOrchestrator.instance.CheckRespond(args.sender.connectionToClient, args[0], args[1]);
-        }
-
+        const string AIC_GET_WRONG_ARGS_PRE = "ConCmd aic_get was used with bad arguments (";
+        const string AIC_GET_USAGE_POST = ").\nUsage: aic_get \"path1\" \"optional path2\" \"optional path3\". Path matches mod name, config category, and config name, in that order.";
         /// <summary>
         /// Registers as console command "aic_get". Prints an ingame value managed by TILER2.AutoItemConfig to console.
         /// </summary>
         /// <param name="args">Console command arguments. Matches 1 to 3 strings: mod name, config category, and config name, in that order or any subset thereof.</param>
         [ConCommand(commandName = "aic_get", helpText = "Prints an ingame value managed by TILER2.AutoItemConfig to console.")]
         public static void ConCmdAICGet(ConCommandArgs args) {
-            var wrongArgsPre = "ConCmd aic_get was used with bad arguments (";
-            var usagePost = ").\nUsage: aic_get \"path1\" \"optional path2\" \"optional path3\". Path matches mod name, config category, and config name, in that order.";
-
             if(args.Count < 1) {
-                TILER2Plugin._logger.LogWarning(wrongArgsPre + "not enough arguments" + usagePost);
+                TILER2Plugin._logger.LogWarning($"{AIC_GET_WRONG_ARGS_PRE}not enough arguments{AIC_GET_USAGE_POST}");
                 return;
             }
             if(args.Count > 3) {
-                TILER2Plugin._logger.LogWarning(wrongArgsPre + "too many arguments" + usagePost);
+                TILER2Plugin._logger.LogWarning($"{AIC_GET_WRONG_ARGS_PRE}too many arguments{AIC_GET_USAGE_POST}");
                 return;
             }
 
@@ -227,23 +205,23 @@ namespace TILER2 {
 
             if(errmsg != null) {
                 if(matches != null)
-                    TILER2Plugin._logger.LogMessage("The following config settings match that path:\n" + String.Join(", ", matches.Select(x => "\"" + x.readablePath + "\"")));
+                    TILER2Plugin._logger.LogMessage($"The following config settings match that path:\n{String.Join(", ", matches.Select(x => "\"" + x.readablePath + "\""))}");
                 else
                     TILER2Plugin._logger.LogMessage("There are no config settings with complete nor partial matches for that path.");
                 return;
             }
 
             var strs = new List<string> {
-                "\"" + matches[0].readablePath + "\" (" + matches[0].propType.Name + "): " + (matches[0].configEntry.Description?.Description ?? "[no description]"),
-                "Current value: " + matches[0].cachedValue.ToString()
+                $"\"{matches[0].readablePath}\" (matches[0].propType.Name): {(matches[0].configEntry.Description?.Description ?? "[no description]")}",
+                $"Current value: {matches[0].cachedValue}"
             };
-            if (AutoConfigBinding.stageDirtyInstances.ContainsKey(matches[0]))
-                strs.Add("Value next stage: " + AutoConfigBinding.stageDirtyInstances[matches[0]].Item1.ToString());
+            if(AutoConfigBinding.stageDirtyInstances.ContainsKey(matches[0]))
+                strs.Add($"Value next stage: {AutoConfigBinding.stageDirtyInstances[matches[0]].Item1}");
             if(AutoConfigBinding.runDirtyInstances.ContainsKey(matches[0])) {
                 if(AutoConfigBinding.runDirtyInstances[matches[0]].Equals(matches[0].configEntry.BoxedValue))
-                    strs.Add("Temp. override; original value: " + AutoConfigBinding.runDirtyInstances[matches[0]].ToString());
+                    strs.Add($"Temp. override; original value: {AutoConfigBinding.runDirtyInstances[matches[0]]}");
                 else
-                    strs.Add("Value after game ends: " + AutoConfigBinding.runDirtyInstances[matches[0]].ToString());
+                    strs.Add($"Value after game ends: {AutoConfigBinding.runDirtyInstances[matches[0]]}");
             }
 
             TILER2Plugin._logger.LogMessage(String.Join("\n", strs));
@@ -252,36 +230,36 @@ namespace TILER2 {
         private static void AICSet(ConCommandArgs args, bool isTemporary) {
             var targetCmd = isTemporary ? "aic_settemp" : "aic_set";
 
-            var errorPre = "ConCmd " + targetCmd + " failed (";
-            var usagePost = ").\nUsage: " + targetCmd + " \"path1\" \"optional path2\" \"optional path3\" newValue. Path matches mod name, config category, and config name, in that order.";
+            var errorPre = $"ConCmd {targetCmd} failed (";
+            var usagePost = $").\nUsage: {targetCmd} \"path1\" \"optional path2\" \"optional path3\" newValue. Path matches mod name, config category, and config name, in that order.";
 
             if(args.Count < 2) {
-                NetConfigOrchestrator.SendConMsg(args.sender, errorPre + "not enough arguments" + usagePost, LogLevel.Warning);
+                NetUtil.ServerSendConMsg(args.sender, $"{errorPre}not enough arguments{usagePost}", LogLevel.Warning);
                 return;
             }
             if(args.Count > 4) {
-                NetConfigOrchestrator.SendConMsg(args.sender, errorPre + "too many arguments" + usagePost, LogLevel.Warning);
+                NetUtil.ServerSendConMsg(args.sender, $"{errorPre}too many arguments{usagePost}", LogLevel.Warning);
                 return;
             }
-            
+
             var (matches, errmsg) = GetAICFromPath(args[0], (args.Count > 2) ? args[1] : null, (args.Count > 3) ? args[2] : null);
 
             if(errmsg != null) {
                 errmsg += ").";
                 if(matches != null) {
-                    errmsg += "\nThe following config settings have a matching path: " + String.Join(", ", matches.Select(x => "\"" + x.readablePath + "\""));
+                    errmsg += $"\nThe following config settings have a matching path: {String.Join(", ", matches.Select(x => "\"" + x.readablePath + "\""))}";
                 }
-                NetConfigOrchestrator.SendConMsg(args.sender, errorPre + errmsg, LogLevel.Warning);
+                NetUtil.ServerSendConMsg(args.sender, errorPre + errmsg, LogLevel.Warning);
                 return;
             }
 
             var convStr = args[args.Count - 1];
-            
+
             object convObj;
             try {
                 convObj = TomlTypeConverter.ConvertToValue(convStr, matches[0].propType);
             } catch {
-                NetConfigOrchestrator.SendConMsg(args.sender, errorPre + "(can't convert argument 2 'newValue' to the target config type, " + matches[0].propType.Name + ").", LogLevel.Warning);
+                NetUtil.ServerSendConMsg(args.sender, $"{errorPre}can't convert argument 2 'newValue', \"{convStr}\", to the target config type, {matches[0].propType.Name}).", LogLevel.Warning);
                 return;
             }
 
@@ -289,8 +267,8 @@ namespace TILER2 {
                 matches[0].configEntry.BoxedValue = convObj;
                 if(!matches[0].configEntry.ConfigFile.SaveOnConfigSet) matches[0].configEntry.ConfigFile.Save();
             } else matches[0].OverrideProperty(convObj);
-            if(args.sender && !args.sender.hasAuthority) TILER2Plugin._logger.LogMessage("ConCmd " + targetCmd + " from client " + args.sender.userName + " passed. Changed config setting " + matches[0].readablePath + " to " + convObj.ToString());
-            NetConfigOrchestrator.SendConMsg(args.sender, "ConCmd " + targetCmd + " successfully updated config entry!");
+            if(args.sender && !args.sender.hasAuthority) TILER2Plugin._logger.LogMessage($"ConCmd {targetCmd} from client {args.sender.userName} passed. Changed config setting {matches[0].readablePath} to {convObj}.");
+            NetUtil.ServerSendConMsg(args.sender, $"ConCmd {targetCmd} successfully updated config entry!");
         }
 
         /// <summary>
@@ -300,7 +278,7 @@ namespace TILER2 {
         [ConCommand(commandName = "aic_set", helpText = "While on the main menu, in singleplayer, or hosting a server: permanently override an ingame value managed by TILER2.AutoItemConfig. While non-host: attempts to call aic_settemp on the server instead.")]
         public static void ConCmdAICSet(ConCommandArgs args) {
             //todo: don't reroute AllowNetMismatch, add a SetTempLocal cmd?
-            if((args.sender && !args.sender.isServer)) {
+            if(args.sender && !args.sender.isServer) {
                 RoR2.Console.instance.RunClientCmd(args.sender, "aic_settemp", args.userArgs.ToArray());
                 return;
             } else AICSet(args, false);
@@ -312,12 +290,10 @@ namespace TILER2 {
         /// <param name="args">Console command arguments. Matches 1-3 strings (same as aic_get), then any serialized object which is valid for the target config entry.</param>
         [ConCommand(commandName = "aic_settemp", flags = ConVarFlags.ExecuteOnServer, helpText = "While a run is ongoing: temporarily override an ingame value managed by TILER2.AutoItemConfig. This will last until the end of the run. Use by non-host players can be blocked by the host using the ConVar aic_allowclientset.")]
         public static void ConCmdAICSetTemp(ConCommandArgs args) {
-            EnsureOrchestrator();
-
 #if !DEBUG
             if((!args.sender.hasAuthority) && !allowClientAICSet.value) {
-                TILER2Plugin._logger.LogWarning("Client " + args.sender.userName + " tried to use ConCmd aic_settemp, but ConVar aic_allowclientset is set to false. DO NOT change this convar to true, unless you trust everyone who is in or may later join the server; doing so will allow them to temporarily change some config settings.");
-                NetConfigOrchestrator.SendConMsg(args.sender, "ConCmd aic_settemp cannot be used on this server by anyone other than the host.", LogLevel.Warning);
+                TILER2Plugin._logger.LogWarning($"Client {args.sender.userName} tried to use ConCmd aic_settemp, but ConVar aic_allowclientset is set to false. DO NOT change this convar to true, unless you trust everyone who is in or may later join the server; doing so will allow them to temporarily change some config settings.");
+                NetUtil.ServerSendConMsg(args.sender, "ConCmd aic_settemp cannot be used on this server by anyone other than the host.", LogLevel.Warning);
                 return;
             }
 #endif
@@ -340,7 +316,7 @@ namespace TILER2 {
             else if(args[0].ToUpper() == "SET") cmdToCall = "aic_set";
             else if(args[0].ToUpper() == "SETTEMP") cmdToCall = "aic_settemp";
             else {
-                TILER2Plugin._logger.LogWarning("ConCmd aic_" + args[0] + " does not exist. Valid commands include: aic_get, aic_set, aic_settemp.");
+                TILER2Plugin._logger.LogWarning($"ConCmd aic_{args[0]} does not exist. Valid commands include: aic_get, aic_set, aic_settemp.");
                 return;
             }
             RoR2.Console.instance.RunClientCmd(args.sender, cmdToCall, args.userArgs.Skip(1).ToArray());
@@ -358,76 +334,8 @@ namespace TILER2 {
 
             NetOrchestrator.AICSyncAllToOne(args.sender.connectionToClient);
         }*/
-    }
-    
-    /// <summary>
-    /// Orchestrator GameObject which handles all network messages for NetConfig.
-    /// </summary>
-    public class NetConfigOrchestrator : NetworkBehaviour {
-        internal static NetConfigOrchestrator instance;
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
-        private void Awake() {
-            instance = this;
-        }
-
-        /// <summary>
-        /// Send a console log message to the target NetworkUser.
-        /// </summary>
-        /// <param name="user">The NetworkUser to send a console message to.</param>
-        /// <param name="msg">The content of the sent message.</param>
-        /// <param name="severity">The severity of the sent message.</param>
-        public static void SendConMsg(NetworkUser user, string msg, LogLevel severity = LogLevel.Message) {
-            if(user == null || user.hasAuthority)
-                ConMsg(msg, severity);
-            else {
-                NetConfig.EnsureOrchestrator();
-                instance.TargetConMsg(user.connectionToClient, msg, (int)severity);
-            }
-        }
-
-        [TargetRpc]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Target param is required by UNetWeaver")]
-        private void TargetConMsg(NetworkConnection target, string msg, int severity) {
-            ConMsg(msg, (LogLevel)severity);
-        }
-
-        private static void ConMsg(string msg, LogLevel severity) {
-            TILER2Plugin._logger.Log(severity, msg);
-        }
-
-        /// <summary>
-        /// Send a chat message to all players in a server.
-        /// </summary>
-        /// <param name="msg">The content of the sent message.</param>
-        [Server]
-        public static void ServerSendGlobalChatMsg(string msg) {
-            NetConfig.EnsureOrchestrator();
-            instance.RpcGlobalChatMsg(msg);
-        }
-
-        [ClientRpc]
-        internal void RpcGlobalChatMsg(string msg) {
-            Chat.AddMessage(msg);
-        }
+        #endregion
         
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
-        private void Update() {
-            if(!NetworkServer.active) return;
-            connectionsToCheck.ForEach(x => {
-                x.timeRemaining -= Time.unscaledDeltaTime;
-                if(x.timeRemaining <= 0f) {
-                    if(NetConfig.instance.timeoutKick) {
-                        TILER2Plugin._logger.LogWarning("Connection " + x.connection.connectionId + " took too long to respond to config check request! Kick-on-timeout option is enabled; kicking client.");
-                        NetworkManagerSystem.singleton.ServerKickClient(x.connection, NetConfig.kickTimeout);
-                    } else
-                        TILER2Plugin._logger.LogWarning("Connection " + x.connection.connectionId + " took too long to respond to config check request! Kick-on-timeout option is disabled.");
-                }
-            });
-
-            connectionsToCheck.RemoveAll(x => x.timeRemaining <= 0f);
-        }
-
         private class WaitingConnCheck {
             public NetworkConnection connection;
             public string password;
@@ -436,40 +344,27 @@ namespace TILER2 {
         private const float connCheckWaitTime = 15f;
         private static readonly List<WaitingConnCheck> connectionsToCheck = new List<WaitingConnCheck>();
         internal static readonly List<NetworkConnection> checkedConnections = new List<NetworkConnection>();
+        private void UpdateConnections() {
+            if(!NetworkServer.active) return;
+            connectionsToCheck.ForEach(x => {
+                x.timeRemaining -= Time.unscaledDeltaTime;
+                if(x.timeRemaining <= 0f) {
+                    if(timeoutKick) {
+                        TILER2Plugin._logger.LogWarning("Connection " + x.connection.connectionId + " took too long to respond to config check request! Kick-on-timeout option is enabled; kicking client.");
+                        NetworkManagerSystem.singleton.ServerKickClient(x.connection, kickTimeout);
+                    } else
+                        TILER2Plugin._logger.LogWarning("Connection " + x.connection.connectionId + " took too long to respond to config check request! Kick-on-timeout option is disabled.");
+                }
+            });
 
-        internal void CheckRespond(NetworkConnection conn, string password, string result) {
-            var match = connectionsToCheck.Find(x => x.connection == conn && x.password == password);
-            if(match == null) {
-                TILER2Plugin._logger.LogError("Received config check response from unregistered connection!");
-                return;
-            }
-            if(result == "PASS") {
-                TILER2Plugin._logger.LogDebug("Connection " + match.connection.connectionId + " passed config check");
-                connectionsToCheck.Remove(match);
-            } else if(result == "FAILMM"){
-                if(NetConfig.instance.mismatchKick) {
-                    TILER2Plugin._logger.LogWarning("Connection " + match.connection.connectionId + " failed config check (crit mismatch), kicking");
-                    NetworkManagerSystem.singleton.ServerKickClient(match.connection, NetConfig.kickCritMismatch);
-                } else {
-                    TILER2Plugin._logger.LogWarning("Connection " + match.connection.connectionId + " failed config check (crit mismatch)");
-                }
-                connectionsToCheck.Remove(match);
-            } else if(result == "FAILBV"
-                || result == "FAIL") { //from old mod version
-                var msg = (result == "FAIL") ? "using old TILER2 version" : "missing entries";
-                if(NetConfig.instance.badVersionKick) {
-                    TILER2Plugin._logger.LogWarning("Connection " + match.connection.connectionId + " failed config check (" + msg + "), kicking");
-                    NetworkManagerSystem.singleton.ServerKickClient(match.connection, NetConfig.kickMissingEntry);
-                } else {
-                    TILER2Plugin._logger.LogWarning("Connection " + match.connection.connectionId + " failed config check (" + msg + ")");
-                }
-                connectionsToCheck.Remove(match);
-            } else {
-                TILER2Plugin._logger.LogError("POSSIBLE SECURITY ISSUE: Received registered connection and correct password in CheckRespond, but result is not valid");
-            }
+            connectionsToCheck.RemoveAll(x => x.timeRemaining <= 0f);
         }
 
-        internal static void AICSyncAllToOne(NetworkConnection conn) {
+        internal static void ServerAICSyncAllToOne(NetworkConnection conn) {
+            if(!NetworkServer.active) {
+                TILER2Plugin._logger.LogError("NetConfig.ServerAICSyncAllToOne called on client");
+                return;
+            }
             var validInsts = AutoConfigBinding.instances.Where(x => !x.allowNetMismatch);
             var serValues = new List<string>();
             var modnames = new List<string>();
@@ -484,77 +379,211 @@ namespace TILER2 {
 
             string password = Guid.NewGuid().ToString("d");
 
-            connectionsToCheck.Add(new WaitingConnCheck{
+            connectionsToCheck.Add(new WaitingConnCheck {
                 connection = conn,
                 password = password,
                 timeRemaining = connCheckWaitTime
             });
 
-            instance.TargetAICSyncAllToOne(conn, password, modnames.ToArray(), categories.ToArray(), cfgnames.ToArray(), serValues.ToArray());
+            new CmdAICRequestSync(conn, password, modnames.ToArray(), categories.ToArray(), cfgnames.ToArray(), serValues.ToArray())
+                .Send(conn);
         }
 
-        [TargetRpc]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Target param is required by UNetWeaver")]
-        private void TargetAICSyncAllToOne(NetworkConnection target, string password, string[] modnames, string[] categories, string[] cfgnames, string[] values) {
-            int matches = 0;
-            bool foundCrit = false;
-            bool foundWarn = false;
-            for(var i = 0; i < modnames.Length; i++) {
-                var res = CliAICSync(modnames[i], categories[i], cfgnames[i], values[i], true);
-                if(res == 1) matches++;
-                else if(res == -1) foundWarn = true;
-                else if(res == -2) foundCrit = true;
-            }
-            if(NetworkUser.readOnlyLocalPlayersList.Count == 0) TILER2Plugin._logger.LogError("Received TargetAICSyncAllToOne, but readOnlyLocalPlayersList is empty; can't send response");
-            if(foundCrit == true) {
-                TILER2Plugin._logger.LogError("The above config entries marked with \"CRITICAL MISMATCH\" are different on the server, and they cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
-                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "AIC_CheckRespond " + password + " FAILMM");
+        internal static void ServerAICSyncOneToAll(AutoConfigBinding binding, object newValue) {
+            if(!NetworkServer.active) {
+                TILER2Plugin._logger.LogError("NetConfig.ServerAICSyncOneToAll called on client");
                 return;
             }
-            else if(matches > 0) Chat.AddMessage("Synced <color=#ffff00>"+ matches +" setting changes</color> from the server temporarily. Check the console for details.");
-            RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "AIC_CheckRespond " + password + (foundWarn ? " FAILBV" : " PASS"));
-        }
+            var modName = new[] { binding.modName };
+            var category = new[] { binding.configEntry.Definition.Section };
+            var cfgName = new[] { binding.configEntry.Definition.Key };
+            var serValue = new[] { TomlTypeConverter.ConvertToString(binding.cachedValue, binding.propType) };
+            foreach(var conn in NetworkServer.connections) {
+                string password = Guid.NewGuid().ToString("d");
 
-        [Server]
-        internal void ServerAICSyncOneToAll(AutoConfigBinding targetConfig, object newValue) {
-            foreach(var user in NetworkUser.readOnlyInstancesList) {
-                if(user.hasAuthority || (user.connectionToClient != null && Util.ConnectionIsLocal(user.connectionToClient))) continue;
-                TargetAICSyncOneToAll(user.connectionToClient, targetConfig.modName, targetConfig.configEntry.Definition.Section, targetConfig.configEntry.Definition.Key,
-                    TomlTypeConverter.ConvertToString(newValue, targetConfig.propType));
+                connectionsToCheck.Add(new WaitingConnCheck {
+                    connection = conn,
+                    password = password,
+                    timeRemaining = connCheckWaitTime
+                });
+
+                new CmdAICRequestSync(conn, password, modName, category, cfgName, serValue)
+                    .Send(conn);
             }
         }
 
-        [TargetRpc]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Target param is required by UNetWeaver")]
-        private void TargetAICSyncOneToAll(NetworkConnection target, string modname, string category, string cfgname, string value) {
-            CliAICSync(modname, category, cfgname, value, false);
+        private struct CmdAICRequestSync : INetCommand {
+            private string _password;
+            private string[] _modNames;
+            private string[] _categories;
+            private string[] _cfgNames;
+            private string[] _serValues;
+            private int _serversideConnectionID;
+
+            public void Deserialize(NetworkReader reader) {
+                _serversideConnectionID = reader.ReadInt32();
+                _password = reader.ReadString();
+                _modNames = reader.ReadStringArray();
+                _categories = reader.ReadStringArray();
+                _cfgNames = reader.ReadStringArray();
+                _serValues = reader.ReadStringArray();
+            }
+
+            public void Serialize(NetworkWriter writer) {
+                writer.Write(_serversideConnectionID);
+                writer.Write(_password);
+                writer.WriteStringArray(_modNames);
+                writer.WriteStringArray(_categories);
+                writer.WriteStringArray(_cfgNames);
+                writer.WriteStringArray(_serValues);
+            }
+
+            public void OnReceived() {
+                if(!NetworkClient.active) {
+                    TILER2Plugin._logger.LogError("CmdAICRequestSync received by server-only instance; this command is intended for client receipt");
+                    return;
+                }
+                int matches = 0;
+                bool foundCrit = false;
+                bool foundWarn = false;
+                for(var i = 0; i < _modNames.Length; i++) {
+                    var res = ClientAICSync(_modNames[i], _categories[i], _cfgNames[i], _serValues[i], true);
+                    if(res == AICSyncResult.PASS_WITH_CHANGE) matches++;
+                    else if(res == AICSyncResult.WARN) foundWarn = true;
+                    else if(res == AICSyncResult.FAIL) foundCrit = true;
+                }
+                var result = AICSyncResult.PASS;
+                if(foundCrit) {
+                    TILER2Plugin._logger.LogError("The above config entries marked with \"UNRESOLVABLE MISMATCH\" are different on the server, must be identical between server and client, and cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
+                    result = AICSyncResult.FAIL;
+                } else if(matches > 0) Chat.AddMessage($"Synced <color=#ffff00>{matches} setting changes</color> from the server temporarily. Check the console for details.");
+                if(foundWarn)
+                    result = AICSyncResult.WARN;
+                new MsgAICReplySync(_serversideConnectionID, _password, result)
+                    .Send(R2API.Networking.NetworkDestination.Server);
+            }
+
+            public CmdAICRequestSync(NetworkConnection conn, string password, string[] modNames, string[] categories, string[] cfgNames, string[] serValues) {
+                if(!NetworkServer.active) {
+                    TILER2Plugin._logger.LogError("CmdAICRequestSync being built on client-only instance; this command is intended for server send");
+                }
+                _serversideConnectionID = conn.connectionId;
+                _password = password;
+                _modNames = modNames;
+                _categories = categories;
+                _cfgNames = cfgNames;
+                _serValues = serValues;
+            }
         }
 
-        [Client]
-        private int CliAICSync(string modname, string category, string cfgname, string value, bool silent) {
+        private enum AICSyncResult {
+            PASS, PASS_WITH_CHANGE, FAIL, WARN
+        }
+
+        private struct MsgAICReplySync : INetMessage {
+            private string _password;
+            private AICSyncResult _result;
+            private int _serversideConnectionID;
+
+            public void Deserialize(NetworkReader reader) {
+                _password = reader.ReadString();
+                _result = (AICSyncResult)reader.ReadInt32();
+            }
+
+            public void Serialize(NetworkWriter writer) {
+                writer.Write(_password);
+                writer.Write((int)_result);
+            }
+
+            public void OnReceived() {
+                if(!NetworkServer.active) {
+                    TILER2Plugin._logger.LogError("MsgAICReplySync received by client-only instance; this message is intended for server receipt");
+                    return;
+                }
+                NetworkConnection conn = null;
+                foreach(var checkConn in NetworkServer.connections) {
+                    if(checkConn.connectionId == _serversideConnectionID) {
+                        conn = checkConn;
+                        break;
+                    }
+                }
+                if(conn == null) {
+                    TILER2Plugin._logger.LogError($"Received config check response from an invalid connectionId {_serversideConnectionID}! With password {_password}, result {_result}");
+                    foreach(var ctc in connectionsToCheck) {
+                        if(ctc.password == _password) {
+                            TILER2Plugin._logger.LogError($"    Password matches CTC with connectionId {ctc.connection.connectionId}, timer {ctc.timeRemaining}");
+                        }
+                    }
+                    return;
+                }
+
+                var pw = _password;
+                var match = connectionsToCheck.Find(x => x.connection == conn && x.password == pw);
+                if(match == null) {
+                    TILER2Plugin._logger.LogError($"Received config check response from unregistered connection! With connectionId {_serversideConnectionID}, password {_password}, result {_result}");
+                    return;
+                }
+                if(_result == AICSyncResult.PASS || _result == AICSyncResult.PASS_WITH_CHANGE) {
+                    TILER2Plugin._logger.LogDebug($"Connection {_serversideConnectionID} passed config check");
+                    connectionsToCheck.Remove(match);
+                } else if(_result == AICSyncResult.FAIL) {
+                    if(NetConfig.instance.mismatchKick) {
+                        TILER2Plugin._logger.LogWarning($"Connection {_serversideConnectionID} failed config check (a config with DeferForever and PreventNetMismatch is mismatched), kicking");
+                        NetworkManagerSystem.singleton.ServerKickClient(conn, kickCritMismatch);
+                    } else {
+                        TILER2Plugin._logger.LogWarning($"Connection {_serversideConnectionID} failed config check (a config with DeferForever and PreventNetMismatch is mismatched)");
+                    }
+                    connectionsToCheck.Remove(match);
+                } else if(_result == AICSyncResult.WARN) {
+                    if(NetConfig.instance.badVersionKick) {
+                        TILER2Plugin._logger.LogWarning($"Connection {_serversideConnectionID} failed config check (missing entries), kicking");
+                        NetworkManagerSystem.singleton.ServerKickClient(conn, kickMissingEntry);
+                    } else {
+                        TILER2Plugin._logger.LogWarning($"Connection {_serversideConnectionID} failed config check (missing entries)");
+                    }
+                    connectionsToCheck.Remove(match);
+                } else {
+                    TILER2Plugin._logger.LogError("POSSIBLE SECURITY ISSUE: Received registered connection and correct password from MsgAICReplySync, but result is not valid");
+                }
+            }
+
+            public MsgAICReplySync(int netId, string password, AICSyncResult status) {
+                if(!NetworkClient.active) {
+                    TILER2Plugin._logger.LogError("MsgAICReplySync being built on server-only instance; this message is intended for client send");
+                }
+                _password = password;
+                _result = status;
+                _serversideConnectionID = netId;
+            }
+        }
+
+        private static AICSyncResult ClientAICSync(string modname, string category, string cfgname, string value, bool silent) {
             var exactMatches = AutoConfigBinding.instances.FindAll(x => {
                 return x.configEntry.Definition.Key == cfgname
                 && x.configEntry.Definition.Section == category
                 && x.modName == modname;
             });
             if(exactMatches.Count > 1) {
-                TILER2Plugin._logger.LogError("(Server requesting update) There are multiple config entries with the path \"" + modname + "/" + category + "/" + cfgname + "\"; this should never happen! Please report this as a bug.");
-                return -1;
+                var msg = $"(TILER2: Server requesting update) There are multiple config entries with the path \"{modname}/{category}/{cfgname}\"; this should never happen! Please report this as a bug.";
+                TILER2Plugin._logger.LogError(msg);
+                //important, make sure user knows
+                Chat.AddMessage(msg);
+                return AICSyncResult.WARN;
             } else if(exactMatches.Count == 0) {
-                TILER2Plugin._logger.LogError("The server requested an update for a nonexistent config entry with the path \"" + modname + "/" + category + "/" + cfgname + "\". Make sure you're using the same mods AND mod versions as the server!");
-                return -1;
+                TILER2Plugin._logger.LogError($"The server requested an update for a nonexistent config entry with the path \"{modname}/{category}/{cfgname}\". Make sure you're using the same mods AND mod versions as the server!");
+                return AICSyncResult.WARN;
             }
 
             var newVal = TomlTypeConverter.ConvertToValue(value, exactMatches[0].propType);
             if(!exactMatches[0].cachedValue.Equals(newVal)) {
                 if(exactMatches[0].netMismatchCritical) {
-                    TILER2Plugin._logger.LogError("CRITICAL MISMATCH on \"" + modname + "/" + category + "/" + cfgname + "\": Requested " + newVal.ToString() + " vs current " + exactMatches[0].cachedValue.ToString());
-                    return -2;
+                    TILER2Plugin._logger.LogError($"UNRESOLVABLE MISMATCH on \"{modname}/{category}/{cfgname}\": Requested {newVal} vs current {exactMatches[0].cachedValue}");
+                    return AICSyncResult.FAIL;
                 }
                 exactMatches[0].OverrideProperty(newVal, silent);
-                return 1;
+                return AICSyncResult.PASS_WITH_CHANGE;
             }
-            return 0;
+            return AICSyncResult.PASS;
         }
     }
 }

@@ -89,8 +89,7 @@ namespace TILER2 {
 
         internal void UpdateProperty(object newValue, bool silent = false) {
             if(NetworkServer.active && !this.allowNetMismatch) {
-                NetConfig.EnsureOrchestrator();
-                NetConfigOrchestrator.instance.ServerAICSyncOneToAll(this, newValue);
+                NetConfig.ServerAICSyncOneToAll(this, newValue);
             }
             if(deferType == DeferType.UpdateImmediately || Run.instance == null || !Run.instance.enabled) {
                 DeferredUpdateProperty(newValue, silent);

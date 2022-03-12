@@ -42,6 +42,7 @@ namespace TILER2 {
 
             T2Module.SetupAll_PluginAwake(allModules);
 
+            NetUtil.Setup();
             MiscUtil.Setup();
             DebugUtil.Setup();
 
