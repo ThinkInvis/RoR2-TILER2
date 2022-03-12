@@ -54,7 +54,7 @@ namespace TILER2 {
             LanguageAPI.Add("TILER2_DISABLED_ARTIFACT", "This artifact is <color=#ff7777>force-disabled</color>; it will have no effect ingame.");
 
             R2API.Networking.NetworkingAPI.RegisterMessageType<MsgAICReplySync>();
-            R2API.Networking.NetworkingAPI.RegisterCommandType<MsgAICRequestSync>();
+            R2API.Networking.NetworkingAPI.RegisterMessageType<MsgAICRequestSync>();
         }
 
         private static readonly RoR2.ConVar.BoolConVar allowClientAICSet = new RoR2.ConVar.BoolConVar("aic_allowclientset", ConVarFlags.None, "false", "If true, clients may use the ConCmds aic_set or aic_settemp to temporarily set config values on the server. If false, aic_set and aic_settemp will not work for clients.");
