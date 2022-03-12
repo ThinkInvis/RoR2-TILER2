@@ -54,7 +54,7 @@ namespace TILER2 {
             LanguageAPI.Add("TILER2_DISABLED_ARTIFACT", "This artifact is <color=#ff7777>force-disabled</color>; it will have no effect ingame.");
 
             R2API.Networking.NetworkingAPI.RegisterMessageType<MsgAICReplySync>();
-            R2API.Networking.NetworkingAPI.RegisterCommandType<CmdAICRequestSync>();
+            R2API.Networking.NetworkingAPI.RegisterCommandType<MsgAICRequestSync>();
         }
 
         private static readonly RoR2.ConVar.BoolConVar allowClientAICSet = new RoR2.ConVar.BoolConVar("aic_allowclientset", ConVarFlags.None, "false", "If true, clients may use the ConCmds aic_set or aic_settemp to temporarily set config values on the server. If false, aic_set and aic_settemp will not work for clients.");
@@ -388,7 +388,7 @@ namespace TILER2 {
                 timeRemaining = connCheckWaitTime
             });
 
-            new CmdAICRequestSync(conn, password, modnames.ToArray(), categories.ToArray(), cfgnames.ToArray(), serValues.ToArray())
+            new MsgAICRequestSync(conn, password, modnames.ToArray(), categories.ToArray(), cfgnames.ToArray(), serValues.ToArray())
                 .Send(conn);
         }
 
@@ -410,12 +410,12 @@ namespace TILER2 {
                     timeRemaining = connCheckWaitTime
                 });
 
-                new CmdAICRequestSync(conn, password, modName, category, cfgName, serValue)
+                new MsgAICRequestSync(conn, password, modName, category, cfgName, serValue)
                     .Send(conn);
             }
         }
 
-        private struct CmdAICRequestSync : INetCommand {
+        private struct MsgAICRequestSync : INetMessage {
             private string _password;
             private string[] _modNames;
             private string[] _categories;
@@ -443,7 +443,7 @@ namespace TILER2 {
 
             public void OnReceived() {
                 if(!NetworkClient.active) {
-                    TILER2Plugin._logger.LogError("CmdAICRequestSync received by server-only instance; this command is intended for client receipt");
+                    TILER2Plugin._logger.LogError("MsgAICRequestSync received by server-only instance; this command is intended for client receipt");
                     return;
                 }
                 int matches = 0;
@@ -466,10 +466,11 @@ namespace TILER2 {
                     .Send(R2API.Networking.NetworkDestination.Server);
             }
 
-            public CmdAICRequestSync(NetworkConnection conn, string password, string[] modNames, string[] categories, string[] cfgNames, string[] serValues) {
+            public MsgAICRequestSync(NetworkConnection conn, string password, string[] modNames, string[] categories, string[] cfgNames, string[] serValues) {
                 if(!NetworkServer.active) {
-                    TILER2Plugin._logger.LogError("CmdAICRequestSync being built on client-only instance; this command is intended for server send");
+                    TILER2Plugin._logger.LogError("MsgAICRequestSync being built on client-only instance; this command is intended for server send");
                 }
+
                 _serversideConnectionID = conn.connectionId;
                 _password = password;
                 _modNames = modNames;
