@@ -212,7 +212,7 @@ namespace TILER2 {
             }
 
             var strs = new List<string> {
-                $"\"{matches[0].readablePath}\" (matches[0].propType.Name): {(matches[0].configEntry.Description?.Description ?? "[no description]")}",
+                $"\"{matches[0].readablePath}\" ({matches[0].propType.Name}): {(matches[0].configEntry.Description?.Description ?? "[no description]")}",
                 $"Current value: {matches[0].cachedValue}"
             };
             if(AutoConfigBinding.stageDirtyInstances.ContainsKey(matches[0]))
