@@ -60,7 +60,7 @@ namespace TILER2 {
             if(foundCrit) {
                 Debug.LogError("TILER2 NetConfig: The above config entries marked with \"UNRESOLVABLE MISMATCH\" are different on the server, must be identical between server and client, and cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
                 result = ConfigSyncStatus.SyncFail;
-            } else if(matches > 0) RoR2.Chat.AddMessage($"Synced <color=#ffff00>{matches} setting changes</color> from the server temporarily. Check the console for details.");
+            } else if(matches > 0) RoR2.Chat.AddMessage($"Synced <color=#ffff00>{matches} setting change{(matches > 1 ? "s" : "")}</color> from the server temporarily. Check the console for details.");
             if(foundWarn)
                 result = ConfigSyncStatus.SyncWarn;
             new MsgReplyNetConfig(netId, password, result)
