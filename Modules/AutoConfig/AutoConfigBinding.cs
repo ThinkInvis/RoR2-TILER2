@@ -89,7 +89,7 @@ namespace TILER2 {
 
         internal void UpdateProperty(object newValue, bool silent = false) {
             if(NetworkServer.active && !this.allowNetMismatch) {
-                NetConfig.ServerSyncOneToAll(this, newValue);
+                NetConfigModule.ServerSyncOneToAll(this, newValue);
             }
             if(deferType == DeferType.UpdateImmediately || Run.instance == null || !Run.instance.enabled) {
                 DeferredUpdateProperty(newValue, silent);
@@ -99,6 +99,103 @@ namespace TILER2 {
                 AutoConfigBinding.runDirtyInstances[this] = newValue;
             } else {
                 TILER2Plugin._logger.LogWarning($"Something attempted to set the value of an AutoConfigBinding with the DeferForever flag: \"{readablePath}\"");
+            }
+        }
+
+        public static (List<AutoConfigBinding> results, string errorMsg) FindFromPath(string path1, string path2, string path3) {
+            var p1u = path1.ToUpper();
+            var p2u = path2?.ToUpper();
+            var p3u = path3?.ToUpper();
+
+            List<AutoConfigBinding> matchesLevel1 = new List<AutoConfigBinding>(); //no enforced order, no enforced caps, partial matches
+            List<AutoConfigBinding> matchesLevel2 = new List<AutoConfigBinding>(); //enforced order, no enforced caps, partial matches
+            List<AutoConfigBinding> matchesLevel3 = new List<AutoConfigBinding>(); //enforced order, no enforced caps, full matches
+            List<AutoConfigBinding> matchesLevel4 = new List<AutoConfigBinding>(); //enforced order, enforced caps, full matches
+
+            AutoConfigBinding.instances.ForEach(x => {
+                if(!x.allowConCmd) return;
+
+                var name = x.configEntry.Definition.Key;
+                var nameu = name.ToUpper();
+                var cat = x.configEntry.Definition.Section;
+                var catu = cat.ToUpper();
+                var mod = x.modName;
+                var modu = mod.ToUpper();
+
+                if(path2 == null) {
+                    //passed 1 part; could be mod, cat, or name
+                    if(nameu.Contains(p1u)
+                    || catu.Contains(p1u)
+                    || modu.Contains(p1u)) {
+                        matchesLevel1.Add(x);
+                        matchesLevel2.Add(x);
+                    } else return;
+                    if(nameu == p1u)
+                        matchesLevel3.Add(x);
+                    else return;
+                    if(name == path1)
+                        matchesLevel4.Add(x);
+                } else if(path3 == null) {
+                    //passed 2 parts; could be mod/cat, mod/name, or cat/name
+                    //enforced order only matches mod/cat or cat/name
+                    var modMatch1u = modu.Contains(p1u);
+                    var catMatch1u = catu.Contains(p1u);
+                    var catMatch2u = catu.Contains(p2u);
+                    var nameMatch2u = nameu.Contains(p2u);
+                    if((modMatch1u && catMatch2u) || (catMatch1u && nameMatch2u) || (modMatch1u && nameMatch2u))
+                        matchesLevel1.Add(x);
+                    else return;
+
+                    if(!(modMatch1u && nameMatch2u))
+                        matchesLevel2.Add(x);
+                    else return;
+
+                    var modMatch1 = mod.Contains(path1);
+                    var catMatch1 = cat.Contains(path1);
+                    var catMatch2 = cat.Contains(path2);
+                    var nameMatch2 = name.Contains(path2);
+
+                    if((modMatch1 && catMatch2) || (catMatch1 && nameMatch2))
+                        matchesLevel3.Add(x);
+                    else return;
+
+                    var modExact1 = mod == path1;
+                    var catExact1 = cat == path1;
+                    var catExact2 = cat == path2;
+                    var nameExact2 = name == path2;
+
+                    if((modExact1 && catExact2) || (catExact1 && nameExact2))
+                        matchesLevel4.Add(x);
+                } else {
+                    //passed 3 parts; must be mod/cat/name
+                    if(nameu.Contains(p3u)
+                    && catu.Contains(p2u)
+                    && modu.Contains(p1u)) {
+                        matchesLevel1.Add(x);
+                        matchesLevel2.Add(x);
+                    } else return;
+                    if(modu == p3u && catu == p2u && nameu == p1u)
+                        matchesLevel3.Add(x);
+                    else return;
+                    if(mod == path3 && cat == path2 && name == path1)
+                        matchesLevel4.Add(x);
+                }
+            });
+
+            if(matchesLevel1.Count == 0) return (null, "no level 1 matches");
+            else if(matchesLevel1.Count == 1) return (matchesLevel1, null);
+
+            if(matchesLevel2.Count == 0) return (matchesLevel1, "multiple level 1 matches, no level 2 matches");
+            else if(matchesLevel2.Count == 1) return (matchesLevel2, null);
+
+            if(matchesLevel3.Count == 0) return (matchesLevel2, "multiple level 2 matches, no level 3 matches");
+            else if(matchesLevel3.Count == 1) return (matchesLevel3, null);
+
+            if(matchesLevel4.Count == 0) return (matchesLevel3, "multiple level 3 matches, no level 4 matches");
+            else if(matchesLevel4.Count == 1) return (matchesLevel4, null);
+            else {
+                Debug.LogError($"TILER2 NetConfig: There are multiple config entries with the path \"{matchesLevel4[0].readablePath}\"; this should never happen! Please report this as a bug.");
+                return (matchesLevel4, "multiple level 4 matches");
             }
         }
     }

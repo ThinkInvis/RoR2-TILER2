@@ -7,18 +7,16 @@ using RoR2;
 using RoR2.Networking;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 using static RoR2.Networking.NetworkManagerSystem;
-using Compression = System.IO.Compression;
 
 namespace TILER2 {
     /// <summary>
     /// Provides automatic network syncing and mismatch kicking for the AutoConfig module.
     /// </summary>
-    public class NetConfig : T2Module<NetConfig> {
+    public class NetConfigModule : T2Module<NetConfigModule> {
         public override bool managedEnable => false;
 
         [AutoConfig("If true, NetConfig will use the server to check for config mismatches.")]
@@ -37,118 +35,15 @@ namespace TILER2 {
         private static readonly RoR2.ConVar.BoolConVar allowClientNCFGSet = new RoR2.ConVar.BoolConVar("ncfg_allowclientset", ConVarFlags.None, "false", "If true, clients may use the ConCmds ncfg_set or ncfg_settemp to temporarily set config values on the server. If false, ncfg_set and ncfg_settemp will not work for clients.");
 
         private const float CONN_CHECK_WAIT_TIME = 15f;
-        private const int MAX_MESSAGE_SIZE_BYTES = 1100;
-        private static readonly List<ClientConfigSyncInfo> clients = new List<ClientConfigSyncInfo>();
-        List<ClientConfigSyncInfo> _updateKickList = new List<ClientConfigSyncInfo>();
+        internal const int MAX_MESSAGE_SIZE_BYTES = 1100;
+        private static readonly List<NetConfigClientInfo> clients = new List<NetConfigClientInfo>();
+        List<NetConfigClientInfo> _updateKickList = new List<NetConfigClientInfo>();
 
-        //clientside storage for info received from server
-        private static string cliPassword;
-        private static int cliNetId;
-        private static int cliSyncReceiveBytesMax = 0;
-        private static int cliSyncReceiveBytes = 0;
-        private static Dictionary<int, byte[]> cliSyncReceiveData = new Dictionary<int, byte[]>();
-
-        enum ConfigSyncStatus : byte {
+        internal enum ConfigSyncStatus : byte {
             Invalid, Connect, BeginSync, SyncPass, SyncPassWithChange, SyncWarn, SyncFail
         }
 
-        private class ClientConfigSyncInfo {
-            public NetworkConnection connection;
-            public string password; //netids are sequential; password detrivializes being able to kick other clients by spamming fail replies
-            public bool hasAcked = false;
-            public ConfigExchange? currentExchange;
-            public readonly List<ConfigExchange> pendingExchanges = new List<ConfigExchange>();
-            public readonly float connectedAt = Time.unscaledTime;
-
-            public void AddExchangeOne(AutoConfigBinding bind) {
-                AddExchange(new ConfigExchange(new[] {new ConfigExchangeEntry(
-                    bind.modName,
-                    bind.configEntry.Definition.Section,
-                    bind.configEntry.Definition.Key,
-                    TomlTypeConverter.ConvertToString(bind.cachedValue, bind.propType)
-                )}));
-            }
-            public void AddExchangeOne(AutoConfigBinding bind, object newValue) {
-                AddExchange(new ConfigExchange(new[] {new ConfigExchangeEntry(
-                    bind.modName,
-                    bind.configEntry.Definition.Section,
-                    bind.configEntry.Definition.Key,
-                    TomlTypeConverter.ConvertToString(newValue, bind.propType)
-                )}));
-            }
-            public void AddExchangeAll() {
-                var validInsts = AutoConfigBinding.instances.Where(x => !x.allowNetMismatch);
-                var entries = new List<ConfigExchangeEntry>();
-
-                foreach(var i in validInsts) {
-                    entries.Add(new ConfigExchangeEntry(
-                        i.modName,
-                        i.configEntry.Definition.Section,
-                        i.configEntry.Definition.Key,
-                        TomlTypeConverter.ConvertToString(i.cachedValue, i.propType)
-                        ));
-                }
-
-                AddExchange(new ConfigExchange(entries.ToArray()));
-            }
-            private void AddExchange(ConfigExchange exch) {
-                pendingExchanges.Add(exch);
-                if(hasAcked && currentExchange == null)
-                    AdvanceExchangeQueue();
-            }
-
-            public void AdvanceExchangeQueue() {
-                if(!hasAcked) {
-                    TILER2Plugin._logger.LogError("ClientConfigSyncInfo.AdvanceExchangeQueue called before client ack");
-                    return;
-                }
-                if(currentExchange == null) {
-                    if(pendingExchanges.Count == 0) {
-                        TILER2Plugin._logger.LogDebug("ClientConfigSyncInfo.AdvanceExchangeQueue called with empty queue");
-                        return;
-                    }
-                    currentExchange = pendingExchanges[0];
-                    pendingExchanges.RemoveAt(0);
-                    new MsgRequestConfigSyncBegin(currentExchange.Value.content.Length).Send(connection);
-                }
-            }
-
-            public void BeginExchange() {
-                if(!hasAcked) {
-                    TILER2Plugin._logger.LogError("ClientConfigSyncInfo.BeginExchange called before client ack");
-                    return;
-                }
-                if(currentExchange == null) {
-                    TILER2Plugin._logger.LogWarning("ClientConfigSyncInfo.BeginExchange called with no immediate exchange, attempting to advance queue");
-                    AdvanceExchangeQueue();
-                    if(currentExchange == null) {
-                        TILER2Plugin._logger.LogError("ClientConfigSyncInfo.BeginExchange called with no immediate or pending exchange");
-                        return;
-                    }
-                }
-                var payload = currentExchange.Value.content;
-                var step = MAX_MESSAGE_SIZE_BYTES - 32;
-                var index = 0;
-                for(var i = 0; i < payload.Length; i += step) {
-                    var next = payload.Skip(i);
-                    new MsgRequestConfigSyncContinue(
-                        next.Take(Math.Min(step, next.Count())).ToArray(),
-                        index++
-                        ).Send(connection);
-                }
-            }
-
-            public void EndExchange() {
-                if(!hasAcked) {
-                    TILER2Plugin._logger.LogError("ClientConfigSyncInfo.EndExchange called before client ack");
-                    return;
-                }
-                currentExchange = null;
-                AdvanceExchangeQueue();
-            }
-        }
-
-        private struct ConfigExchangeEntry {
+        internal struct ConfigExchangeEntry {
             public string modName;
             public string configCategory;
             public string configName;
@@ -162,75 +57,30 @@ namespace TILER2 {
             }
         }
 
-        private struct ConfigExchange {
+        internal struct ConfigExchange {
             public byte[] content;
             public float timestamp;
-
-            public ConfigExchange(ConfigExchangeEntry[] entries) {
-                var header = new List<int>();
-                header.Add(entries.Length*4);
-                var interleavedEntries = new List<string>();
-                foreach(var i in entries) {
-                    interleavedEntries.Add(i.modName);
-                    header.Add(i.modName.Length);
-                    interleavedEntries.Add(i.configCategory);
-                    header.Add(i.configCategory.Length);
-                    interleavedEntries.Add(i.configName);
-                    header.Add(i.configName.Length);
-                    interleavedEntries.Add(i.serializedValue);
-                    header.Add(i.serializedValue.Length);
-                }
-                var serBytes = header.SelectMany(BitConverter.GetBytes)
-                    .Concat(System.Text.Encoding.Unicode.GetBytes(string.Join("",interleavedEntries)))
-                    .ToArray();
-
-                using(var inputStream = new MemoryStream(serBytes))
-                using(var outputStream = new MemoryStream()) {
-                    using(var compressor = new Compression.DeflateStream(outputStream, Compression.CompressionMode.Compress)) {
-                        inputStream.CopyTo(compressor);
-                    }
-
-                    content = outputStream.ToArray();
-                }
-
-                timestamp = Time.unscaledTime;
-            }
 
             public ConfigExchange(byte[] packedEntries) {
                 content = packedEntries;
                 timestamp = Time.unscaledTime;
             }
 
-            public ConfigExchangeEntry[] Unpack() {
-                string[] interleavedEntries;
-                int[] entryLengths;
-                using(var inputStream = new MemoryStream(content))
-                using(var outputStream = new MemoryStream()) {
-                    using(var compressor = new Compression.DeflateStream(inputStream, Compression.CompressionMode.Decompress)) {
-                        compressor.CopyTo(outputStream);
-                    }
-
-                    outputStream.Seek(0, SeekOrigin.Begin);
-
-                    //read 1 int: # of entries
-                    byte[] outputBuffer = new byte[4];
-                    outputStream.Read(outputBuffer, 0, 4);
-                    entryLengths = new int[BitConverter.ToInt32(outputBuffer, 0)];
-                    interleavedEntries = new string[entryLengths.Length];
-                    //read # entries ints: string bytecounts
-                    for(var i = 0; i < entryLengths.Length; i++) {
-                        outputStream.Read(outputBuffer, 0, 4);
-                        entryLengths[i] = BitConverter.ToInt32(outputBuffer, 0);
-                    }
-                    //read remaining: strings
-                    using(var reader = new StreamReader(outputStream, System.Text.Encoding.Unicode)) {
-                        for(var i = 0; i < entryLengths.Length; i++) {
-                            char[] readerBuffer = new char[entryLengths[i]];
-                            reader.Read(readerBuffer, 0, entryLengths[i]);
-                            interleavedEntries[i] = new string(readerBuffer);
-                        }
-                    }
+            public ConfigExchange(ConfigExchangeEntry[] entries) {
+                var interleavedEntries = new List<string>();
+                foreach(var i in entries) {
+                    interleavedEntries.Add(i.modName);
+                    interleavedEntries.Add(i.configCategory);
+                    interleavedEntries.Add(i.configName);
+                    interleavedEntries.Add(i.serializedValue);
                 }
+
+                content = NetUtil.PackStringArray(interleavedEntries.ToArray());
+                timestamp = Time.unscaledTime;
+            }
+
+            public ConfigExchangeEntry[] Unpack() {
+                var interleavedEntries = NetUtil.UnpackStringArray(content);
 
                 ConfigExchangeEntry[] retv = new ConfigExchangeEntry[interleavedEntries.Length / 4];
                 var j = 0;
@@ -249,7 +99,7 @@ namespace TILER2 {
 
                 if(!enableCheck || Util.ConnectionIsLocal(conn) || clients.Exists(x => x.connection == conn)) return;
                 var pw = Guid.NewGuid().ToString("d");
-                var cli = new ClientConfigSyncInfo {
+                var cli = new NetConfigClientInfo {
                     connection = conn,
                     password = pw
                 };
@@ -258,7 +108,7 @@ namespace TILER2 {
 
                 cli.AddExchangeAll();
 
-                new MsgRequestNetConfigAck(cli).Send(conn);
+                new NetConfigLocalClient.MsgRequestNetConfigAck(cli).Send(conn);
             };
             RoR2.RoR2Application.onUpdate += UpdateConnections;
 
@@ -272,107 +122,10 @@ namespace TILER2 {
             LanguageAPI.Add("TILER2_KICKREASON_NCMISSINGENTRY", "TILER2 NetConfig: mismatch check found missing config entries.\nYou are likely using a different version of a mod than the server.");
             LanguageAPI.Add("TILER2_DISABLED_ARTIFACT", "This artifact is <color=#ff7777>force-disabled</color>; it will have no effect ingame.");
 
-            NetworkingAPI.RegisterMessageType<MsgRequestNetConfigAck>();
-            NetworkingAPI.RegisterMessageType<MsgRequestConfigSyncBegin>();
-            NetworkingAPI.RegisterMessageType<MsgRequestConfigSyncContinue>();
+            NetworkingAPI.RegisterMessageType<NetConfigLocalClient.MsgRequestNetConfigAck>();
+            NetworkingAPI.RegisterMessageType<NetConfigLocalClient.MsgRequestConfigSyncBegin>();
+            NetworkingAPI.RegisterMessageType<NetConfigLocalClient.MsgRequestConfigSyncContinue>();
             NetworkingAPI.RegisterMessageType<MsgReplyNetConfig>();
-        }
-
-        private static (List<AutoConfigBinding> results, string errorMsg) GetBindingFromPath(string path1, string path2, string path3) {
-            var p1u = path1.ToUpper();
-            var p2u = path2?.ToUpper();
-            var p3u = path3?.ToUpper();
-
-            List<AutoConfigBinding> matchesLevel1 = new List<AutoConfigBinding>(); //no enforced order, no enforced caps, partial matches
-            List<AutoConfigBinding> matchesLevel2 = new List<AutoConfigBinding>(); //enforced order, no enforced caps, partial matches
-            List<AutoConfigBinding> matchesLevel3 = new List<AutoConfigBinding>(); //enforced order, no enforced caps, full matches
-            List<AutoConfigBinding> matchesLevel4 = new List<AutoConfigBinding>(); //enforced order, enforced caps, full matches
-
-            AutoConfigBinding.instances.ForEach(x => {
-                if(!x.allowConCmd) return;
-
-                var name = x.configEntry.Definition.Key;
-                var nameu = name.ToUpper();
-                var cat = x.configEntry.Definition.Section;
-                var catu = cat.ToUpper();
-                var mod = x.modName;
-                var modu = mod.ToUpper();
-
-                if(path2 == null) {
-                    //passed 1 part; could be mod, cat, or name
-                    if(nameu.Contains(p1u)
-                    || catu.Contains(p1u)
-                    || modu.Contains(p1u)) {
-                        matchesLevel1.Add(x);
-                        matchesLevel2.Add(x);
-                    } else return;
-                    if(nameu == p1u)
-                        matchesLevel3.Add(x);
-                    else return;
-                    if(name == path1)
-                        matchesLevel4.Add(x);
-                } else if(path3 == null) {
-                    //passed 2 parts; could be mod/cat, mod/name, or cat/name
-                    //enforced order only matches mod/cat or cat/name
-                    var modMatch1u = modu.Contains(p1u);
-                    var catMatch1u = catu.Contains(p1u);
-                    var catMatch2u = catu.Contains(p2u);
-                    var nameMatch2u = nameu.Contains(p2u);
-                    if((modMatch1u && catMatch2u) || (catMatch1u && nameMatch2u) || (modMatch1u && nameMatch2u))
-                        matchesLevel1.Add(x);
-                    else return;
-
-                    if(!(modMatch1u && nameMatch2u))
-                        matchesLevel2.Add(x);
-                    else return;
-
-                    var modMatch1 = mod.Contains(path1);
-                    var catMatch1 = cat.Contains(path1);
-                    var catMatch2 = cat.Contains(path2);
-                    var nameMatch2 = name.Contains(path2);
-
-                    if((modMatch1 && catMatch2) || (catMatch1 && nameMatch2))
-                        matchesLevel3.Add(x);
-                    else return;
-
-                    var modExact1 = mod == path1;
-                    var catExact1 = cat == path1;
-                    var catExact2 = cat == path2;
-                    var nameExact2 = name == path2;
-
-                    if((modExact1 && catExact2) || (catExact1 && nameExact2))
-                        matchesLevel4.Add(x);
-                } else {
-                    //passed 3 parts; must be mod/cat/name
-                    if(nameu.Contains(p3u)
-                    && catu.Contains(p2u)
-                    && modu.Contains(p1u)) {
-                        matchesLevel1.Add(x);
-                        matchesLevel2.Add(x);
-                    } else return;
-                    if(modu == p3u && catu == p2u && nameu == p1u)
-                        matchesLevel3.Add(x);
-                    else return;
-                    if(mod == path3 && cat == path2 && name == path1)
-                        matchesLevel4.Add(x);
-                }
-            });
-
-            if(matchesLevel1.Count == 0) return (null, "no level 1 matches");
-            else if(matchesLevel1.Count == 1) return (matchesLevel1, null);
-
-            if(matchesLevel2.Count == 0) return (matchesLevel1, "multiple level 1 matches, no level 2 matches");
-            else if(matchesLevel2.Count == 1) return (matchesLevel2, null);
-
-            if(matchesLevel3.Count == 0) return (matchesLevel2, "multiple level 2 matches, no level 3 matches");
-            else if(matchesLevel3.Count == 1) return (matchesLevel3, null);
-
-            if(matchesLevel4.Count == 0) return (matchesLevel3, "multiple level 3 matches, no level 4 matches");
-            else if(matchesLevel4.Count == 1) return (matchesLevel4, null);
-            else {
-                Debug.LogError($"TILER2 NetConfig: There are multiple config entries with the path \"{matchesLevel4[0].readablePath}\"; this should never happen! Please report this as a bug.");
-                return (matchesLevel4, "multiple level 4 matches");
-            }
         }
 
         private void UpdateConnections() {
@@ -420,127 +173,15 @@ namespace TILER2 {
             }
         }
 
-        private static void ClientCleanupNCFGSync() {
-            cliSyncReceiveData.Clear();
-            cliSyncReceiveBytes = 0;
-            cliSyncReceiveBytesMax = 0;
-        }
-
-        private static void ClientFinalizeConfigSync() {
-            if(!NetworkClient.active) {
-                TILER2Plugin._logger.LogError("NetConfig.ClientFinalizeConfigSync called on server");
-                return;
-            }
-            List<byte> payload = new List<byte>();
-            for(var i = 0; i < cliSyncReceiveData.Count; i++) {
-                if(!cliSyncReceiveData.ContainsKey(i)) {
-                    TILER2Plugin._logger.LogError($"Gap in received MsgRequestConfigSyncContinue data at index {i} of {cliSyncReceiveData.Count}");
-                    ClientCleanupNCFGSync();
-                    return;
-                }
-
-                payload.AddRange(cliSyncReceiveData[i]);
-            }
-
-            if(payload.Count != cliSyncReceiveBytesMax) {
-                TILER2Plugin._logger.LogError($"Mismatch in received MsgRequestConfigSyncContinue data vs payload size given by MsgRequestConfigSyncBegin");
-                ClientCleanupNCFGSync();
-                return;
-            }
-
-            var entries = new ConfigExchange(payload.ToArray()).Unpack();
-            ClientCleanupNCFGSync();
-            TILER2Plugin._logger.LogDebug($"NetConfig.ClientFinalizeConfigSync received payload of {entries.Length} entries");
-
-            int matches = 0;
-            bool foundCrit = false;
-            bool foundWarn = false;
-            foreach(var i in entries) {
-                var res = ClientSyncConfigEntry(i.modName, i.configCategory, i.configName, i.serializedValue, true);
-                if(res == ConfigSyncStatus.SyncPassWithChange) matches++;
-                else if(res == ConfigSyncStatus.SyncWarn) foundWarn = true;
-                else if(res == ConfigSyncStatus.SyncFail) foundCrit = true;
-            }
-            var result = ConfigSyncStatus.SyncPass;
-            if(foundCrit) {
-                Debug.LogError("TILER2 NetConfig: The above config entries marked with \"UNRESOLVABLE MISMATCH\" are different on the server, must be identical between server and client, and cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
-                result = ConfigSyncStatus.SyncFail;
-            } else if(matches > 0) Chat.AddMessage($"Synced <color=#ffff00>{matches} setting changes</color> from the server temporarily. Check the console for details.");
-            if(foundWarn)
-                result = ConfigSyncStatus.SyncWarn;
-            new MsgReplyNetConfig(cliNetId, cliPassword, result)
-                .Send(NetworkDestination.Server);
-        }
-
-        private static ConfigSyncStatus ClientSyncConfigEntry(string modname, string category, string cfgname, string value, bool silent) {
-            if(!NetworkClient.active) {
-                TILER2Plugin._logger.LogError("NetConfig.ClientSyncConfigEntry called on server");
-                return ConfigSyncStatus.Invalid;
-            }
-            var exactMatches = AutoConfigBinding.instances.FindAll(x => {
-                return x.configEntry.Definition.Key == cfgname
-                && x.configEntry.Definition.Section == category
-                && x.modName == modname;
-            });
-            if(exactMatches.Count > 1) {
-                var msg = $"TILER2 NetConfig: There are multiple config entries with the path \"{modname}/{category}/{cfgname}\"; this should never happen! Please report this as a bug.";
-                Debug.LogError(msg);
-                //important, make sure user knows
-                Chat.AddMessage(msg);
-                return ConfigSyncStatus.SyncWarn;
-            } else if(exactMatches.Count == 0) {
-                Debug.LogError($"TILER2 NetConfig: The server requested an update for a nonexistent config entry with the path \"{modname}/{category}/{cfgname}\". Make sure you're using the same mods AND mod versions as the server!");
-                return ConfigSyncStatus.SyncWarn;
-            }
-
-            var newVal = TomlTypeConverter.ConvertToValue(value, exactMatches[0].propType);
-            if(!exactMatches[0].cachedValue.Equals(newVal)) {
-                if(exactMatches[0].netMismatchCritical) {
-                    Debug.LogError($"TILER2 NetConfig: UNRESOLVABLE MISMATCH on \"{modname}/{category}/{cfgname}\"! Requested {newVal} vs current {exactMatches[0].cachedValue}");
-                    return ConfigSyncStatus.SyncFail;
-                }
-                exactMatches[0].OverrideProperty(newVal, silent);
-                return ConfigSyncStatus.SyncPassWithChange;
-            }
-            return ConfigSyncStatus.SyncPass;
-        }
-
-        #region Networking Interfaces
-        private struct MsgRequestNetConfigAck : INetMessage {
+        internal struct MsgReplyNetConfig : INetMessage {
             private string _password;
             private int _netId;
+            private NetConfigModule.ConfigSyncStatus _status;
 
             public void Deserialize(NetworkReader reader) {
                 _netId = reader.ReadInt32();
                 _password = reader.ReadString();
-            }
-
-            public void Serialize(NetworkWriter writer) {
-                writer.Write(_netId);
-                writer.Write(_password);
-            }
-
-            public void OnReceived() {
-                cliPassword = _password;
-                cliNetId = _netId;
-                new MsgReplyNetConfig(_netId, _password, ConfigSyncStatus.Connect).Send(NetworkDestination.Server);
-            }
-
-            public MsgRequestNetConfigAck(ClientConfigSyncInfo cli) {
-                _netId = cli.connection.connectionId;
-                _password = cli.password;
-            }
-        }
-
-        private struct MsgReplyNetConfig : INetMessage {
-            private string _password;
-            private int _netId;
-            private ConfigSyncStatus _status;
-
-            public void Deserialize(NetworkReader reader) {
-                _netId = reader.ReadInt32();
-                _password = reader.ReadString();
-                _status = (ConfigSyncStatus)reader.ReadByte();
+                _status = (NetConfigModule.ConfigSyncStatus)reader.ReadByte();
             }
 
             public void Serialize(NetworkWriter writer) {
@@ -559,14 +200,14 @@ namespace TILER2 {
                 }
                 if(conn == null) {
                     TILER2Plugin._logger.LogError($"NetConfig received reply from an invalid connectionId {_netId}! Reply has password \"{_password}\", type {_status}");
-                    foreach(var cliF in clients) {
+                    foreach(var cliF in NetConfigModule.clients) {
                         if(cliF.password == _password) {
                             TILER2Plugin._logger.LogError($"    Password matches user with connectionId {cliF.connection.connectionId}");
                         }
                     }
                     return;
                 }
-                var cli = clients.Find(x => x.connection == conn);
+                var cli = NetConfigModule.clients.Find(x => x.connection == conn);
                 if(cli == null) {
                     TILER2Plugin._logger.LogError($"NetConfig received reply from untracked connectionId {_netId}! Reply has password \"{_password}\", type {_status}");
                     return;
@@ -577,26 +218,26 @@ namespace TILER2 {
                 }
                 TILER2Plugin._logger.LogDebug($"NetConfig reply OK! Reply has connectionId {_netId}, password \"{_password}\", type {_status}");
 
-                if(_status == ConfigSyncStatus.Connect) {
+                if(_status == NetConfigModule.ConfigSyncStatus.Connect) {
                     cli.hasAcked = true;
                     cli.AdvanceExchangeQueue();
-                } else if(_status == ConfigSyncStatus.BeginSync) {
+                } else if(_status == NetConfigModule.ConfigSyncStatus.BeginSync) {
                     cli.BeginExchange();
-                } else if(_status == ConfigSyncStatus.SyncPass) {
+                } else if(_status == NetConfigModule.ConfigSyncStatus.SyncPass) {
                     TILER2Plugin._logger.LogDebug($"connectionId {_netId} passed config check");
                     cli.EndExchange();
-                } else if(_status == ConfigSyncStatus.SyncWarn) {
-                    if(NetConfig.instance.badVersionKick) {
+                } else if(_status == NetConfigModule.ConfigSyncStatus.SyncWarn) {
+                    if(NetConfigModule.instance.badVersionKick) {
                         TILER2Plugin._logger.LogWarning($"connectionId {_netId} failed config check (missing entries), kicking");
-                        NetworkManagerSystem.singleton.ServerKickClient(conn, kickMissingEntry);
+                        NetworkManagerSystem.singleton.ServerKickClient(conn, NetConfigModule.kickMissingEntry);
                     } else {
                         TILER2Plugin._logger.LogWarning($"connectionId {_netId} failed config check (missing entries)");
                         cli.EndExchange();
                     }
-                } else if(_status == ConfigSyncStatus.SyncFail) {
-                    if(NetConfig.instance.mismatchKick) {
+                } else if(_status == NetConfigModule.ConfigSyncStatus.SyncFail) {
+                    if(NetConfigModule.instance.mismatchKick) {
                         TILER2Plugin._logger.LogWarning($"connectionId {_netId} failed config check (a config with DeferForever and PreventNetMismatch is mismatched), kicking");
-                        NetworkManagerSystem.singleton.ServerKickClient(conn, kickCritMismatch);
+                        NetworkManagerSystem.singleton.ServerKickClient(conn, NetConfigModule.kickCritMismatch);
                     } else {
                         TILER2Plugin._logger.LogWarning($"connectionId {_netId} failed config check (a config with DeferForever and PreventNetMismatch is mismatched)");
                         cli.EndExchange();
@@ -606,69 +247,12 @@ namespace TILER2 {
                 }
             }
 
-            public MsgReplyNetConfig(int netId, string password, ConfigSyncStatus status) {
+            public MsgReplyNetConfig(int netId, string password, NetConfigModule.ConfigSyncStatus status) {
                 _netId = netId;
                 _password = password;
                 _status = status;
             }
         }
-
-        private struct MsgRequestConfigSyncBegin : INetMessage {
-            int _packageSizeBytes;
-
-            public void Deserialize(NetworkReader reader) {
-                _packageSizeBytes = reader.ReadInt32();
-            }
-
-            public void Serialize(NetworkWriter writer) {
-                writer.Write(_packageSizeBytes);
-            }
-
-            public void OnReceived() {
-                if(cliSyncReceiveData.Count() != 0) {
-                    TILER2Plugin._logger.LogError("MsgRequestConfigSyncBegin received by client with sync already in progress");
-                    return;
-                }
-                cliSyncReceiveBytesMax = _packageSizeBytes;
-                new MsgReplyNetConfig(cliNetId, cliPassword, ConfigSyncStatus.BeginSync)
-                    .Send(NetworkDestination.Server);
-            }
-
-            public MsgRequestConfigSyncBegin(int packageSizeBytes) {
-                _packageSizeBytes = packageSizeBytes;
-            }
-        }
-
-        private struct MsgRequestConfigSyncContinue : INetMessage {
-            byte[] _chunk;
-            int _index;
-
-            public void Deserialize(NetworkReader reader) {
-                _chunk = reader.ReadBytesAndSize();
-                _index = reader.ReadInt32();
-            }
-
-            public void Serialize(NetworkWriter writer) {
-                writer.WriteBytesAndSize(_chunk, _chunk.Length);
-                writer.Write(_index);
-            }
-
-            public void OnReceived() {
-                cliSyncReceiveData[_index] = _chunk;
-                cliSyncReceiveBytes += _chunk.Length;
-                if(cliSyncReceiveBytes == cliSyncReceiveBytesMax) {
-                    ClientFinalizeConfigSync();
-                } else if(cliSyncReceiveBytes > cliSyncReceiveBytesMax) {
-                    TILER2Plugin._logger.LogError("Received more bytes via MsgRequestConfigSyncContinue than payload size given by MsgRequestConfigSyncBegin");
-                }
-            }
-
-            public MsgRequestConfigSyncContinue(byte[] chunk, int index) {
-                _chunk = chunk;
-                _index = index;
-            }
-        }
-        #endregion
 
         #region Console Commands
 #if DEBUG
@@ -718,7 +302,7 @@ namespace TILER2 {
                 return;
             }
 
-            var (matches, errmsg) = GetBindingFromPath(args[0], (args.Count > 1) ? args[1] : null, (args.Count > 2) ? args[2] : null);
+            var (matches, errmsg) = AutoConfigBinding.FindFromPath(args[0], (args.Count > 1) ? args[1] : null, (args.Count > 2) ? args[2] : null);
 
             if(errmsg != null) {
                 if(matches != null)
@@ -759,7 +343,7 @@ namespace TILER2 {
                 return;
             }
 
-            var (matches, errmsg) = GetBindingFromPath(args[0], (args.Count > 2) ? args[1] : null, (args.Count > 3) ? args[2] : null);
+            var (matches, errmsg) = AutoConfigBinding.FindFromPath(args[0], (args.Count > 2) ? args[1] : null, (args.Count > 3) ? args[2] : null);
 
             if(errmsg != null) {
                 errmsg += ").";
