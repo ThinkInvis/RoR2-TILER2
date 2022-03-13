@@ -6,8 +6,8 @@ using UnityEngine.Networking;
 namespace TILER2 {
     public static class NetUtil {
         internal static void Setup() {
-            R2API.Networking.NetworkingAPI.RegisterCommandType<CmdSendChatMsg>();
-            R2API.Networking.NetworkingAPI.RegisterCommandType<CmdSendConMsg>();
+            R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSendChatMsg>();
+            R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSendConMsg>();
         }
         #region Reader/Writer Extensions
         public static string[] ReadStringArray(this NetworkReader reader) {
@@ -27,6 +27,33 @@ namespace TILER2 {
         #endregion
         #region Remote Console Messaging
         /// <summary>
+        /// Send a console log message to the target NetworkUser, or the local client if there is no server active.
+        /// </summary>
+        /// <param name="user">The NetworkUser to send a console message to.</param>
+        /// <param name="msg">The content of the sent message.</param>
+        /// <param name="severity">The severity of the sent message.</param>
+        public static void SendConMsg(NetworkUser user, string msg, LogLevel severity = LogLevel.Message) {
+            if(!NetworkServer.active) {
+                SendConMsgInternal(msg, severity);
+            } else {
+                ServerSendConMsg(user, msg, severity);
+            }
+        }
+        private static void SendConMsgInternal(string msg, LogLevel severity) {
+            switch(severity) {
+                case LogLevel.Warning:
+                    UnityEngine.Debug.LogWarning(msg);
+                    break;
+                case LogLevel.Error:
+                    UnityEngine.Debug.LogError(msg);
+                    break;
+                default:
+                    UnityEngine.Debug.Log(msg);
+                    break;
+            }
+        }
+
+        /// <summary>
         /// Send a console log message to the target NetworkUser.
         /// </summary>
         /// <param name="user">The NetworkUser to send a console message to.</param>
@@ -37,10 +64,10 @@ namespace TILER2 {
                 TILER2Plugin._logger.LogError("NetUtil.ServerSendConMsg called on client");
                 return;
             }
-            new CmdSendConMsg(msg, severity).Send(user.connectionToClient);
+            new MsgSendConMsg(msg, severity).Send(user.connectionToClient);
         }
 
-        private struct CmdSendConMsg : INetCommand {
+        private struct MsgSendConMsg : INetMessage {
             private string _msg;
             private LogLevel _severity;
 
@@ -55,20 +82,10 @@ namespace TILER2 {
             }
 
             public void OnReceived() {
-                switch(_severity) {
-                    case LogLevel.Warning:
-                        UnityEngine.Debug.LogWarning(_msg);
-                        break;
-                    case LogLevel.Error:
-                        UnityEngine.Debug.LogError(_msg);
-                        break;
-                    default:
-                        UnityEngine.Debug.Log(_msg);
-                        break;
-                }
+                SendConMsgInternal(_msg, _severity);
             }
 
-            public CmdSendConMsg(string msg, LogLevel severity = LogLevel.Message) {
+            public MsgSendConMsg(string msg, LogLevel severity = LogLevel.Message) {
                 _msg = msg;
                 _severity = severity;
             }
@@ -84,7 +101,7 @@ namespace TILER2 {
                 TILER2Plugin._logger.LogError("NetUtil.ServerSendGlobalChatMsg called on client");
                 return;
             }
-            new CmdSendChatMsg(msg).Send(R2API.Networking.NetworkDestination.Clients);
+            new MsgSendChatMsg(msg).Send(R2API.Networking.NetworkDestination.Clients);
         }
 
         /// <summary>
@@ -97,10 +114,10 @@ namespace TILER2 {
                 TILER2Plugin._logger.LogError("NetUtil.ServerSendChatMsg called on client");
                 return;
             }
-            new CmdSendChatMsg(msg).Send(user.connectionToClient);
+            new MsgSendChatMsg(msg).Send(user.connectionToClient);
         }
 
-        private struct CmdSendChatMsg : INetCommand {
+        private struct MsgSendChatMsg : INetMessage {
             private string _msg;
 
             public void Serialize(NetworkWriter writer) {
@@ -115,7 +132,7 @@ namespace TILER2 {
                 Chat.AddMessage(_msg);
             }
 
-            public CmdSendChatMsg(string msg) {
+            public MsgSendChatMsg(string msg) {
                 _msg = msg;
             }
         }

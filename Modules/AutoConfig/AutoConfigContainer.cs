@@ -25,7 +25,7 @@ namespace TILER2 {
         /// <summary>Internal handler for ConfigEntryChanged event.</summary>
         internal void OnConfigChanged(AutoConfigUpdateActionEventArgs e) {
             ConfigEntryChanged?.Invoke(this, e);
-            TILER2Plugin._logger.LogDebug($"{e.target.readablePath}: {e.oldValue} > {e.newValue}");
+            Debug.Log($"{e.target.readablePath}: {e.oldValue} > {e.newValue}");
             if(!(Run.instance != null && Run.instance.isActiveAndEnabled)) return;
             if((e.flags & AutoConfigUpdateActionTypes.InvalidateStats) == AutoConfigUpdateActionTypes.InvalidateStats)
                 AutoConfigModule.globalStatsDirty = true;
