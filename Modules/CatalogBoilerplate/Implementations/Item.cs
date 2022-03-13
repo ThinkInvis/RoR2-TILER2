@@ -1,20 +1,12 @@
-﻿using BepInEx.Configuration;
-using R2API;
-using R2API.Utils;
+﻿using R2API;
 using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace TILER2 {
-    [Obsolete("Migrated to TILER2.Item. Will be removed in next minor patch.")]
-    public abstract class Item_V2 :Item { }
-    [Obsolete("Migrated to TILER2.Item<T>. Will be removed in next minor patch.")]
-    public abstract class Item_V2<T> : Item<T> where T : Item<T> { }
-
     public abstract class Item<T>:Item where T : Item<T> {
         public static T instance {get;private set;}
 

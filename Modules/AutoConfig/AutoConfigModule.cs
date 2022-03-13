@@ -3,7 +3,6 @@ using System;
 using RoR2;
 using RoR2.Networking;
 using UnityEngine.SceneManagement;
-using UnityEngine;
 
 namespace TILER2 {
     internal class AutoConfigModule : T2Module<AutoConfigModule> {

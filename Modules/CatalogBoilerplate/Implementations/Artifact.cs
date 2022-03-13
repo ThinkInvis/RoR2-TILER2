@@ -1,15 +1,9 @@
-﻿using BepInEx.Configuration;
-using R2API;
+﻿using R2API;
 using RoR2;
 using System;
 using UnityEngine;
 
 namespace TILER2 {
-    [Obsolete("Migrated to TILER2.Artifact. This alias will be removed in the next minor patch.")]
-    public abstract class Artifact_V2 : Artifact { }
-    [Obsolete("Migrated to TILER2.Artifact<T>. This alias will be removed in the next minor patch.")]
-    public abstract class Artifact_V2<T> : Artifact<T> where T : Artifact<T> { }
-
     public abstract class Artifact<T>:Artifact where T : Artifact<T> {
         public static T instance {get;private set;}
 

@@ -1,10 +1,5 @@
-﻿using BepInEx.Configuration;
-using R2API;
-using RoR2;
-using System;
+﻿using RoR2;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using static TILER2.MiscUtil;
 

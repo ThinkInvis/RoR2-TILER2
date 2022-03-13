@@ -1,15 +1,9 @@
-﻿using BepInEx.Configuration;
-using R2API;
+﻿using R2API;
 using RoR2;
 using System;
 using UnityEngine;
 
 namespace TILER2 {
-    [Obsolete("Migrated to TILER2.Equipment. This alias will be removed in the next minor patch.")]
-    public abstract class Equipment_V2 : Equipment { }
-    [Obsolete("Migrated to TILER2.Equipment<T>. This alias will be removed in the next minor patch.")]
-    public abstract class Equipment_V2<T> : Equipment<T> where T : Equipment<T> { }
-
     public abstract class Equipment<T>:Equipment where T : Equipment<T> {
         public static T instance {get;private set;}
 

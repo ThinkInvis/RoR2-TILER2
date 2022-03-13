@@ -3,6 +3,7 @@ using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace TILER2 {
@@ -26,36 +27,36 @@ namespace TILER2 {
             }
         }
 
-        public AutoConfigContainer owner {get; internal set;}
-        public object target {get; internal set;}
-        public ConfigEntryBase configEntry {get; internal set;}
-        public PropertyInfo boundProperty {get; internal set;}
-        public string modName {get; internal set;}
+        public AutoConfigContainer owner { get; internal set; }
+        public object target { get; internal set; }
+        public ConfigEntryBase configEntry { get; internal set; }
+        public PropertyInfo boundProperty { get; internal set; }
+        public string modName { get; internal set; }
 
-        public AutoConfigUpdateActionsAttribute updateEventAttribute {get; internal set;}
+        public AutoConfigUpdateActionsAttribute updateEventAttribute { get; internal set; }
 
-        public MethodInfo propGetter {get; internal set;}
-        public MethodInfo propSetter {get; internal set;}
-        public Type propType {get; internal set;}
+        public MethodInfo propGetter { get; internal set; }
+        public MethodInfo propSetter { get; internal set; }
+        public Type propType { get; internal set; }
 
-        public object boundKey {get; internal set;}
-        public bool onDict {get; internal set;}
+        public object boundKey { get; internal set; }
+        public bool onDict { get; internal set; }
 
-        public bool allowConCmd {get; internal set;}
-        public bool allowNetMismatch {get; internal set;}
-        public bool netMismatchCritical {get; internal set;}
+        public bool allowConCmd { get; internal set; }
+        public bool allowNetMismatch { get; internal set; }
+        public bool netMismatchCritical { get; internal set; }
 
-        public object cachedValue {get; internal set;}
+        public object cachedValue { get; internal set; }
 
         internal bool isOverridden = false;
 
         public enum DeferType {
             UpdateImmediately, WaitForNextStage, WaitForRunEnd, NeverAutoUpdate
         }
-        public DeferType deferType {get; internal set;}
+        public DeferType deferType { get; internal set; }
 
         public string readablePath {
-            get {return $"{modName}/{configEntry.Definition.Section}/{configEntry.Definition.Key}"; }
+            get { return $"{modName}/{configEntry.Definition.Section}/{configEntry.Definition.Key}"; }
         }
 
         internal AutoConfigBinding() {
@@ -74,17 +75,17 @@ namespace TILER2 {
         }
 
         private void DeferredUpdateProperty(object newValue, bool silent = false) {
-            var oldValue = propGetter.Invoke(target, onDict ? new[] {boundKey} : new object[]{ });
-            propSetter.Invoke(target, onDict ? new[]{boundKey, newValue} : new[]{newValue});
+            var oldValue = propGetter.Invoke(target, onDict ? new[] { boundKey } : new object[] { });
+            propSetter.Invoke(target, onDict ? new[] { boundKey, newValue } : new[] { newValue });
             var flags = updateEventAttribute?.flags ?? AutoConfigUpdateActionTypes.None;
             if(updateEventAttribute?.ignoreDefault == false) flags |= owner.defaultEnabledUpdateFlags;
             cachedValue = newValue;
-            owner.OnConfigChanged(new AutoConfigUpdateActionEventArgs{
+            owner.OnConfigChanged(new AutoConfigUpdateActionEventArgs {
                 flags = flags,
                 oldValue = oldValue,
                 newValue = newValue,
                 target = this,
-                silent = silent});
+                silent = silent });
         }
 
         internal void UpdateProperty(object newValue, bool silent = false) {
