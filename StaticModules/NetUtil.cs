@@ -13,22 +13,7 @@ namespace TILER2 {
             R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSendChatMsg>();
             R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSendConMsg>();
         }
-        #region Reader/Writer Extensions
-        public static string[] ReadStringArray(this NetworkReader reader) {
-            int len = reader.ReadInt32();
-            string[] retv = new string[len];
-            for(int i = 0; i < len; i++) {
-                retv[i] = reader.ReadString();
-            }
-            return retv;
-        }
-        public static void WriteStringArray(this NetworkWriter writer, string[] value) {
-            writer.Write(value.Length);
-            for(int i = 0; i < value.Length; i++) {
-                writer.Write(value[i]);
-            }
-        }
-
+        #region Read/Write Helpers
         public static byte[] PackStringArray(string[] strings) {
             var header = new List<int>();
             header.Add(strings.Length);
