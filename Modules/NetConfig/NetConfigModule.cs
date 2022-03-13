@@ -35,7 +35,7 @@ namespace TILER2 {
         private static readonly RoR2.ConVar.BoolConVar allowClientNCFGSet = new RoR2.ConVar.BoolConVar("ncfg_allowclientset", ConVarFlags.None, "false", "If true, clients may use the ConCmds ncfg_set or ncfg_settemp to temporarily set config values on the server. If false, ncfg_set and ncfg_settemp will not work for clients.");
 
         private const float CONN_CHECK_WAIT_TIME = 15f;
-        internal const int MAX_MESSAGE_SIZE_BYTES = 1100;
+        internal const int MAX_MESSAGE_SIZE_BYTES = 1000;
         private static readonly List<NetConfigClientInfo> clients = new List<NetConfigClientInfo>();
         List<NetConfigClientInfo> _updateKickList = new List<NetConfigClientInfo>();
 
