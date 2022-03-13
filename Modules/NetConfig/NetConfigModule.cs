@@ -12,6 +12,8 @@ using UnityEngine;
 using UnityEngine.Networking;
 using static RoR2.Networking.NetworkManagerSystem;
 
+[assembly: HG.Reflection.SearchableAttribute.OptIn]
+
 namespace TILER2 {
     /// <summary>
     /// Provides automatic network syncing and mismatch kicking for the AutoConfig module.
