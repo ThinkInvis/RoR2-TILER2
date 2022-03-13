@@ -1,5 +1,18 @@
 ﻿# TILER2 Changelog
 
+**6.0.0**
+
+- Major rewrite of the NetConfig module incl. breaking API changes.
+	- ConCmd/ConVar prefix renamed from "aic_" to "ncfg_".
+	- Fixed many cases of ConCmd output not being visible in ingame console.
+	- Bandwidth use is greatly reduced (config syncs are now compressed, and less password info is exchanged).
+	- Project no longer uses UNetWeaver; all networking is now handled by R2API.NetworkingAPI.
+	- Syncs to clients are now queued (fixes a theoretical bug wherein an older change could happen after a newer one, leaving the older config value in place).
+	- Main module class renamed from NetConfig to NetConfigModule.
+	- Now split into several other non-module members of the TILER2 namespace.
+- Removed deprecated CatalogBoilerplate implementation names.
+- MiscUtil.SpawnItemFromBody now has 3 more tiers to cover Void items.
+
 **5.0.3**
 
 - Tentative fix for FakeInventory spam-cloning Void items.
