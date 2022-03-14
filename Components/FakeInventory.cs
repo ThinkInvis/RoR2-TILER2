@@ -100,11 +100,31 @@ namespace TILER2 {
 		}
 
 		public int GetItemCount(ItemIndex ind) {
-			return _itemStacks[(int)ind];
+			return HG.ArrayUtils.GetSafe(_itemStacks, (int)ind);
 		}
 
 		public int GetRealItemCount(ItemIndex ind) {
-			return GetComponent<Inventory>().itemStacks[(int)ind];
+			return HG.ArrayUtils.GetSafe(GetComponent<Inventory>().itemStacks, (int)ind);
+		}
+
+		public int GetAdjustedItemCount(ItemIndex ind) {
+			var tsfi = RoR2.Items.ContagiousItemManager.GetTransformedItemIndex(ind);
+			//can't use GetOriginalItemIndex because some Void items transform many:one (e.g. bands)
+			var utsfi = RoR2.Items.ContagiousItemManager.transformationInfos.Where(x => x.transformedItem == ind);
+			var canTransform = tsfi != ItemIndex.None;
+			var isTransformed = utsfi.Count() > 0;
+			var origVal = GetRealItemCount(ind);
+			if(canTransform && GetRealItemCount(tsfi) > 0) {
+				//if player has transformed version of this item,
+				//add nothing; will add to transformed item count instead.
+				return origVal;
+			} else if(isTransformed && origVal > 0) {
+				//if player has this item and it has an untransformed version within this FakeInventory,
+				//add latter to count of former.
+				return origVal + utsfi.Sum(x => GetItemCount(x.originalItem)) + GetItemCount(ind);
+			}
+			//player does not have transformed or untransformed version of this item, or item is not part of a transform chain
+			return origVal + GetItemCount(ind);
 		}
 
 		protected struct MsgSyncAll : INetMessage {
@@ -312,7 +332,7 @@ namespace TILER2 {
 			if(ignoreFakes || !self) return origVal;
 			var fakeinv = self.gameObject.GetComponent<FakeInventory>();
 			if(!fakeinv) return origVal;
-			return origVal + HG.ArrayUtils.GetSafe(fakeinv._itemStacks, (int)itemIndex);
+			return fakeinv.GetAdjustedItemCount(itemIndex);
 		}
 
 		private static void On_IIDInventoryChanged(On.RoR2.UI.ItemInventoryDisplay.orig_OnInventoryChanged orig, RoR2.UI.ItemInventoryDisplay self) {
@@ -322,14 +342,15 @@ namespace TILER2 {
 			if(!fakeInv) return;
 			List<ItemIndex> newAcqOrder = self.itemOrder.Take(self.itemOrderCount).ToList();
 			for(int i = 0; i < self.itemStacks.Length; i++) {
+				var aic = fakeInv.GetAdjustedItemCount((ItemIndex)i);
 				if(self.itemStacks[i] == 0) {
-					if(fakeInv._itemStacks[i] > 0)
+					if(aic > 0)
 						newAcqOrder.Add((ItemIndex)i);
 					else
 						newAcqOrder.Remove((ItemIndex)i);
 				}
 				
-				self.itemStacks[i] += fakeInv._itemStacks[i];
+				self.itemStacks[i] = aic;
 			}
 			newAcqOrder = newAcqOrder.Distinct().ToList();
 			newAcqOrder.CopyTo(0, self.itemOrder, 0, Mathf.Min(self.itemOrder.Length,newAcqOrder.Count));
@@ -343,9 +364,9 @@ namespace TILER2 {
             var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
 			if(!fakeInv) return;
             foreach(var icon in self.itemIcons) {
-				var fakeCount = fakeInv.GetItemCount(icon.itemIndex);
-				if(fakeCount == 0) continue;
 				var realCount = fakeInv.GetRealItemCount(icon.itemIndex);
+				var fakeCount = fakeInv.GetAdjustedItemCount(icon.itemIndex) - realCount;
+				if(fakeCount == 0) continue;
 				icon.stackText.enabled = true;
 				icon.stackText.text = $"x{realCount}\n<color=#C18FE0>+{fakeCount}</color>";
             }
