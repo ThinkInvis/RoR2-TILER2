@@ -3,6 +3,7 @@ using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.Networking;
 using static TILER2.MiscUtil;
 
@@ -18,6 +19,22 @@ namespace TILER2 {
             On.RoR2.UI.LogBook.LogBookController.BuildPickupEntries += On_LogbookBuildPickupEntries;
             On.RoR2.Run.BuildDropTable += On_RunBuildDropTable;
             On.RoR2.PickupPickerController.GetOptionsFromPickupIndex += PickupPickerController_GetOptionsFromPickupIndex;
+            On.RoR2.UI.LogBook.LogBookController.CanSelectItemEntry += LogBookController_CanSelectItemEntry;
+            On.RoR2.UI.LogBook.LogBookController.CanSelectEquipmentEntry += LogBookController_CanSelectEquipmentEntry;
+        }
+
+        private bool LogBookController_CanSelectEquipmentEntry(On.RoR2.UI.LogBook.LogBookController.orig_CanSelectEquipmentEntry orig, EquipmentDef equipmentDef, Dictionary<RoR2.ExpansionManagement.ExpansionDef, bool> expansionAvailability) {
+            var retv = orig(equipmentDef, expansionAvailability);
+            if(equipmentDef != null && allInstances.Any(x => !x.enabled && x is Equipment eqp && eqp.equipmentDef == equipmentDef))
+                return false;
+            return retv;
+        }
+
+        private bool LogBookController_CanSelectItemEntry(On.RoR2.UI.LogBook.LogBookController.orig_CanSelectItemEntry orig, ItemDef itemDef, Dictionary<RoR2.ExpansionManagement.ExpansionDef, bool> expansionAvailability) {
+            var retv = orig(itemDef, expansionAvailability);
+            if(itemDef != null && allInstances.Any(x => !x.enabled && x is Item item && item.itemDef == itemDef))
+                return false;
+            return retv;
         }
 
         private PickupPickerController.Option[] PickupPickerController_GetOptionsFromPickupIndex(On.RoR2.PickupPickerController.orig_GetOptionsFromPickupIndex orig, PickupIndex pickupIndex) {
