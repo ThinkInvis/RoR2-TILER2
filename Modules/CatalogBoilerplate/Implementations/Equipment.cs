@@ -16,7 +16,15 @@ namespace TILER2 {
     public abstract class Equipment : CatalogBoilerplate {
         public override string configCategoryPrefix => "Equipments.";
 
-        public EquipmentIndex catalogIndex => equipmentDef.equipmentIndex;
+        public EquipmentIndex catalogIndex {
+            get {
+                if(equipmentDef == null) {
+                    TILER2Plugin._logger.LogError($"TILER2.Equipment {name} has null EquipmentDef! Cannot retrieve EquipmentIndex");
+                    return EquipmentIndex.None;
+                }
+                return equipmentDef.equipmentIndex;
+            }
+        }
         public EquipmentDef equipmentDef {get; private set;}
         public CustomEquipment customEquipment {get; private set;}
 

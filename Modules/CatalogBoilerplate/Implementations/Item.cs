@@ -15,11 +15,17 @@ namespace TILER2 {
             instance = this as T;
         }
     }
-    
+
     public abstract class Item : CatalogBoilerplate {
         public override string configCategoryPrefix => "Items.";
 
-        public ItemIndex catalogIndex => itemDef.itemIndex;
+        public ItemIndex catalogIndex { get {
+                if(itemDef == null) {
+                    TILER2Plugin._logger.LogError($"TILER2.Item {name} has null ItemDef! Cannot retrieve ItemIndex");
+                    return ItemIndex.None;
+                }
+                return itemDef.itemIndex;
+            }}
         public ItemDef itemDef {get; private set;}
         public CustomItem customItem {get; private set;}
 
