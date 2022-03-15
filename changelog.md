@@ -1,5 +1,11 @@
 ﻿# TILER2 Changelog
 
+**6.0.1**
+
+- FakeInventory now properly handles contagious (e.g. Void-tier) items.
+- Logbook entries of disabled items and equipment are now hidden (only works on game launch).
+- Item.CatalogIndex and Equipment.CatalogIndex no longer cause exceptions if the relevant ItemDef/EquipmentDef was never created.
+
 **6.0.0**
 
 - Major rewrite of the NetConfig module incl. breaking API changes.

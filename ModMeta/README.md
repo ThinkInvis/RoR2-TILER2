@@ -46,6 +46,12 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**6.0.1**
+
+- FakeInventory now properly handles contagious (e.g. Void-tier) items.
+- Logbook entries of disabled items and equipment are now hidden (only works on game launch).
+- Item.CatalogIndex and Equipment.CatalogIndex no longer cause exceptions if the relevant ItemDef/EquipmentDef was never created.
+
 **6.0.0**
 
 - Major rewrite of the NetConfig module incl. breaking API changes.
@@ -73,7 +79,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **5.0.1**
 
 - Fixed missing config on several modules (AutoConfig, CatalogBoilerplate).
-
-**5.0.0**
-
-- Removed the StatHooks module (now migrated to R2API).
