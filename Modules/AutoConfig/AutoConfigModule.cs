@@ -33,6 +33,7 @@ namespace TILER2 {
                 }
                 if(globalDropsDirty) {
                     globalDropsDirty = false;
+                    Run.instance.OnRuleBookUpdated(Run.instance.networkRuleBookComponent);
                     Run.instance.BuildDropTable();
                 }
             }

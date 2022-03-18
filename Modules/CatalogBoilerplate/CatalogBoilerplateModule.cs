@@ -50,19 +50,10 @@ namespace TILER2 {
             var newItemMask = self.availableItems;
             var newEqpMask = self.availableEquipment;
             foreach(CatalogBoilerplate bpl in allInstances) {
-                if(bpl is Item item) {
-                    bool shouldDrop = item.enabled && item.itemDef.DoesNotContainTag(ItemTag.WorldUnique);
-                    if(shouldDrop)
-                        newItemMask.Add(item.catalogIndex);
-                    else
-                        newItemMask.Remove(item.catalogIndex);
-                } else if(bpl is Equipment equipment) {
-                    bool shouldDrop = equipment.enabled;
-                    if(shouldDrop)
-                        newEqpMask.Add(equipment.catalogIndex);
-                    else
-                        newEqpMask.Remove(equipment.catalogIndex);
-                }
+                if(bpl is Item item && !item.enabled)
+                    newItemMask.Remove(item.catalogIndex);
+                else if(bpl is Equipment equipment && !equipment.enabled)
+                    newEqpMask.Remove(equipment.catalogIndex);
             }
             self.availableItems = newItemMask;
             self.availableEquipment = newEqpMask;
