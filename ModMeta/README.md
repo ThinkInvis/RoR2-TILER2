@@ -46,6 +46,10 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**6.0.2**
+
+- Made CatalogBoilerplate enable/disable more compatible with RuleBook.
+
 **6.0.1**
 
 - FakeInventory now properly handles contagious (e.g. Void-tier) items.
@@ -75,7 +79,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - Updated R2API dependency to 4.0.11.
 - Updated BepInEx dependency to 5.4.1902.
 - Updated BetterUI and ShareSuite compat hooks; no changes appeared to be necessary. ItemStats hook pending update of the mod in question.
-
-**5.0.1**
-
-- Fixed missing config on several modules (AutoConfig, CatalogBoilerplate).

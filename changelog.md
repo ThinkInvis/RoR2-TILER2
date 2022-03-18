@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**6.0.2**
+
+- Made CatalogBoilerplate enable/disable more compatible with RuleBook.
+
 **6.0.1**
 
 - FakeInventory now properly handles contagious (e.g. Void-tier) items.
