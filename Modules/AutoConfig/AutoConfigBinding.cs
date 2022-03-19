@@ -195,7 +195,7 @@ namespace TILER2 {
             if(matchesLevel4.Count == 0) return (matchesLevel3, "multiple level 3 matches, no level 4 matches");
             else if(matchesLevel4.Count == 1) return (matchesLevel4, null);
             else {
-                Debug.LogError($"TILER2 NetConfig: There are multiple config entries with the path \"{matchesLevel4[0].readablePath}\"; this should never happen! Please report this as a bug.");
+                Debug.LogError($"TILER2 AutoConfig: There are multiple config entries with the path \"{matchesLevel4[0].readablePath}\"; this should never happen! Please report this as a bug.");
                 return (matchesLevel4, "multiple level 4 matches");
             }
         }

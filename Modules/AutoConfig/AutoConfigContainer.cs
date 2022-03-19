@@ -73,7 +73,7 @@ namespace TILER2 {
             return Regex.Replace(orig, @"<AIC.([a-zA-Z\.]+)>", (m)=>{
                 string[] strParams = Regex.Split(m.Groups[0].Value.Substring(1, m.Groups[0].Value.Length - 2), @"(?<!\\)\.");;
                 if(strParams.Length < 2) return m.Value;
-                var errorStr = $"AutoItemConfig.Bind on property {prop.Name} in category {categoryName}: malformed string param \"{m.Value}\" ";
+                var errorStr = $"AutoConfigContainer.Bind on property {prop.Name} in category {categoryName}: malformed string param \"{m.Value}\" ";
                 switch(strParams[1]) {
                     case "Prop":
                         if(strParams.Length < 3){
@@ -147,7 +147,7 @@ namespace TILER2 {
         
         /// <summary>Binds a property to a BepInEx config file, using reflection and attributes to automatically generate much of the necessary information.</summary>
         public void Bind(PropertyInfo prop, ConfigFile cfl, string modName, string categoryName, AutoConfigAttribute attrib, AutoConfigUpdateActionsAttribute eiattr = null, BindSubDictInfo? subDict = null) {
-            string errorStr = $"AutoItemCfg.Bind on property {prop.Name} in category {categoryName} failed: ";
+            string errorStr = $"AutoConfigContainer.Bind on property {prop.Name} in category {categoryName} failed: ";
             if(!subDict.HasValue) {
                 if(this.bindings.Exists(x => x.boundProperty == prop)) {
                     TILER2Plugin._logger.LogError($"{errorStr}this property has already been bound.");
@@ -240,7 +240,7 @@ namespace TILER2 {
 
             observedFiles[cfl] = System.IO.File.GetLastWriteTime(cfl.ConfigFilePath);
 
-            var newAIC = new AutoConfigBinding {
+            var newBinding = new AutoConfigBinding {
                 boundProperty = prop,
                 allowConCmd = allowCon && !deferForever && !deferRun,
                 allowNetMismatch = allowMismatch,
@@ -262,24 +262,24 @@ namespace TILER2 {
                 target = propObj
             };
 
-            this.bindings.Add(newAIC);
+            this.bindings.Add(newBinding);
 
             if(!deferForever) {
                 var gtyp = typeof(ConfigEntry<>).MakeGenericType(propType);
                 var evh = gtyp.GetEvent("SettingChanged");
                 
                 evh.ReflAddEventHandler(cfe, (object obj,EventArgs evtArgs) => {
-                    newAIC.UpdateProperty(cfe.BoxedValue);
+                    newBinding.UpdateProperty(cfe.BoxedValue);
                 });
             }
 
             if((attrib.flags & AutoConfigFlags.NoInitialRead) != AutoConfigFlags.NoInitialRead) {
                 propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
-                newAIC.cachedValue = cfe.BoxedValue;
+                newBinding.cachedValue = cfe.BoxedValue;
             }
         }
 
-        /// <summary>Calls Bind on all properties in this AutoItemConfigContainer which have an AutoItemConfigAttribute.</summary>
+        /// <summary>Calls Bind on all properties in this AutoConfigContainer which have an AutoConfigAttribute.</summary>
         public void BindAll(ConfigFile cfl, string modName, string categoryName) {
             foreach(var prop in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
                 var attrib = prop.GetCustomAttribute<AutoConfigAttribute>(true);
