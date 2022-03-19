@@ -172,6 +172,9 @@ namespace TILER2 {
                     int ind = 0;
                     var dkeys = (from object k in idict.Keys
                                  select k).ToList();
+                    if(dkeys.Count == 0) {
+                        TILER2Plugin._logger.LogError($"{errorStr}BindDict was used on an empty dictionary. All intended keys must be present at time of binding and cannot be added afterwards.");
+                    }
                     foreach(object o in dkeys) {
                         Bind(prop, cfl, modName, categoryName, attrib, eiattr, new BindSubDictInfo{key=o, val=idict[o], keyType=kTyp, index=ind});
                         ind++;
