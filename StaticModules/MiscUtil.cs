@@ -264,6 +264,32 @@ namespace TILER2 {
         }
 
         /// <summary>
+        /// Iterates towards the root of a GameObject, including jumping through EntityLocators.
+        /// </summary>
+        /// <param name="target">The GameObject to search for the 'true' root of.</param>
+        /// <param name="maxSearch">The maximum amount of recursion to go through.</param>
+        /// <returns>Null if the given object was null; the most top-level object with the given constraints otherwise.</returns>
+        public static GameObject GetRootWithLocators(GameObject target, int maxSearch = 5) {
+            if(!target) return null;
+            GameObject scan = target;
+            for(int i = 0; i < maxSearch; i++) {
+                var cpt = scan.GetComponent<EntityLocator>();
+
+                if(cpt) {
+                    scan = cpt.entity;
+                    continue;
+                }
+
+                var next = scan.transform.root;
+                if(next && next.gameObject != scan)
+                    scan = next.gameObject;
+                else
+                    return scan;
+            }
+            return scan;
+        }
+
+        /// <summary>
         /// Spawn an item of the given tier at the position of the given CharacterBody.
         /// </summary>
         /// <param name="src">The body to spawn an item from.</param>
