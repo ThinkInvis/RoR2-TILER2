@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEngine;
 using UnityEngine.Networking;
 using static TILER2.MiscUtil;
 
@@ -53,13 +52,13 @@ namespace TILER2 {
         ///<summary>If managedEnable is true, this will be used for the resultant config entry.</summary>
         public virtual AutoConfigUpdateActionTypes enabledConfigUpdateActionTypes => AutoConfigUpdateActionTypes.InvalidateLanguage;
 
-        protected readonly List<LanguageAPI.LanguageOverlay> volatileLanguageOverlays = new List<LanguageAPI.LanguageOverlay>();
+        protected readonly List<LanguageAPI.LanguageOverlay> languageOverlays = new List<LanguageAPI.LanguageOverlay>();
         protected readonly List<LanguageAPI.LanguageOverlay> permanentLanguageOverlays = new List<LanguageAPI.LanguageOverlay>();
         protected readonly Dictionary<string, string> genericLanguageTokens = new Dictionary<string, string>();
         protected readonly Dictionary<string, Dictionary<string, string>> specificLanguageTokens = new Dictionary<string, Dictionary<string, string>>();
         protected readonly Dictionary<string, string> permanentGenericLanguageTokens = new Dictionary<string, string>();
         protected readonly Dictionary<string, Dictionary<string, string>> permanentSpecificLanguageTokens = new Dictionary<string, Dictionary<string, string>>();
-        public bool volatileLanguageInstalled { get; private set; } = false;
+        public bool languageInstalled { get; private set; } = false;
         public bool permanentLanguageInstalled { get; private set; } = false;
 
         ///<summary>A server-only rng instance based on the current run's seed.</summary>
@@ -87,14 +86,14 @@ namespace TILER2 {
                         Install();
                     } else {
                         Uninstall();
-                        if(volatileLanguageInstalled)
+                        if(languageInstalled)
                             UninstallLanguage();
                     }
                     RefreshPermanentLanguage();
                 }
                 if(args.flags.HasFlag(AutoConfigUpdateActionTypes.InvalidateLanguage)) {
                     if(enabled) {
-                        if(volatileLanguageInstalled)
+                        if(languageInstalled)
                             UninstallLanguage();
                         InstallLanguage();
                     }
@@ -122,19 +121,19 @@ namespace TILER2 {
 
         ///<summary>Will be called once after initial language setup, and also if/when the module is installed after setup. Automatically loads tokens from genericLanguageTokens/specificLanguageTokens into R2API Language Overlays in languageOverlays.</summary>
         public virtual void InstallLanguage() {
-            volatileLanguageOverlays.Add(LanguageAPI.AddOverlay(genericLanguageTokens));
-            volatileLanguageOverlays.Add(LanguageAPI.AddOverlay(specificLanguageTokens));
-            volatileLanguageInstalled = true;
+            languageOverlays.Add(LanguageAPI.AddOverlay(genericLanguageTokens));
+            languageOverlays.Add(LanguageAPI.AddOverlay(specificLanguageTokens));
+            languageInstalled = true;
             AutoConfigModule.globalLanguageDirty = true;
         }
 
         ///<summary>Will be called if/when the module is uninstalled after setup, and before any language installation after the first. Automatically undoes all R2API Language Overlays registered to languageOverlays.</summary>
         public virtual void UninstallLanguage() {
-            foreach(var overlay in volatileLanguageOverlays) {
+            foreach(var overlay in languageOverlays) {
                 overlay.Remove();
             }
-            volatileLanguageOverlays.Clear();
-            volatileLanguageInstalled = false;
+            languageOverlays.Clear();
+            languageInstalled = false;
             AutoConfigModule.globalLanguageDirty = true;
         }
 
