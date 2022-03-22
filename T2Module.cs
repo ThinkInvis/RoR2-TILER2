@@ -23,7 +23,7 @@ namespace TILER2 {
     /// Provides a relatively low-extra-code pattern for dividing a mod into smaller modules, each of which has its own config category managed by TILER2.AutoConfig.
     /// </summary>
     public abstract class T2Module : AutoConfigContainer {
-        public const string LANG_PREFIX_DISABLED = "<color=#FF0000>[DISABLED]</color>";
+        public const string LANG_PREFIX_DISABLED = "<color=#FF0000>[CONFIG DISABLED] </color>";
 
         internal static void SetupModuleClass() {
             On.RoR2.Run.Start += On_RunStart;
@@ -53,10 +53,14 @@ namespace TILER2 {
         ///<summary>If managedEnable is true, this will be used for the resultant config entry.</summary>
         public virtual AutoConfigUpdateActionTypes enabledConfigUpdateActionTypes => AutoConfigUpdateActionTypes.InvalidateLanguage;
 
-        protected readonly List<LanguageAPI.LanguageOverlay> languageOverlays = new List<LanguageAPI.LanguageOverlay>();
+        protected readonly List<LanguageAPI.LanguageOverlay> volatileLanguageOverlays = new List<LanguageAPI.LanguageOverlay>();
+        protected readonly List<LanguageAPI.LanguageOverlay> permanentLanguageOverlays = new List<LanguageAPI.LanguageOverlay>();
         protected readonly Dictionary<string, string> genericLanguageTokens = new Dictionary<string, string>();
         protected readonly Dictionary<string, Dictionary<string, string>> specificLanguageTokens = new Dictionary<string, Dictionary<string, string>>();
-        public bool languageInstalled { get; private set; } = false;
+        protected readonly Dictionary<string, string> permanentGenericLanguageTokens = new Dictionary<string, string>();
+        protected readonly Dictionary<string, Dictionary<string, string>> permanentSpecificLanguageTokens = new Dictionary<string, Dictionary<string, string>>();
+        public bool volatileLanguageInstalled { get; private set; } = false;
+        public bool permanentLanguageInstalled { get; private set; } = false;
 
         ///<summary>A server-only rng instance based on the current run's seed.</summary>
         public Xoroshiro128Plus rng { get; internal set; }
@@ -83,15 +87,18 @@ namespace TILER2 {
                         Install();
                     } else {
                         Uninstall();
-                        if(languageInstalled) {
+                        if(volatileLanguageInstalled)
                             UninstallLanguage();
-                        }
                     }
+                    RefreshPermanentLanguage();
                 }
-                if(enabled && args.flags.HasFlag(AutoConfigUpdateActionTypes.InvalidateLanguage)) {
-                    if(languageInstalled)
-                        UninstallLanguage();
-                    InstallLanguage();
+                if(args.flags.HasFlag(AutoConfigUpdateActionTypes.InvalidateLanguage)) {
+                    if(enabled) {
+                        if(volatileLanguageInstalled)
+                            UninstallLanguage();
+                        InstallLanguage();
+                    }
+                    RefreshPermanentLanguage();
                 }
             };
         }
@@ -115,19 +122,31 @@ namespace TILER2 {
 
         ///<summary>Will be called once after initial language setup, and also if/when the module is installed after setup. Automatically loads tokens from genericLanguageTokens/specificLanguageTokens into R2API Language Overlays in languageOverlays.</summary>
         public virtual void InstallLanguage() {
-            languageOverlays.Add(LanguageAPI.AddOverlay(genericLanguageTokens));
-            languageOverlays.Add(LanguageAPI.AddOverlay(specificLanguageTokens));
-            languageInstalled = true;
+            volatileLanguageOverlays.Add(LanguageAPI.AddOverlay(genericLanguageTokens));
+            volatileLanguageOverlays.Add(LanguageAPI.AddOverlay(specificLanguageTokens));
+            volatileLanguageInstalled = true;
             AutoConfigModule.globalLanguageDirty = true;
         }
 
         ///<summary>Will be called if/when the module is uninstalled after setup, and before any language installation after the first. Automatically undoes all R2API Language Overlays registered to languageOverlays.</summary>
         public virtual void UninstallLanguage() {
-            foreach(var overlay in languageOverlays) {
+            foreach(var overlay in volatileLanguageOverlays) {
                 overlay.Remove();
             }
-            languageOverlays.Clear();
-            languageInstalled = false;
+            volatileLanguageOverlays.Clear();
+            volatileLanguageInstalled = false;
+            AutoConfigModule.globalLanguageDirty = true;
+        }
+
+        ///<summary>Handles language that should never be uninstalled for an extended period (e.g. item tokens), contained in permanentGenericLanguageTokens/permanentSpecificLanguageTokens.</summary>
+        public virtual void RefreshPermanentLanguage() {
+            if(permanentLanguageInstalled) {
+                foreach(var overlay in permanentLanguageOverlays)
+                    overlay.Remove();
+            }
+            permanentLanguageOverlays.Clear();
+            permanentLanguageOverlays.Add(LanguageAPI.AddOverlay(permanentGenericLanguageTokens));
+            permanentLanguageOverlays.Add(LanguageAPI.AddOverlay(permanentSpecificLanguageTokens));
             AutoConfigModule.globalLanguageDirty = true;
         }
 
@@ -187,9 +206,12 @@ namespace TILER2 {
                 module.SetupLate();
             }
             foreach(var module in modulesToSetup) {
-                if(module.enabled && (installUnmanaged || module.managedEnable)) {
-                    module.InstallLanguage();
-                    module.Install();
+                if(installUnmanaged || module.managedEnable) {
+                    module.RefreshPermanentLanguage();
+                    if(module.enabled) {
+                        module.InstallLanguage();
+                        module.Install();
+                    }
                 }
             }
         }
