@@ -46,22 +46,22 @@ namespace TILER2 {
             };
         }
 
-        public override void InstallLanguage() {
-            genericLanguageTokens[nameToken] = GetNameString();
-            genericLanguageTokens[pickupToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetPickupString();
-            genericLanguageTokens[descToken] = (enabled ? "" : $"{LANG_PREFIX_DISABLED}\n") + GetDescString();
-            genericLanguageTokens[loreToken] = GetLoreString();
+        public override void RefreshPermanentLanguage() {
+            permanentGenericLanguageTokens[nameToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetNameString();
+            permanentGenericLanguageTokens[pickupToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetPickupString();
+            permanentGenericLanguageTokens[descToken] = (enabled ? "" : $"{LANG_PREFIX_DISABLED}\n") + GetDescString();
+            permanentGenericLanguageTokens[loreToken] = GetLoreString();
 
             foreach(var lang in extraLanguages) {
-                if(!specificLanguageTokens.ContainsKey(lang)) specificLanguageTokens.Add(lang, new Dictionary<string, string>());
-                var specLang = specificLanguageTokens[lang];
-                specLang[nameToken] = GetNameString(lang);
+                if(!specificLanguageTokens.ContainsKey(lang)) permanentSpecificLanguageTokens.Add(lang, new Dictionary<string, string>());
+                var specLang = permanentSpecificLanguageTokens[lang];
+                specLang[nameToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetNameString(lang);
                 specLang[pickupToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetPickupString(lang);
                 specLang[descToken] = (enabled ? "" : $"{LANG_PREFIX_DISABLED}\n") + GetDescString(lang);
                 specLang[loreToken] = GetLoreString(lang);
             }
 
-            base.InstallLanguage();
+            base.RefreshPermanentLanguage();
         }
 
         public override void SetupAttributes() {
