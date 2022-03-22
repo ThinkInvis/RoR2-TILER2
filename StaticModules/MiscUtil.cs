@@ -306,6 +306,23 @@ namespace TILER2 {
         }
 
         /// <summary>
+        /// Returns a list of enemy TeamComponents given an ally team (to ignore while friendly fire is off) and a list of ignored teams (to ignore under all circumstances).
+        /// </summary>
+        /// <param name="allyIndex">The team to ignore if friendly fire is off.</param>
+        /// <param name="ignore">Additional teams to always ignore.</param>
+        /// <returns>A list of all TeamComponents that match the provided team constraints.</returns>
+        public static List<TeamComponent> GatherEnemies(TeamIndex allyIndex, params TeamIndex[] ignore) {
+            var retv = new List<TeamComponent>();
+            bool isFF = FriendlyFireManager.friendlyFireMode != FriendlyFireManager.FriendlyFireMode.Off;
+            var scan = ((TeamIndex[])Enum.GetValues(typeof(TeamIndex))).Except(ignore);
+            foreach(var ind in scan) {
+                if(isFF || allyIndex != ind)
+                    retv.AddRange(TeamComponent.GetTeamMembers(ind));
+            }
+            return retv;
+        }
+
+        /// <summary>
         /// Removes a node from a NodeGraph. See the NodeOccupationInfo component.
         /// </summary>
         /// <param name="self">The DirectorCore to perform NodeGraph operations with.</param>
