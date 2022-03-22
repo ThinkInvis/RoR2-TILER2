@@ -72,6 +72,18 @@ namespace TILER2 {
             loreToken = $"{modInfo.longIdentifier}_{name.ToUpper()}_LORE";
         }
 
+        public override void Install() {
+            base.Install();
+            if(PreGameController.instance)
+                PreGameController.instance.RecalculateModifierAvailability();
+        }
+
+        public override void Uninstall() {
+            base.Uninstall();
+            if(PreGameController.instance)
+                PreGameController.instance.RecalculateModifierAvailability();
+        }
+
         public PickupDef pickupDef {get; internal set;}
         public PickupIndex pickupIndex {get; internal set;}
         public RoR2.UI.LogBook.Entry logbookEntry {get; internal set; }

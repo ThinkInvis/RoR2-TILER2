@@ -30,7 +30,40 @@ namespace TILER2 {
             On.RoR2.RuleDef.FromItem += RuleDef_FromItem;
             On.RoR2.RuleDef.FromEquipment += RuleDef_FromEquipment;
             On.RoR2.RuleDef.FromArtifact += RuleDef_FromArtifact;
+            IL.RoR2.PreGameController.ResolveChoiceMask += PreGameController_ResolveChoiceMask;
         }
+
+        private void PreGameController_ResolveChoiceMask(ILContext il) {
+            ILCursor c = new ILCursor(il);
+
+            if(c.TryGotoNext(MoveType.Before,
+                x => x.MatchLdfld<PreGameController>(nameof(PreGameController.choiceMaskBuffer)),
+                x => x.MatchCallOrCallvirt<NetworkRuleChoiceMask>(nameof(NetworkRuleChoiceMask.SetRuleChoiceMask))
+                )) {
+                c.Index++;
+                c.EmitDelegate<Func<RuleChoiceMask, RuleChoiceMask>>((origMask) => {
+                    for(var i = 0; i < origMask.length; i++) {
+                        var cdef = RuleCatalog.GetChoiceDef(i);
+                        if(cdef.artifactIndex != ArtifactIndex.None
+                            && artifactInstances.ContainsKey(cdef.artifactIndex)
+                            && !artifactInstances[cdef.artifactIndex].enabled)
+                            origMask[i] = false;
+                        if(cdef.equipmentIndex != EquipmentIndex.None
+                            && equipmentInstances.ContainsKey(cdef.equipmentIndex)
+                            && !equipmentInstances[cdef.equipmentIndex].enabled)
+                            origMask[i] = false;
+                        if(cdef.itemIndex != ItemIndex.None
+                            && itemInstances.ContainsKey(cdef.itemIndex)
+                            && !itemInstances[cdef.itemIndex].enabled)
+                            origMask[i] = false;
+                    }
+                    return origMask;
+                });
+            } else {
+                TILER2Plugin._logger.LogError("CatalogBoilerplateModule: Failed to apply IL hook (PreGameController.ResolveChoiceMask), target instructions not found. Disabled items will be erroneously selectable if using a pregame item rulebook unhider mod.");
+            }
+        }
+
         private RuleDef RuleDef_FromArtifact(On.RoR2.RuleDef.orig_FromArtifact orig, ArtifactIndex artifactIndex) {
             var retv = orig(artifactIndex);
             foreach(CatalogBoilerplate bpl in allInstances) {
