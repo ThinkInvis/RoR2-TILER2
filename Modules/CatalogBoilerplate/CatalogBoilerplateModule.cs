@@ -12,6 +12,9 @@ namespace TILER2 {
         public override bool managedEnable => false;
 
         internal static readonly FilingDictionary<CatalogBoilerplate> allInstances = new FilingDictionary<CatalogBoilerplate>();
+        internal static readonly Dictionary<ItemIndex, Item> itemInstances = new Dictionary<ItemIndex, Item>();
+        internal static readonly Dictionary<EquipmentIndex, Equipment> equipmentInstances = new Dictionary<EquipmentIndex, Equipment>();
+        internal static readonly Dictionary<ArtifactIndex, Artifact> artifactInstances = new Dictionary<ArtifactIndex, Artifact>();
 
         public override void SetupConfig() {
             base.SetupConfig();
@@ -21,6 +24,44 @@ namespace TILER2 {
             On.RoR2.PickupPickerController.GetOptionsFromPickupIndex += PickupPickerController_GetOptionsFromPickupIndex;
             On.RoR2.UI.LogBook.LogBookController.CanSelectItemEntry += LogBookController_CanSelectItemEntry;
             On.RoR2.UI.LogBook.LogBookController.CanSelectEquipmentEntry += LogBookController_CanSelectEquipmentEntry;
+            On.RoR2.RuleDef.FromItem += RuleDef_FromItem;
+            On.RoR2.RuleDef.FromEquipment += RuleDef_FromEquipment;
+            On.RoR2.RuleDef.FromArtifact += RuleDef_FromArtifact;
+        }
+        private RuleDef RuleDef_FromArtifact(On.RoR2.RuleDef.orig_FromArtifact orig, ArtifactIndex artifactIndex) {
+            var retv = orig(artifactIndex);
+            foreach(CatalogBoilerplate bpl in allInstances) {
+                if(bpl is Artifact artifact && artifact.catalogIndex == artifactIndex) {
+                    artifactInstances[artifactIndex] = artifact;
+                    artifact.ruleDef = retv;
+                    break;
+                }
+            }
+            return retv;
+        }
+
+        private RuleDef RuleDef_FromEquipment(On.RoR2.RuleDef.orig_FromEquipment orig, EquipmentIndex equipmentIndex) {
+            var retv = orig(equipmentIndex);
+            foreach(CatalogBoilerplate bpl in allInstances) {
+                if(bpl is Equipment equipment && equipment.catalogIndex == equipmentIndex) {
+                    equipmentInstances[equipmentIndex] = equipment;
+                    equipment.ruleDef = retv;
+                    break;
+                }
+            }
+            return retv;
+        }
+
+        private RuleDef RuleDef_FromItem(On.RoR2.RuleDef.orig_FromItem orig, ItemIndex itemIndex) {
+            var retv = orig(itemIndex);
+            foreach(CatalogBoilerplate bpl in allInstances) {
+                if(bpl is Item item && item.catalogIndex == itemIndex) {
+                    itemInstances[itemIndex] = item;
+                    item.ruleDef = retv;
+                    break;
+                }
+            }
+            return retv;
         }
 
         private bool LogBookController_CanSelectEquipmentEntry(On.RoR2.UI.LogBook.LogBookController.orig_CanSelectEquipmentEntry orig, EquipmentDef equipmentDef, Dictionary<RoR2.ExpansionManagement.ExpansionDef, bool> expansionAvailability) {

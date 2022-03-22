@@ -74,7 +74,8 @@ namespace TILER2 {
 
         public PickupDef pickupDef {get; internal set;}
         public PickupIndex pickupIndex {get; internal set;}
-        public RoR2.UI.LogBook.Entry logbookEntry {get; internal set;}
+        public RoR2.UI.LogBook.Entry logbookEntry {get; internal set; }
+        public RuleDef ruleDef { get; internal set; }
 
         protected internal override AutoConfigUpdateActionTypes defaultEnabledUpdateFlags => AutoConfigUpdateActionTypes.AnnounceToRun;
         public override bool managedEnable => true;
