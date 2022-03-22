@@ -16,8 +16,11 @@ namespace TILER2 {
         internal static readonly Dictionary<EquipmentIndex, Equipment> equipmentInstances = new Dictionary<EquipmentIndex, Equipment>();
         internal static readonly Dictionary<ArtifactIndex, Artifact> artifactInstances = new Dictionary<ArtifactIndex, Artifact>();
 
+        public static Sprite lockIcon { get; private set; }
+
         public override void SetupConfig() {
             base.SetupConfig();
+            lockIcon = LegacyResourcesAPI.Load<Sprite>("Textures/MiscIcons/texUnlockIcon");
             On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
             On.RoR2.UI.LogBook.LogBookController.BuildPickupEntries += On_LogbookBuildPickupEntries;
             On.RoR2.Run.BuildDropTable += On_RunBuildDropTable;

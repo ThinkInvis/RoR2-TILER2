@@ -56,6 +56,18 @@ namespace TILER2 {
             ContentAddition.AddArtifactDef(artifactDef);
         }
 
+        public override void Install() {
+            base.Install();
+            artifactDef.smallIconDeselectedSprite = iconResourceDisabled;
+            artifactDef.smallIconSelectedSprite = iconResource;
+        }
+
+        public override void Uninstall() {
+            base.Uninstall();
+            artifactDef.smallIconDeselectedSprite = CatalogBoilerplateModule.lockIcon;
+            artifactDef.smallIconSelectedSprite = CatalogBoilerplateModule.lockIcon;
+        }
+
         public bool IsActiveAndEnabled() {
             return enabled && (RunArtifactManager.instance != null ? RunArtifactManager.instance.IsArtifactEnabled(catalogIndex) : false);
         }

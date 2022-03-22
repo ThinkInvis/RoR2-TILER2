@@ -88,6 +88,16 @@ namespace TILER2 {
             ItemAPI.Add(customItem);
         }
 
+        public override void Install() {
+            base.Install();
+            itemDef.pickupIconSprite = iconResource;
+        }
+
+        public override void Uninstall() {
+            base.Uninstall();
+            itemDef.pickupIconSprite = CatalogBoilerplateModule.lockIcon;
+        }
+
         public int GetCount(Inventory inv) {
             return (inv == null) ? 0 : inv.GetItemCount(catalogIndex);
         }

@@ -75,11 +75,13 @@ namespace TILER2 {
         public override void Install() {
             base.Install();
             On.RoR2.EquipmentSlot.PerformEquipmentAction += Evt_ESPerformEquipmentAction;
+            equipmentDef.pickupIconSprite = iconResource;
         }
 
         public override void Uninstall() {
             base.Uninstall();
             On.RoR2.EquipmentSlot.PerformEquipmentAction -= Evt_ESPerformEquipmentAction;
+            equipmentDef.pickupIconSprite = CatalogBoilerplateModule.lockIcon;
         }
 
         private bool Evt_ESPerformEquipmentAction(On.RoR2.EquipmentSlot.orig_PerformEquipmentAction orig, EquipmentSlot self, EquipmentDef def) {
