@@ -54,6 +54,7 @@ namespace TILER2 {
         }
 
         private void Update() {
+            if(!RoR2.RoR2Application.loadFinished) return;
             AutoConfigModule.Update();
         }
     }
