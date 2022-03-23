@@ -1,5 +1,17 @@
 ﻿# TILER2 Changelog
 
+**6.1.0**
+
+- Migrated some util methods from other mods into MiscUtil (`GatherEnemies`, `GetRootWithLocators`).
+- CatalogBoilerplate implementations (Item, Equipment, Artifact):
+	- Now automatically retrieves and stores rulebook entries in the `ruleDef` field.
+	- Now applies main tokens (name, pickup, desc, lore) as permanent language.
+	- Now displays a lock icon while disabled.
+	- Disabled entries will no longer present as usable in the rulebook.
+- T2Module: Added support for permanently-installed language via `permanentLanguageOverlays`, `permanentGenericLanguageTokens`, `permanentSpecificLanguageTokens`, `permanentLanguageInstalled`, `virtual void RefreshPermanentLanguage()`.
+- Removed some internal/logging references to old "AutoItemConfig" name in favor of "AutoConfig".
+- BindDict AutoConfig option now displays an error if used on an empty dictionary.
+
 **6.0.2**
 
 - Made CatalogBoilerplate enable/disable more compatible with RuleBook.

@@ -46,6 +46,18 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**6.1.0**
+
+- Migrated some util methods from other mods into MiscUtil (`GatherEnemies`, `GetRootWithLocators`).
+- CatalogBoilerplate implementations (Item, Equipment, Artifact):
+	- Now automatically retrieves and stores rulebook entries in the `ruleDef` field.
+	- Now applies main tokens (name, pickup, desc, lore) as permanent language.
+	- Now displays a lock icon while disabled.
+	- Disabled entries will no longer present as usable in the rulebook.
+- T2Module: Added support for permanently-installed language via `permanentLanguageOverlays`, `permanentGenericLanguageTokens`, `permanentSpecificLanguageTokens`, `permanentLanguageInstalled`, `virtual void RefreshPermanentLanguage()`.
+- Removed some internal/logging references to old "AutoItemConfig" name in favor of "AutoConfig".
+- BindDict AutoConfig option now displays an error if used on an empty dictionary.
+
 **6.0.2**
 
 - Made CatalogBoilerplate enable/disable more compatible with RuleBook.
@@ -72,10 +84,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **5.0.3**
 
 - Tentative fix for FakeInventory spam-cloning Void items.
-
-**5.0.2**
-
-- Compatibility update for Risk of Rain 2 Expansion 1 (SotV).
-- Updated R2API dependency to 4.0.11.
-- Updated BepInEx dependency to 5.4.1902.
-- Updated BetterUI and ShareSuite compat hooks; no changes appeared to be necessary. ItemStats hook pending update of the mod in question.
