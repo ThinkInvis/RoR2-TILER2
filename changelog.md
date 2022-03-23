@@ -1,5 +1,11 @@
 ﻿# TILER2 Changelog
 
+**6.1.1**
+
+- Now defers initial language reload from AutoConfig until after game content has loaded. Fixes a minor conflict with ShowDeathCause.
+- Updated R2API dependency to 4.2.1.
+- Switched to NuGet as lib source.
+
 **6.1.0**
 
 - Migrated some util methods from other mods into MiscUtil (`GatherEnemies`, `GetRootWithLocators`).

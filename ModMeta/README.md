@@ -46,6 +46,12 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**6.1.1**
+
+- Now defers initial language reload from AutoConfig until after game content has loaded. Fixes a minor conflict with ShowDeathCause.
+- Updated R2API dependency to 4.2.1.
+- Switched to NuGet as lib source.
+
 **6.1.0**
 
 - Migrated some util methods from other mods into MiscUtil (`GatherEnemies`, `GetRootWithLocators`).
@@ -80,7 +86,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 	- Now split into several other non-module members of the TILER2 namespace.
 - Removed deprecated CatalogBoilerplate implementation names.
 - MiscUtil.SpawnItemFromBody now has 3 more tiers to cover Void items.
-
-**5.0.3**
-
-- Tentative fix for FakeInventory spam-cloning Void items.
