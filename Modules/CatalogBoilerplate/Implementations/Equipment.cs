@@ -33,6 +33,7 @@ namespace TILER2 {
         [AutoConfig("The base cooldown of the equipment, in seconds.", AutoConfigFlags.DeferUntilNextStage, 0f, float.MaxValue)]
         public virtual float cooldown {get; protected set;} = 45f; //TODO: add a getter function to update ingame cooldown properly if in use; marked as DeferUntilNextStage until then
         public virtual bool isEnigmaCompatible => true;
+        public virtual bool canBeRandomlyTriggered => true;
         public virtual bool isLunar => false;
 
         public override void SetupConfig() {
@@ -64,6 +65,7 @@ namespace TILER2 {
             equipmentDef.loreToken = this.loreToken;
             equipmentDef.cooldown = cooldown;
             equipmentDef.enigmaCompatible = isEnigmaCompatible;
+            equipmentDef.canBeRandomlyTriggered = canBeRandomlyTriggered;
             equipmentDef.isLunar = isLunar;
             equipmentDef.canDrop = true;
             if(isLunar) 
