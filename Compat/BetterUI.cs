@@ -7,6 +7,7 @@ namespace TILER2 {
     ///<summary>
     ///Provides safe hooks for the BetterUI mod. Check Compat_BetterUI.enabled before using any other contained members.
     ///</summary>
+    [Obsolete("Nonfunctional: BetterUI API has undergone major breaking changes. Will be repaired in a future update.")]
     public static class Compat_BetterUI {
         public enum ProcEffect {Chance, HP, Range}
         public enum Stacking {None, Linear, Hyperbolic}
@@ -27,20 +28,7 @@ namespace TILER2 {
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void AddEffect(ItemIndex itemIndex, float value, float? extraStackValue = null, EffectFormatterWrapper formatter = null, StackingFormulaWrapper stackFormula = null, CapFormulaWrapper capFormula = null) {
-            if(!ItemCatalog.availability.available) {
-                TILER2Plugin._logger.LogError("Compat_BetterUI.AddEffect (itemIndex) cannot be used before ItemCatalog setup");
-                return;
-            }
-            BetterUI.ProcItemsCatalog.AddEffect(itemIndex, value, extraStackValue,
-                formatter != null ? (BetterUI.ProcItemsCatalog.EffectFormatter)((calcValue, procCoef, luck, canCap, cap) => {
-                    return formatter(calcValue, procCoef, luck, canCap, cap);
-                }) : null,
-                stackFormula != null ? (BetterUI.ProcItemsCatalog.StackingFormula)((val, esv, stacks) => {
-                    return stackFormula(val, esv, stacks);
-                }) : null,
-                capFormula != null ? (BetterUI.ProcItemsCatalog.CapFormula)((val, esv, pCoef) => {
-                    return capFormula(val, esv, pCoef);
-                }) : null);
+            return;
         }
 
         public static EffectFormatterWrapper ChanceFormatter;
@@ -52,26 +40,10 @@ namespace TILER2 {
         public static StackingFormulaWrapper ExponentialStacking;
         public static CapFormulaWrapper LinearCap;
 
-        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        private static void RetrieveStockWrappers() {
-            ChanceFormatter = BetterUI.ProcItemsCatalog.ChanceFormatter;
-            RangeFormatter = BetterUI.ProcItemsCatalog.RangeFormatter;
-            HPFormatter = BetterUI.ProcItemsCatalog.HPFormatter;
-            NoStacking = BetterUI.ProcItemsCatalog.NoStacking;
-            LinearStacking = BetterUI.ProcItemsCatalog.LinearStacking;
-            HyperbolicStacking = BetterUI.ProcItemsCatalog.HyperbolicStacking;
-            ExponentialStacking = BetterUI.ProcItemsCatalog.ExponentialStacking;
-            LinearCap = BetterUI.ProcItemsCatalog.LinearCap;
-        }
-
         private static bool? _enabled;
         public static bool enabled {
             get {
-                if(_enabled == null) {
-                    _enabled = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.xoxfaby.BetterUI");
-                    if(_enabled.Value) RetrieveStockWrappers();
-                }
-                return (bool)_enabled;
+                return false;
             }
         }
     }
