@@ -1,5 +1,10 @@
 ﻿# TILER2 Changelog
 
+**6.1.3**
+
+- CatalogBoilerplate > Equipment now exposes canBeRandomlyTriggered on its EquipmentDef.
+- CatalogBoilerplateModule now updates Enigma and random-trigger equipment lists to remove disabled equipment.
+
 **6.1.2**
 
 - Temporarily disabled BetterUI.ItemStats support due to item load failures, caused by TILER2 attempting to use an older API (recent update caused breaking changes).

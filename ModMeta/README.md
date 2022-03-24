@@ -46,6 +46,11 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**6.1.3**
+
+- CatalogBoilerplate > Equipment now exposes canBeRandomlyTriggered on its EquipmentDef.
+- CatalogBoilerplateModule now updates Enigma and random-trigger equipment lists to remove disabled equipment.
+
 **6.1.2**
 
 - Temporarily disabled BetterUI.ItemStats support due to item load failures, caused by TILER2 attempting to use an older API (recent update caused breaking changes).
@@ -71,9 +76,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **6.0.2**
 
 - Made CatalogBoilerplate enable/disable more compatible with RuleBook.
-
-**6.0.1**
-
-- FakeInventory now properly handles contagious (e.g. Void-tier) items.
-- Logbook entries of disabled items and equipment are now hidden (only works on game launch).
-- Item.CatalogIndex and Equipment.CatalogIndex no longer cause exceptions if the relevant ItemDef/EquipmentDef was never created.
