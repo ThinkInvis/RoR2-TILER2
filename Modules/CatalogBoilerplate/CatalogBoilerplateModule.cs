@@ -32,6 +32,39 @@ namespace TILER2 {
             On.RoR2.RuleDef.FromEquipment += RuleDef_FromEquipment;
             On.RoR2.RuleDef.FromArtifact += RuleDef_FromArtifact;
             IL.RoR2.PreGameController.ResolveChoiceMask += PreGameController_ResolveChoiceMask;
+            RoR2.Run.onRunStartGlobal += Run_onRunStartGlobal;
+        }
+
+        private void Run_onRunStartGlobal(Run obj) {
+            UpdateEnigmaEquipmentTable();
+            UpdateRandomTriggerEquipmentTable();
+        }
+
+        internal void UpdateEnigmaEquipmentTable() {
+            var toRemove = equipmentInstances.Where(x => !x.Value.enabled).Select(x => x.Key);
+            var toAdd = equipmentInstances.Where(x => x.Value.enabled && x.Value.isEnigmaCompatible).Select(x => x.Key);
+            foreach(var eqp in toRemove) {
+                EquipmentCatalog.enigmaEquipmentList.Remove(eqp);
+                RoR2.Artifacts.EnigmaArtifactManager.validEquipment.Remove(eqp);
+            }
+            foreach(var eqp in toAdd) {
+                if(!EquipmentCatalog.enigmaEquipmentList.Contains(eqp))
+                    EquipmentCatalog.enigmaEquipmentList.Add(eqp);
+                if(!RoR2.Artifacts.EnigmaArtifactManager.validEquipment.Contains(eqp))
+                    RoR2.Artifacts.EnigmaArtifactManager.validEquipment.Add(eqp);
+            }
+        }
+
+        internal void UpdateRandomTriggerEquipmentTable() {
+            var toRemove = equipmentInstances.Where(x => !x.Value.enabled).Select(x => x.Key);
+            var toAdd = equipmentInstances.Where(x => x.Value.enabled && x.Value.canBeRandomlyTriggered).Select(x => x.Key);
+            foreach(var eqp in toRemove) {
+                EquipmentCatalog.randomTriggerEquipmentList.Remove(eqp);
+            }
+            foreach(var eqp in toAdd) {
+                if(!EquipmentCatalog.randomTriggerEquipmentList.Contains(eqp))
+                    EquipmentCatalog.randomTriggerEquipmentList.Add(eqp);
+            }
         }
 
         private void PreGameController_ResolveChoiceMask(ILContext il) {
@@ -138,6 +171,8 @@ namespace TILER2 {
             orig(self);
             //should force-update most cached drop tables
             PickupDropTable.RegenerateAll(Run.instance);
+            UpdateEnigmaEquipmentTable(); //todo: trigger enigma if player has newly disabled equipment
+            UpdateRandomTriggerEquipmentTable();
         }
 
         private void On_PickupCatalogInit(On.RoR2.PickupCatalog.orig_Init orig) {
