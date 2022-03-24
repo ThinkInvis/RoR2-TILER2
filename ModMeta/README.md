@@ -46,6 +46,10 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**6.1.2**
+
+- Temporarily disabled BetterUI.ItemStats support due to item load failures, caused by TILER2 attempting to use an older API (recent update caused breaking changes).
+
 **6.1.1**
 
 - Now defers initial language reload from AutoConfig until after game content has loaded. Fixes a minor conflict with ShowDeathCause.
@@ -73,16 +77,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - FakeInventory now properly handles contagious (e.g. Void-tier) items.
 - Logbook entries of disabled items and equipment are now hidden (only works on game launch).
 - Item.CatalogIndex and Equipment.CatalogIndex no longer cause exceptions if the relevant ItemDef/EquipmentDef was never created.
-
-**6.0.0**
-
-- Major rewrite of the NetConfig module incl. breaking API changes.
-	- ConCmd/ConVar prefix renamed from "aic_" to "ncfg_".
-	- Fixed many cases of ConCmd output not being visible in ingame console.
-	- Bandwidth use is greatly reduced (config syncs are now compressed, and less password info is exchanged).
-	- Project no longer uses UNetWeaver; all networking is now handled by R2API.NetworkingAPI.
-	- Syncs to clients are now queued (fixes a theoretical bug wherein an older change could happen after a newer one, leaving the older config value in place).
-	- Main module class renamed from NetConfig to NetConfigModule.
-	- Now split into several other non-module members of the TILER2 namespace.
-- Removed deprecated CatalogBoilerplate implementation names.
-- MiscUtil.SpawnItemFromBody now has 3 more tiers to cover Void items.

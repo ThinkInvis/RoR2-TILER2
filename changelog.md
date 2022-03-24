@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**6.1.2**
+
+- Temporarily disabled BetterUI.ItemStats support due to item load failures, caused by TILER2 attempting to use an older API (recent update caused breaking changes).
+
 **6.1.1**
 
 - Now defers initial language reload from AutoConfig until after game content has loaded. Fixes a minor conflict with ShowDeathCause.
