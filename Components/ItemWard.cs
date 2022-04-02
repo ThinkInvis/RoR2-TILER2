@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 namespace TILER2 {
-	[RequireComponent(typeof(TeamFilter), typeof(NetworkIdentity))]
+	[RequireComponent(typeof(NetworkIdentity))]
     public class ItemWard : NetworkBehaviour {
 		internal class ItemWardModule : T2Module<ItemWardModule> {
 			public override void SetupConfig() {
@@ -28,6 +28,7 @@ namespace TILER2 {
 
 		private void Awake() {
 			teamFilter = base.GetComponent<TeamFilter>();
+			teamComponent = base.GetComponent<TeamComponent>();
 		}
 
 		private void OnDestroy() {
@@ -189,7 +190,11 @@ namespace TILER2 {
 
 		public Transform rangeIndicator;
 		private TeamFilter teamFilter;
-		public TeamIndex currentTeam => teamFilter.teamIndex;
+		private TeamComponent teamComponent;
+		public TeamIndex currentTeam =>
+			teamFilter ? teamFilter.teamIndex
+			: (teamComponent ? teamComponent.teamIndex
+			: TeamIndex.None);
 
 		public Dictionary<ItemIndex, int> itemcounts = new Dictionary<ItemIndex, int>();
 		private float rangeIndicatorScaleVelocity;
