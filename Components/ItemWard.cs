@@ -4,11 +4,49 @@ using RoR2;
 using RoR2.Orbs;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace TILER2 {
 	[RequireComponent(typeof(NetworkIdentity))]
     public class ItemWard : NetworkBehaviour {
+		public static GameObject stockIndicatorPrefab;
+		public static GameObject displayPrefab;
+
+		public float displayRadiusFracH = 0.5f;
+		public float displayRadiusFracV = 0.3f;
+		public Vector3 displayIndivScale = Vector3.one;
+		public Vector3 displayRadiusOffset = new Vector3(0f, 0f, 0f);
+		public Transform rangeIndicator;
+		public Dictionary<ItemIndex, int> itemcounts = new Dictionary<ItemIndex, int>();
+
+		private const float updateTickRate = 1f;
+		private float stopwatch = 0f;
+		private TeamFilter teamFilter;
+		private TeamComponent teamComponent;
+		private float rangeIndicatorScaleVelocity;
+
+		private List<GameObject> displays = new List<GameObject>(); //client & server
+		private List<Vector3> displayVelocities = new List<Vector3>(); //client
+		private List<ItemIndex> displayItems = new List<ItemIndex>(); //server
+		private List<Inventory> trackedInventories = new List<Inventory>(); //server
+
+		private float _radius = 10f;
+		public float radius {
+			get => _radius;
+			set {
+				_radius = value;
+				radSq = _radius * _radius;
+				if(NetworkServer.active)
+					new MsgSyncRadius(this, value).Send(R2API.Networking.NetworkDestination.Clients);
+			}
+		}
+		public float radSq { get; private set; } = 100f;
+		public TeamIndex currentTeam =>
+			teamFilter ? teamFilter.teamIndex
+			: (teamComponent ? teamComponent.teamIndex
+			: TeamIndex.None);
+
 		internal class ItemWardModule : T2Module<ItemWardModule> {
 			public override void SetupConfig() {
 				base.SetupConfig();
@@ -21,10 +59,28 @@ namespace TILER2 {
 				displayPrefabPrefab.GetComponent<ItemTakenOrbEffect>().enabled = false;
 
 				displayPrefab = displayPrefabPrefab.InstantiateClone("ItemWardDisplay", false);
+
+				var indicPrefab = LegacyResourcesAPI.Load<GameObject>("Prefabs/NetworkedObjects/WarbannerWard").InstantiateClone("TILER2TempSetupPrefab", false);
+
+				var subPrefab = indicPrefab.transform.Find("Indicator").gameObject;
+				subPrefab.transform.SetParent(null);
+				var ren = subPrefab.transform.Find("IndicatorSphere").gameObject.GetComponent<MeshRenderer>();
+				ren.material.SetTexture("_RemapTex",
+					Addressables.LoadAssetAsync<Texture2D>("RoR2/Base/Common/ColorRamps/texRampDefault.png")
+					.WaitForCompletion());
+				/*ren.material.SetTexture("_Cloud2Tex",
+					Addressables.LoadAssetAsync<Texture2D>("RoR2/Base/Common/texCloudGradient.png")
+					.WaitForCompletion());
+				ren.material.SetFloat("_AlphaBoost", 0.5f);*/
+				ren.material.SetColor("_CutoffScroll", new Color(0.8f, 0.8f, 0.85f));
+				ren.material.SetColor("_RimColor", new Color(0.8f, 0.8f, 0.85f));
+
+				stockIndicatorPrefab = subPrefab.InstantiateClone("ItemWardStockIndicator", false);
+
+				GameObject.Destroy(indicPrefab);
+				GameObject.Destroy(subPrefab);
 			}
 		}
-
-		public static GameObject displayPrefab;
 
 		private void Awake() {
 			teamFilter = base.GetComponent<TeamFilter>();
@@ -70,12 +126,14 @@ namespace TILER2 {
 
 			var totalRotateAmount = -0.125f * (2f * Mathf.PI * Time.time);
 			var countAngle = 2f*Mathf.PI/displays.Count;
-			var displayRadius = radius/2f;
-			var displayHeight = Mathf.Max(radius/3f, 1f);
+			var displayRadius = radius * displayRadiusFracH;
+			var displayHeight = Mathf.Max(radius * displayRadiusFracV, 1f);
 			for(int i = displays.Count - 1; i >= 0; i--) {
-				var target = new Vector3(Mathf.Cos(countAngle*i+totalRotateAmount)*displayRadius, displayHeight, Mathf.Sin(countAngle*i+totalRotateAmount)*displayRadius);
+				var target = new Vector3(Mathf.Cos(countAngle*i+totalRotateAmount)*displayRadius, displayHeight, Mathf.Sin(countAngle*i+totalRotateAmount)*displayRadius)
+					+ displayRadiusOffset;
 				var dspv = displayVelocities[i];
 				displays[i].transform.localPosition = Vector3.SmoothDamp(displays[i].transform.localPosition, target, ref dspv, 1f);
+				displays[i].transform.localScale = displayIndivScale;
 				displayVelocities[i] = dspv;
 			}
 		}
@@ -155,7 +213,7 @@ namespace TILER2 {
 				fakeInv.RemoveItem(ind);
 			}
 		}
-		
+
 		internal void ClientAddItemDisplay(ItemIndex ind) {
 			var display = UnityEngine.Object.Instantiate(displayPrefab, transform.position, transform.rotation);
 			display.transform.Find("BillboardBase").Find("PickupSprite").GetComponent<SpriteRenderer>().sprite = ItemCatalog.GetItemDef(ind).pickupIconSprite;
@@ -173,37 +231,6 @@ namespace TILER2 {
 			displayVelocities.RemoveAt(listInd);
 		}
 
-		private const float updateTickRate = 1f;
-		private float stopwatch = 0f;
-
-		private float _radius = 10f;
-		public float radius {
-			get => _radius;
-			set {
-				_radius = value;
-				radSq = _radius * _radius;
-				if(NetworkServer.active)
-					new MsgSyncRadius(this, value).Send(R2API.Networking.NetworkDestination.Clients);
-			}
-		}
-		public float radSq {get; private set;} = 100f;
-
-		public Transform rangeIndicator;
-		private TeamFilter teamFilter;
-		private TeamComponent teamComponent;
-		public TeamIndex currentTeam =>
-			teamFilter ? teamFilter.teamIndex
-			: (teamComponent ? teamComponent.teamIndex
-			: TeamIndex.None);
-
-		public Dictionary<ItemIndex, int> itemcounts = new Dictionary<ItemIndex, int>();
-		private float rangeIndicatorScaleVelocity;
-
-		private List<GameObject> displays = new List<GameObject>(); //client & server
-		private List<Vector3> displayVelocities = new List<Vector3>(); //client
-		private List<ItemIndex> displayItems = new List<ItemIndex>(); //server
-		private List<Inventory> trackedInventories = new List<Inventory>(); //server
-
 		protected struct MsgSyncRadius : INetMessage {
 			private ItemWard _targetWard;
 			private float _newRadius;
@@ -219,7 +246,8 @@ namespace TILER2 {
 			}
 
 			public void OnReceived() {
-				_targetWard.radius = _newRadius;
+				_targetWard._radius = _newRadius;
+				_targetWard.radSq = _newRadius * _newRadius;
 			}
 
 			public MsgSyncRadius(ItemWard targetWard, float newRadius) {
