@@ -109,7 +109,7 @@ namespace TILER2 {
         /// <param name="target">The endpoint of the trajectory.</param>
         /// <param name="extraPeakHeight">Extra height to add above the apex of the lowest possible trajectory.</param>
         /// <returns>vInitial: initial velocity of the trajectory. tFinal: time required to reach target from source.</returns>
-        static (Vector3 vInitial, float tFinal) CalculateVelocityForFinalPosition(Vector3 source, Vector3 target, float extraPeakHeight) {
+        public static (Vector3 vInitial, float tFinal) CalculateVelocityForFinalPosition(Vector3 source, Vector3 target, float extraPeakHeight) {
             var deltaPos = target - source;
             var yF = deltaPos.y;
             var yPeak = Mathf.Max(Mathf.Max(yF, 0) + extraPeakHeight, yF, 0);
@@ -137,7 +137,7 @@ namespace TILER2 {
         /// <param name="layerMask">As with straight-line UnityEngine.Physics.Spherecast.</param>
         /// <param name="qTI">As with straight-line UnityEngine.Physics.Spherecast.</param>
         /// <returns>True iff a spherecast hit occurred.</returns>
-        static bool TrajectorySphereCast(out RaycastHit hit, Vector3 source, Vector3 vInitial, float tFinal, float radius, int resolution, int layerMask = Physics.DefaultRaycastLayers, QueryTriggerInteraction qTI = QueryTriggerInteraction.UseGlobal) {
+        public static bool TrajectorySphereCast(out RaycastHit hit, Vector3 source, Vector3 vInitial, float tFinal, float radius, int resolution, int layerMask = Physics.DefaultRaycastLayers, QueryTriggerInteraction qTI = QueryTriggerInteraction.UseGlobal) {
             Vector3 p0, p1;
             p1 = source;
             for(var i = 0; i < resolution; i++) {
@@ -167,7 +167,7 @@ namespace TILER2 {
         /// <param name="qTI">See TrajectorySphereCast.</param>
         /// <param name="hullMask">Passed through to NodeGraph.FindNodesInRange.</param>
         /// <returns>A list of between 0 and desiredCount launch velocities. Less results will be returned if not enough clear paths to open nodes with the given parameters can be found.</returns>
-        static List<Vector3> CollectNearestNodeLaunchVelocities(
+        public static List<Vector3> CollectNearestNodeLaunchVelocities(
             NodeGraph graph, int desiredCount, float minRange, float maxRange,
             Vector3 source, float extraPeakHeight, float radius, float maxDeviation, int trajectoryResolution,
             int layerMask = Physics.DefaultRaycastLayers, QueryTriggerInteraction qTI = QueryTriggerInteraction.UseGlobal, HullMask hullMask = HullMask.Human) {
