@@ -90,6 +90,19 @@ namespace TILER2 {
         }
 
         /// <summary>
+        /// Remaps a float from one range to another.
+        /// </summary>
+        /// <param name="x">The number to perform a remap operation on.</param>
+        /// <param name="minFrom">The old lower bound of the remap operation.</param>
+        /// <param name="maxFrom">The old upper bound of the remap operation.</param>
+        /// <param name="minTo">The new lower bound of the remap operation.</param>
+        /// <param name="maxTo">The new upper bound of the remap operation.</param>
+        /// <returns>The result of the remap operation of x from [minFrom, maxFrom] to [minTo, maxTo].</returns>
+        public static float Remap(float x, float minFrom, float maxFrom, float minTo, float maxTo) {
+            return maxTo + (maxTo - minTo) * ((x - minFrom) / (maxFrom - minFrom));
+        }
+
+        /// <summary>
         /// Uses reflection to subscribe an event handler to an EventInfo.
         /// </summary>
         /// <param name="evt">The EventInfo to subscribe to.</param>
