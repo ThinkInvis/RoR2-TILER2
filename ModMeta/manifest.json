@@ -5,6 +5,6 @@
   "description": "ThinkInvisible's Library of Extras for RoR2.",
   "dependencies": [
     "bbepis-BepInExPack-5.4.1902",
-    "tristanmcpherson-R2API-4.2.1"
+    "tristanmcpherson-R2API-4.3.5"
   ]
 }
