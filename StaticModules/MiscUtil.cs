@@ -194,6 +194,16 @@ namespace TILER2 {
         }
 
         /// <summary>
+        /// Sigmoid-like curve as a function of x with fixed points at (0, 0), (0.5, 0.5), and (1, 1). Has flatter ends and steeper midpoint as b increases.
+        /// </summary>
+        /// <param name="x">The point along the curve to evaluate.</param>
+        /// <param name="b">Steepness of the curve.</param>
+        /// <returns>The point along the curve with parameter b evaluated at point x.</returns>
+        public static float SteepSigmoid01(float x, float b) {
+            return 0.5f - (float)Math.Tanh(2 * b * (x - 0.5f)) / (2f * (float)Math.Tanh(-b));
+        }
+
+        /// <summary>
         /// Uses reflection to subscribe an event handler to an EventInfo.
         /// </summary>
         /// <param name="evt">The EventInfo to subscribe to.</param>
