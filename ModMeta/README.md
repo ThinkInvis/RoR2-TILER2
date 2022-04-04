@@ -46,6 +46,25 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**6.2.0**
+
+- Migrated some math/util methods from other mods.
+	- `MiscUtil.Remap`: remaps a float from one range to another.
+	- `MiscUtil.CalculateVelocityForFinalPosition`: calculates the initial velocity and final time required for a jump-pad-like trajectory between two points.
+	- `MiscUtil.TrajectorySphereCast`: performs a spherecast over a parabolic trajectory.
+	- `MiscUtil.CollectNearestNodeLaunchVelocities`: collects a specified number of launch velocities that will reach (without hitting anything else) the nearest free navnodes outside a minimum range.
+	- `MiscUtil.SteepSigmoid01`: sigmoid-like curve as a function of x with fixed points at (0, 0), (0.5, 0.5), and (1, 1). Has flatter ends and steeper midpoint as b increases.
+- Some improvements to ItemWard.
+	- No longer hard requires a TeamFilter component. Will instead try to find team from TeamFilter or TeamComponent on the same object, and default to TeamIndex.None otherwise.
+	- Fixed a potential net message loop caused by setting radius.
+	- Now exposes a stock indicator prefab based on the warbanner area indicator: `TILER2.ItemWard.stockIndicatorPrefab`. Will *not* be created by default if an ItemWard's indicator is unset.
+	- Now exposes some extra fields to customize display:
+		- `displayRadiusFracH`: horizontal distance at which displays will orbit as a fraction of `radius`.
+		- `displayRadiusFracV`: vertical distance at which displays will orbit as a fraction of `radius`.
+		- `displayIndivScale`: multiplies scale of individual display prefabs.
+		- `displayRadiusOffset`: fixed offset applied to local position of each individual display prefab.
+- Updated R2API dependency to 4.3.5.
+
 **6.1.3**
 
 - CatalogBoilerplate > Equipment now exposes canBeRandomlyTriggered on its EquipmentDef.
@@ -72,7 +91,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - T2Module: Added support for permanently-installed language via `permanentLanguageOverlays`, `permanentGenericLanguageTokens`, `permanentSpecificLanguageTokens`, `permanentLanguageInstalled`, `virtual void RefreshPermanentLanguage()`.
 - Removed some internal/logging references to old "AutoItemConfig" name in favor of "AutoConfig".
 - BindDict AutoConfig option now displays an error if used on an empty dictionary.
-
-**6.0.2**
-
-- Made CatalogBoilerplate enable/disable more compatible with RuleBook.
