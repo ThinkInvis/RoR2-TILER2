@@ -44,6 +44,14 @@ namespace TILER2 {
                 On.RoR2.Items.SuppressedItemManager.OnInventoryChangedGlobal += SuppressedItemManager_OnInventoryChangedGlobal;
                 On.RoR2.Items.SuppressedItemManager.SuppressItem += SuppressedItemManager_SuppressItem;
                 On.RoR2.Items.SuppressedItemManager.TransformItem += SuppressedItemManager_TransformItem;
+                On.RoR2.CharacterMaster.TryCloverVoidUpgrades += CharacterMaster_TryCloverVoidUpgrades;
+                On.RoR2.ArtifactTrialMissionController.RemoveAllMissionKeys += ArtifactTrialMissionController_RemoveAllMissionKeys;
+                On.RoR2.ItemStealController.StolenInventoryInfo.TakeItemFromLendee += StolenInventoryInfo_TakeItemFromLendee;
+                On.RoR2.ItemStealController.StolenInventoryInfo.TakeBackItemsFromLendee += StolenInventoryInfo_TakeBackItemsFromLendee;
+                On.RoR2.LunarSunBehavior.FixedUpdate += LunarSunBehavior_FixedUpdate;
+
+                //Stack checker
+                On.RoR2.Run.FixedUpdate += Run_FixedUpdate;
 
 				//Display hooks
 				On.RoR2.UI.ItemInventoryDisplay.UpdateDisplay += On_IIDUpdateDisplay;
@@ -194,7 +202,42 @@ namespace TILER2 {
 			}
 		}
 
-		private static bool ignoreFakes = false;
+		/// <summary>Increment when beginning a method using RemoveItem, or any other method where FakeInventory items should be ignored while calculating item count. Decrement when leaving the method.</summary>
+		public static int ignoreFakes = 0;
+
+        #region IgnoreFakes hooks
+        private static void Run_FixedUpdate(On.RoR2.Run.orig_FixedUpdate orig, Run self) {
+			orig(self);
+			if(ignoreFakes != 0) {
+				TILER2Plugin._logger.LogError($"FakeInventory ignoreFakes count = {ignoreFakes} on new frame (!= 0, very bad!), clearing");
+				ignoreFakes = 0;
+			}
+		}
+
+		private static void StolenInventoryInfo_TakeBackItemsFromLendee(On.RoR2.ItemStealController.StolenInventoryInfo.orig_TakeBackItemsFromLendee orig, object self) {
+			ignoreFakes++;
+			orig(self);
+			ignoreFakes--;
+		}
+
+		private static void LunarSunBehavior_FixedUpdate(On.RoR2.LunarSunBehavior.orig_FixedUpdate orig, LunarSunBehavior self) {
+			ignoreFakes++;
+			orig(self);
+			ignoreFakes--;
+		}
+
+		private static int StolenInventoryInfo_TakeItemFromLendee(On.RoR2.ItemStealController.StolenInventoryInfo.orig_TakeItemFromLendee orig, object self, ItemIndex itemIndex, int maxStackToTake) {
+			ignoreFakes++;
+			var retv = orig(self, itemIndex, maxStackToTake);
+			ignoreFakes--;
+			return retv;
+		}
+
+		private static void ArtifactTrialMissionController_RemoveAllMissionKeys(On.RoR2.ArtifactTrialMissionController.orig_RemoveAllMissionKeys orig) {
+			ignoreFakes++;
+			orig();
+			ignoreFakes--;
+		}
 
 		private static void PickupPickerController_SetOptionsFromInteractor(ILContext il) {
 			var c = new ILCursor(il);
@@ -206,9 +249,9 @@ namespace TILER2 {
 			c.Emit(OpCodes.Ldloc_S, (byte)locIndex);
 			c.EmitDelegate<Func<bool,Interactor,ItemDef,bool>>((origDoContinue, iac, def) => {
 				var retv = origDoContinue;
-				ignoreFakes = true;
+				ignoreFakes++;
 				if(iac.GetComponent<CharacterBody>().inventory.GetItemCount(def.itemIndex) <= 0) retv = false;
-				ignoreFakes = false;
+				ignoreFakes--;
 				return retv;
 			});
 		}
@@ -216,120 +259,127 @@ namespace TILER2 {
 		private static void gPayCostItemsHook(ILContext il) {
 			ILCursor c = new ILCursor(il);
 			c.GotoNext(x => x.MatchCallvirt<Inventory>("GetItemCount"));
-			c.EmitDelegate<Action>(() => {ignoreFakes = true;});
+			c.EmitDelegate<Action>(() => {ignoreFakes++;});
 			c.GotoNext(MoveType.After, x => x.MatchCallvirt<Inventory>("GetItemCount"));
-			c.EmitDelegate<Action>(() => {ignoreFakes = false;});
+			c.EmitDelegate<Action>(() => {ignoreFakes--;});
 		}
 
 		private static int Util_GetItemCountForTeam(On.RoR2.Util.orig_GetItemCountForTeam orig, TeamIndex teamIndex, ItemIndex itemIndex, bool requiresAlive, bool requiresConnected) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			var retv = orig(teamIndex, itemIndex, requiresAlive, requiresConnected);
-			ignoreFakes = false;
+			ignoreFakes--;
 			return retv;
 		}
 
 		private static bool ShrineCleanseBehavior_InventoryIsCleansable(On.RoR2.ShrineCleanseBehavior.orig_InventoryIsCleansable orig, Inventory inventory) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			var retv = orig(inventory);
-			ignoreFakes = false;
+			ignoreFakes--;
 			return retv;
 		}
 
 		private static int ShrineCleanseBehavior_CleanseInventoryServer(On.RoR2.ShrineCleanseBehavior.orig_CleanseInventoryServer orig, Inventory inventory) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			var retv = orig(inventory);
-			ignoreFakes = false;
+			ignoreFakes--;
 			return retv;
 		}
 
 		private static void ScrapperController_BeginScrapping(On.RoR2.ScrapperController.orig_BeginScrapping orig, ScrapperController self, int intPickupIndex) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			orig(self, intPickupIndex);
-			ignoreFakes = false;
+			ignoreFakes--;
 		}
 
 		private static RunReport RunReport_Generate(On.RoR2.RunReport.orig_Generate orig, Run run, GameEndingDef gameEnding) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			var retv = orig(run, gameEnding);
-			ignoreFakes = false;
+			ignoreFakes--;
 			return retv;
 		}
 
 		private static int StolenInventoryInfo_StealItem(On.RoR2.ItemStealController.StolenInventoryInfo.orig_StealItem orig, object self, ItemIndex itemIndex, int maxStackToSteal, bool? useOrbOverride) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			var retv = orig(self, itemIndex, maxStackToSteal, useOrbOverride);
-			ignoreFakes = false;
+			ignoreFakes--;
 			return retv;
 		}
 
 		private static int Inventory_GetTotalItemCountOfTier(On.RoR2.Inventory.orig_GetTotalItemCountOfTier orig, Inventory self, ItemTier itemTier) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			var retv = orig(self, itemTier);
-			ignoreFakes = false;
+			ignoreFakes--;
 			return retv;
 		}
 
 		private static bool Inventory_HasAtLeastXTotalItemsOfTier(On.RoR2.Inventory.orig_HasAtLeastXTotalItemsOfTier orig, Inventory self, ItemTier itemTier, int x) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			var retv = orig(self, itemTier, x);
-			ignoreFakes = false;
+			ignoreFakes--;
 			return retv;
 		}
 
 		private static void LunarItemOrEquipmentCostTypeHelper_PayOne(On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.orig_PayOne orig, Inventory inventory) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			orig(inventory);
-			ignoreFakes = false;
+			ignoreFakes--;
 		}
 
 		private static void LunarItemOrEquipmentCostTypeHelper_PayCost(On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.orig_PayCost orig, CostTypeDef costTypeDef, CostTypeDef.PayCostContext context) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			orig(costTypeDef, context);
-			ignoreFakes = false;
+			ignoreFakes--;
 		}
 
 		private static bool LunarItemOrEquipmentCostTypeHelper_IsAffordable(On.RoR2.CostTypeCatalog.LunarItemOrEquipmentCostTypeHelper.orig_IsAffordable orig, CostTypeDef costTypeDef, CostTypeDef.IsAffordableContext context) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			var retv = orig(costTypeDef, context);
-			ignoreFakes = false;
+			ignoreFakes--;
 			return retv;
 		}
 
 		private static bool ContagiousItemManager_StepInventoryInfection(On.RoR2.Items.ContagiousItemManager.orig_StepInventoryInfection orig, Inventory inventory, ItemIndex originalItem, int limit, bool isForced) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			var retv = orig(inventory, originalItem, limit, isForced);
-			ignoreFakes = false;
+			ignoreFakes--;
 			return retv;
 		}
 
 		private static void ContagiousItemManager_OnInventoryChangedGlobal(On.RoR2.Items.ContagiousItemManager.orig_OnInventoryChangedGlobal orig, Inventory inventory) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			orig(inventory);
-			ignoreFakes = false;
+			ignoreFakes--;
 		}
 
 		private static void SuppressedItemManager_OnInventoryChangedGlobal(On.RoR2.Items.SuppressedItemManager.orig_OnInventoryChangedGlobal orig, Inventory inventory) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			orig(inventory);
-			ignoreFakes = false;
+			ignoreFakes--;
 		}
 
 		private static bool SuppressedItemManager_SuppressItem(On.RoR2.Items.SuppressedItemManager.orig_SuppressItem orig, ItemIndex suppressedIndex, ItemIndex transformedIndex) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			var retv = orig(suppressedIndex, transformedIndex);
-			ignoreFakes = false;
+			ignoreFakes--;
 			return retv;
 		}
 
 		private static void SuppressedItemManager_TransformItem(On.RoR2.Items.SuppressedItemManager.orig_TransformItem orig, Inventory inventory, ItemIndex suppressedIndex, ItemIndex transformedIndex) {
-			ignoreFakes = true;
+			ignoreFakes++;
 			orig(inventory, suppressedIndex, transformedIndex);
-			ignoreFakes = false;
+			ignoreFakes--;
 		}
+
+		private static void CharacterMaster_TryCloverVoidUpgrades(On.RoR2.CharacterMaster.orig_TryCloverVoidUpgrades orig, CharacterMaster self) {
+			ignoreFakes++;
+			orig(self);
+			ignoreFakes--;
+		}
+		#endregion
 
 		private static int On_InvGetItemCountByIndex(On.RoR2.Inventory.orig_GetItemCount_ItemIndex orig, Inventory self, ItemIndex itemIndex) {
 			var origVal = orig(self, itemIndex);
-			if(ignoreFakes || !self) return origVal;
+			if(ignoreFakes > 0 || !self) return origVal;
 			var fakeinv = self.gameObject.GetComponent<FakeInventory>();
 			if(!fakeinv) return origVal;
 			return fakeinv.GetAdjustedItemCount(itemIndex);
@@ -370,6 +420,6 @@ namespace TILER2 {
 				icon.stackText.enabled = true;
 				icon.stackText.text = $"x{realCount}\n<color=#C18FE0>+{fakeCount}</color>";
             }
-        }
+		}
 	}
 }
