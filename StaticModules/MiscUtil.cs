@@ -13,37 +13,99 @@ namespace TILER2 {
     /// Contains miscellaneous utilities for working with a myriad of RoR2/R2API features, as well as some other math/reflection standalones.
     /// </summary>
     public static class MiscUtil {
-        [Obsolete("Migrated to TILER2.MathUtil.")]
-        public static float Wrap(float x, float min, float max) {
-            return MathUtil.Wrap(x, min, max);
+        /// <summary>
+        /// Returns a list of all CharacterMasters which have living CharacterBodies.
+        /// </summary>
+        /// <param name="playersOnly">If true, only CharacterMasters which are linked to a PlayerCharacterMasterController will be matched.</param>
+        /// <returns>A list of all CharacterMasters which have living CharacterBodies (and PlayerCharacterMasterControllers, if playersOnly is true).</returns>
+        public static List<CharacterMaster> AliveList(bool playersOnly = false) {
+            if(playersOnly) return PlayerCharacterMasterController.instances.Where(x => x.isConnected && x.master && x.master.hasBody && x.master.GetBody().healthComponent.alive).Select(x => x.master).ToList();
+            else return CharacterMaster.readOnlyInstancesList.Where(x => x.hasBody && x.GetBody().healthComponent.alive).ToList();
         }
 
-        [Obsolete("Migrated to TILER2.MathUtil.")]
-        public static float Remap(float x, float minFrom, float maxFrom, float minTo, float maxTo) {
-            return MathUtil.Remap(x, minFrom, maxFrom, minTo, maxTo);
+        /// <summary>
+        /// Iterates towards the root of a GameObject, including jumping through EntityLocators.
+        /// </summary>
+        /// <param name="target">The GameObject to search for the 'true' root of.</param>
+        /// <param name="maxSearch">The maximum amount of recursion to go through.</param>
+        /// <returns>Null if the given object was null; the most top-level object with the given constraints otherwise.</returns>
+        public static GameObject GetRootWithLocators(GameObject target, int maxSearch = 5) {
+            if(!target) return null;
+            GameObject scan = target;
+            for(int i = 0; i < maxSearch; i++) {
+                var cpt = scan.GetComponent<EntityLocator>();
+
+                if(cpt) {
+                    scan = cpt.entity;
+                    continue;
+                }
+
+                var next = scan.transform.root;
+                if(next && next.gameObject != scan)
+                    scan = next.gameObject;
+                else
+                    return scan;
+            }
+            return scan;
         }
 
-        [Obsolete("Migrated to TILER2.MathUtil.")]
-        public static (Vector3 vInitial, float tFinal) CalculateVelocityForFinalPosition(Vector3 source, Vector3 target, float extraPeakHeight) {
-            return MathUtil.CalculateVelocityForFinalPosition(source, target, extraPeakHeight);
+        /// <summary>
+        /// Spawn an item of the given tier at the position of the given CharacterBody.
+        /// </summary>
+        /// <param name="src">The body to spawn an item from.</param>
+        /// <param name="tier">The tier of item to spawn. Must be within 0 and 8, inclusive (Tier 1, Tier 2, Tier 3, Lunar, Equipment, Lunar Equipment, Void Tier 1, Void Tier 2, Void Tier 3).</param>
+        /// <param name="rng">An instance of Xoroshiro128Plus to use for random item selection.</param>
+        public static void SpawnItemFromBody(CharacterBody src, int tier, Xoroshiro128Plus rng) {
+            List<PickupIndex> spawnList;
+            switch(tier) {
+                case 1:
+                    spawnList = Run.instance.availableTier2DropList;
+                    break;
+                case 2:
+                    spawnList = Run.instance.availableTier3DropList;
+                    break;
+                case 3:
+                    spawnList = Run.instance.availableLunarItemDropList;
+                    break;
+                case 4:
+                    spawnList = Run.instance.availableEquipmentDropList;
+                    break;
+                case 5:
+                    spawnList = Run.instance.availableLunarEquipmentDropList;
+                    break;
+                case 6:
+                    spawnList = Run.instance.availableVoidTier1DropList;
+                    break;
+                case 7:
+                    spawnList = Run.instance.availableVoidTier2DropList;
+                    break;
+                case 8:
+                    spawnList = Run.instance.availableVoidTier3DropList;
+                    break;
+                case 0:
+                    spawnList = Run.instance.availableTier1DropList;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("tier", tier, "spawnItemFromBody: Item tier must be between 0 and 8 inclusive");
+            }
+            PickupDropletController.CreatePickupDroplet(spawnList[rng.RangeInt(0, spawnList.Count)], src.transform.position, new Vector3(UnityEngine.Random.Range(-5.0f, 5.0f), 20f, UnityEngine.Random.Range(-5.0f, 5.0f)));
         }
 
-        [Obsolete("Migrated to TILER2.MathUtil.")]
-        public static bool TrajectorySphereCast(out RaycastHit hit, Vector3 source, Vector3 vInitial, float tFinal, float radius, int resolution, int layerMask = Physics.DefaultRaycastLayers, QueryTriggerInteraction qTI = QueryTriggerInteraction.UseGlobal) {
-            return TrajectorySphereCast(out hit, source, vInitial, tFinal, radius, resolution, layerMask, qTI);
-        }
-
-        [Obsolete("Migrated to TILER2.NodeUtil.")]
-        public static List<Vector3> CollectNearestNodeLaunchVelocities(
-            NodeGraph graph, int desiredCount, float minRange, float maxRange,
-            Vector3 source, float extraPeakHeight, float radius, float maxDeviation, int trajectoryResolution,
-            int layerMask = Physics.DefaultRaycastLayers, QueryTriggerInteraction qTI = QueryTriggerInteraction.UseGlobal, HullMask hullMask = HullMask.Human) {
-            return NodeUtil.CollectNearestNodeLaunchVelocities(graph, desiredCount, minRange, maxRange, source, extraPeakHeight, radius, maxDeviation, trajectoryResolution, layerMask, qTI, hullMask);
-        }
-
-        [Obsolete("Migrated to TILER2.MathUtil.")]
-        public static float SteepSigmoid01(float x, float b) {
-            return MathUtil.SteepSigmoid01(x, b);
+        /// <summary>
+        /// Returns a list of enemy TeamComponents given an ally team (to ignore while friendly fire is off) and a list of ignored teams (to ignore under all circumstances).
+        /// </summary>
+        /// <param name="allyIndex">The team to ignore if friendly fire is off.</param>
+        /// <param name="ignore">Additional teams to always ignore.</param>
+        /// <returns>A list of all TeamComponents that match the provided team constraints.</returns>
+        public static List<TeamComponent> GatherEnemies(TeamIndex allyIndex, params TeamIndex[] ignore) {
+            var retv = new List<TeamComponent>();
+            bool isFF = FriendlyFireManager.friendlyFireMode != FriendlyFireManager.FriendlyFireMode.Off;
+            var scan = ((TeamIndex[])Enum.GetValues(typeof(TeamIndex))).Except(ignore);
+            foreach(var ind in scan) {
+                if(isFF || allyIndex != ind)
+                    retv.AddRange(TeamComponent.GetTeamMembers(ind));
+            }
+            return retv;
         }
 
         /// <summary>
@@ -171,6 +233,40 @@ namespace TILER2 {
             IEnumerator IEnumerable.GetEnumerator() => baseCollection.GetEnumerator();
         }
 
+        #region Migrated - will be removed!
+        [Obsolete("Migrated to TILER2.MathUtil.")]
+        public static float Wrap(float x, float min, float max) {
+            return MathUtil.Wrap(x, min, max);
+        }
+
+        [Obsolete("Migrated to TILER2.MathUtil.")]
+        public static float Remap(float x, float minFrom, float maxFrom, float minTo, float maxTo) {
+            return MathUtil.Remap(x, minFrom, maxFrom, minTo, maxTo);
+        }
+
+        [Obsolete("Migrated to TILER2.MathUtil.")]
+        public static (Vector3 vInitial, float tFinal) CalculateVelocityForFinalPosition(Vector3 source, Vector3 target, float extraPeakHeight) {
+            return MathUtil.CalculateVelocityForFinalPosition(source, target, extraPeakHeight);
+        }
+
+        [Obsolete("Migrated to TILER2.MathUtil.")]
+        public static bool TrajectorySphereCast(out RaycastHit hit, Vector3 source, Vector3 vInitial, float tFinal, float radius, int resolution, int layerMask = Physics.DefaultRaycastLayers, QueryTriggerInteraction qTI = QueryTriggerInteraction.UseGlobal) {
+            return TrajectorySphereCast(out hit, source, vInitial, tFinal, radius, resolution, layerMask, qTI);
+        }
+
+        [Obsolete("Migrated to TILER2.NodeUtil.")]
+        public static List<Vector3> CollectNearestNodeLaunchVelocities(
+            NodeGraph graph, int desiredCount, float minRange, float maxRange,
+            Vector3 source, float extraPeakHeight, float radius, float maxDeviation, int trajectoryResolution,
+            int layerMask = Physics.DefaultRaycastLayers, QueryTriggerInteraction qTI = QueryTriggerInteraction.UseGlobal, HullMask hullMask = HullMask.Human) {
+            return NodeUtil.CollectNearestNodeLaunchVelocities(graph, desiredCount, minRange, maxRange, source, extraPeakHeight, radius, maxDeviation, trajectoryResolution, layerMask, qTI, hullMask);
+        }
+
+        [Obsolete("Migrated to TILER2.MathUtil.")]
+        public static float SteepSigmoid01(float x, float b) {
+            return MathUtil.SteepSigmoid01(x, b);
+        }
+
         [Obsolete("Migrated to TILER2.MathUtil.")]
         public static string Pct(float tgt, uint prec = 0, float mult = 100f) {
             return MathUtil.Pct(tgt, prec, mult);
@@ -186,100 +282,6 @@ namespace TILER2 {
             return MathUtil.GetDifficultyCoeffIncreaseAfter(time, stages);
         }
 
-        /// <summary>
-        /// Returns a list of all CharacterMasters which have living CharacterBodies.
-        /// </summary>
-        /// <param name="playersOnly">If true, only CharacterMasters which are linked to a PlayerCharacterMasterController will be matched.</param>
-        /// <returns>A list of all CharacterMasters which have living CharacterBodies (and PlayerCharacterMasterControllers, if playersOnly is true).</returns>
-        public static List<CharacterMaster> AliveList(bool playersOnly = false) {
-            if(playersOnly) return PlayerCharacterMasterController.instances.Where(x=>x.isConnected && x.master && x.master.hasBody && x.master.GetBody().healthComponent.alive).Select(x=>x.master).ToList();
-            else return CharacterMaster.readOnlyInstancesList.Where(x=>x.hasBody && x.GetBody().healthComponent.alive).ToList();
-        }
-
-        /// <summary>
-        /// Iterates towards the root of a GameObject, including jumping through EntityLocators.
-        /// </summary>
-        /// <param name="target">The GameObject to search for the 'true' root of.</param>
-        /// <param name="maxSearch">The maximum amount of recursion to go through.</param>
-        /// <returns>Null if the given object was null; the most top-level object with the given constraints otherwise.</returns>
-        public static GameObject GetRootWithLocators(GameObject target, int maxSearch = 5) {
-            if(!target) return null;
-            GameObject scan = target;
-            for(int i = 0; i < maxSearch; i++) {
-                var cpt = scan.GetComponent<EntityLocator>();
-
-                if(cpt) {
-                    scan = cpt.entity;
-                    continue;
-                }
-
-                var next = scan.transform.root;
-                if(next && next.gameObject != scan)
-                    scan = next.gameObject;
-                else
-                    return scan;
-            }
-            return scan;
-        }
-
-        /// <summary>
-        /// Spawn an item of the given tier at the position of the given CharacterBody.
-        /// </summary>
-        /// <param name="src">The body to spawn an item from.</param>
-        /// <param name="tier">The tier of item to spawn. Must be within 0 and 8, inclusive (Tier 1, Tier 2, Tier 3, Lunar, Equipment, Lunar Equipment, Void Tier 1, Void Tier 2, Void Tier 3).</param>
-        /// <param name="rng">An instance of Xoroshiro128Plus to use for random item selection.</param>
-        public static void SpawnItemFromBody(CharacterBody src, int tier, Xoroshiro128Plus rng) {
-            List<PickupIndex> spawnList;
-            switch(tier) {
-                case 1:
-                    spawnList = Run.instance.availableTier2DropList;
-                    break;
-                case 2:
-                    spawnList = Run.instance.availableTier3DropList;
-                    break;
-                case 3:
-                    spawnList = Run.instance.availableLunarItemDropList;
-                    break;
-                case 4:
-                    spawnList = Run.instance.availableEquipmentDropList;
-                    break;
-                case 5:
-                    spawnList = Run.instance.availableLunarEquipmentDropList;
-                    break;
-                case 6:
-                    spawnList = Run.instance.availableVoidTier1DropList;
-                    break;
-                case 7:
-                    spawnList = Run.instance.availableVoidTier2DropList;
-                    break;
-                case 8:
-                    spawnList = Run.instance.availableVoidTier3DropList;
-                    break;
-                case 0:
-                    spawnList = Run.instance.availableTier1DropList;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException("tier", tier, "spawnItemFromBody: Item tier must be between 0 and 8 inclusive");
-            }
-            PickupDropletController.CreatePickupDroplet(spawnList[rng.RangeInt(0,spawnList.Count)], src.transform.position, new Vector3(UnityEngine.Random.Range(-5.0f, 5.0f), 20f, UnityEngine.Random.Range(-5.0f, 5.0f)));
-        }
-
-        /// <summary>
-        /// Returns a list of enemy TeamComponents given an ally team (to ignore while friendly fire is off) and a list of ignored teams (to ignore under all circumstances).
-        /// </summary>
-        /// <param name="allyIndex">The team to ignore if friendly fire is off.</param>
-        /// <param name="ignore">Additional teams to always ignore.</param>
-        /// <returns>A list of all TeamComponents that match the provided team constraints.</returns>
-        public static List<TeamComponent> GatherEnemies(TeamIndex allyIndex, params TeamIndex[] ignore) {
-            var retv = new List<TeamComponent>();
-            bool isFF = FriendlyFireManager.friendlyFireMode != FriendlyFireManager.FriendlyFireMode.Off;
-            var scan = ((TeamIndex[])Enum.GetValues(typeof(TeamIndex))).Except(ignore);
-            foreach(var ind in scan) {
-                if(isFF || allyIndex != ind)
-                    retv.AddRange(TeamComponent.GetTeamMembers(ind));
-            }
-            return retv;
-        }
 
         [Obsolete("Migrated to TILER2.NodeUtil.")]
         public static bool RemoveOccupiedNode(this DirectorCore self, NodeGraph nodeGraph, NodeGraph.NodeIndex nodeIndex) {
@@ -295,5 +297,6 @@ namespace TILER2 {
         public static void UpdateOccupiedNodesReference(this DirectorCore self, GameObject oldObj, GameObject newObj) {
             NodeUtil.UpdateOccupiedNodesReference(self, oldObj, newObj);
         }
+        #endregion
     }
 }
