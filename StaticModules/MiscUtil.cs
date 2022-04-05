@@ -89,46 +89,12 @@ namespace TILER2 {
             return false;
         }
 
-        /// <summary>
-        /// Collects a specified number of launch velocities that will reach (without hitting anything else) the nearest free navnodes outside a minimum range.
-        /// </summary>
-        /// <param name="graph">The nodegraph to find nodes from.</param>
-        /// <param name="desiredCount">The ideal number of nodes to find.</param>
-        /// <param name="minRange">The minimum range to find nodes within.</param>
-        /// <param name="maxRange">The maximum range to find nodes within.</param>
-        /// <param name="source">The starting point of all trajectories, and the point to search for nodes around.</param>
-        /// <param name="extraPeakHeight">See CalculateVelocityForFinalPosition.</param>
-        /// <param name="radius">See TrajectorySphereCast.</param>
-        /// <param name="maxDeviation">Distance any TrajectorySphereCast hit is allowed to be from its target node to count as a valid result.</param>
-        /// <param name="trajectoryResolution">See TrajectorySphereCast.</param>
-        /// <param name="layerMask">See TrajectorySphereCast.</param>
-        /// <param name="qTI">See TrajectorySphereCast.</param>
-        /// <param name="hullMask">Passed through to NodeGraph.FindNodesInRange.</param>
-        /// <returns>A list of between 0 and desiredCount launch velocities. Less results will be returned if not enough clear paths to open nodes with the given parameters can be found.</returns>
+        [Obsolete("Migrated to TILER2.NodeUtil.")]
         public static List<Vector3> CollectNearestNodeLaunchVelocities(
             NodeGraph graph, int desiredCount, float minRange, float maxRange,
             Vector3 source, float extraPeakHeight, float radius, float maxDeviation, int trajectoryResolution,
             int layerMask = Physics.DefaultRaycastLayers, QueryTriggerInteraction qTI = QueryTriggerInteraction.UseGlobal, HullMask hullMask = HullMask.Human) {
-            var nodeLocs = graph.FindNodesInRange(source, minRange, maxRange, hullMask)
-                .Select(x => { graph.GetNodePosition(x, out Vector3 xloc); return xloc; })
-                .OrderBy(x => (x - source).sqrMagnitude);
-
-            List<Vector3> retv = new List<Vector3>();
-
-            var mDevSq = maxDeviation * maxDeviation;
-
-            foreach(var loc in nodeLocs) {
-                var trajectory = CalculateVelocityForFinalPosition(source, loc, extraPeakHeight);
-                var didHit = TrajectorySphereCast(out RaycastHit hit,
-                    source, trajectory.vInitial, trajectory.tFinal,
-                    radius, trajectoryResolution, layerMask, qTI);
-                if(didHit && (hit.point - loc).sqrMagnitude <= mDevSq)
-                    retv.Add(trajectory.vInitial);
-                if(retv.Count >= desiredCount)
-                    break;
-            }
-
-            return retv;
+            return NodeUtil.CollectNearestNodeLaunchVelocities(graph, desiredCount, minRange, maxRange, source, extraPeakHeight, radius, maxDeviation, trajectoryResolution, layerMask, qTI, hullMask);
         }
 
         /// <summary>
