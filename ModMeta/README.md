@@ -46,6 +46,11 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**6.3.0**
+	- FakeInventory.ignoreFakes is now exposed to public API, and is now an int instead of a bool.
+		- Increment FakeInventory.ignoreFakes whenever you enter a method where you don't want fake items to be considered as part of item count (e.g. while removing or upgrading items). Decrement it before leaving the method.
+	- Added more sources of IgnoreFakes. FakeInventory should now have better interaction with Egocentrism, Benthic Bloom, Bulwark's Ambry (if player has fake artifact keys *somehow*), and ItemStealController.
+
 **6.2.0**
 
 - Migrated some math/util methods from other mods.
@@ -79,15 +84,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - Now defers initial language reload from AutoConfig until after game content has loaded. Fixes a minor conflict with ShowDeathCause.
 - Updated R2API dependency to 4.2.1.
 - Switched to NuGet as lib source.
-
-**6.1.0**
-
-- Migrated some util methods from other mods into MiscUtil (`GatherEnemies`, `GetRootWithLocators`).
-- CatalogBoilerplate implementations (Item, Equipment, Artifact):
-	- Now automatically retrieves and stores rulebook entries in the `ruleDef` field.
-	- Now applies main tokens (name, pickup, desc, lore) as permanent language.
-	- Now displays a lock icon while disabled.
-	- Disabled entries will no longer present as usable in the rulebook.
-- T2Module: Added support for permanently-installed language via `permanentLanguageOverlays`, `permanentGenericLanguageTokens`, `permanentSpecificLanguageTokens`, `permanentLanguageInstalled`, `virtual void RefreshPermanentLanguage()`.
-- Removed some internal/logging references to old "AutoItemConfig" name in favor of "AutoConfig".
-- BindDict AutoConfig option now displays an error if used on an empty dictionary.

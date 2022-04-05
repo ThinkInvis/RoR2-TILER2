@@ -1,5 +1,10 @@
 ﻿# TILER2 Changelog
 
+**6.3.0**
+	- FakeInventory.ignoreFakes is now exposed to public API, and is now an int instead of a bool.
+		- Increment FakeInventory.ignoreFakes whenever you enter a method where you don't want fake items to be considered as part of item count (e.g. while removing or upgrading items). Decrement it before leaving the method.
+	- Added more sources of IgnoreFakes. FakeInventory should now have better interaction with Egocentrism, Benthic Bloom, Bulwark's Ambry (if player has fake artifact keys *somehow*), and ItemStealController.
+
 **6.2.0**
 
 - Migrated some math/util methods from other mods.
