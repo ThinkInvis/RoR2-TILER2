@@ -43,7 +43,7 @@ namespace TILER2 {
             T2Module.SetupAll_PluginAwake(allModules);
 
             NetUtil.Setup();
-            MiscUtil.Setup();
+            NodeUtil.Setup();
             DebugUtil.Setup();
 
             CommandHelper.AddToConsoleWhenReady();
