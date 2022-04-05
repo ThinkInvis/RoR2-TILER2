@@ -10,7 +10,7 @@ using RoR2.Navigation;
 
 namespace TILER2 {
     /// <summary>
-    /// Contains miscellaneous utilities for working with a myriad of RoR2/R2API features, as well as some other math/reflection standalones.
+    /// Contains utilities for working with RoR2 NodeGraphs. Automatically attaches node occupation info to objects so they can be properly moved or removed later.
     /// </summary>
     public static class NodeUtil {
         internal static void Setup() {
