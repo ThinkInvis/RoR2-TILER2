@@ -53,8 +53,12 @@ namespace TILER2 {
             artifactDef.smallIconDeselectedSprite = iconResourceDisabled;
             artifactDef.smallIconSelectedSprite = iconResource;
 
+            SetupModifyArtifactDef();
+
             ContentAddition.AddArtifactDef(artifactDef);
         }
+
+        public virtual void SetupModifyArtifactDef() {}
 
         public override void Install() {
             base.Install();

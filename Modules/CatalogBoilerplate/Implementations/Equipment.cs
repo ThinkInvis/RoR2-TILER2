@@ -70,9 +70,14 @@ namespace TILER2 {
             equipmentDef.canDrop = true;
             if(isLunar) 
 				equipmentDef.colorIndex = ColorCatalog.ColorIndex.LunarItem;
+
+            SetupModifyEquipmentDef();
+
             customEquipment = new CustomEquipment(equipmentDef, displayRules);
             ItemAPI.Add(customEquipment);
         }
+
+        public virtual void SetupModifyEquipmentDef() { }
 
         public override void Install() {
             base.Install();

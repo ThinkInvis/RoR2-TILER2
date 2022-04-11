@@ -83,10 +83,15 @@ namespace TILER2 {
             itemDef.loreToken = this.loreToken;
             itemDef.tags = iarr;
 
+            SetupModifyItemDef();
+
             itemTags = Array.AsReadOnly(iarr);
             customItem = new CustomItem(itemDef, displayRules);
+
             ItemAPI.Add(customItem);
         }
+
+        public virtual void SetupModifyItemDef() { }
 
         public override void Install() {
             base.Install();
