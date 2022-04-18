@@ -280,6 +280,38 @@ namespace TILER2 {
                 propSetter.Invoke(propObj, subDict.HasValue ? new[]{subDict.Value.key, cfe.BoxedValue} : new[]{cfe.BoxedValue});
                 newBinding.cachedValue = cfe.BoxedValue;
             }
+
+            if(Compat_RiskOfOptions.enabled) {
+                var errorStr2 = $"AutoConfigContainer.Bind on property {prop.Name} in category {categoryName} could not apply Risk of Options compat: ";
+                var slider = prop.GetCustomAttribute<AutoConfigRoOSliderAttribute>(true);
+                var checkbox = prop.GetCustomAttribute<AutoConfigRoOCheckboxAttribute>(true);
+                
+                if(slider != null) {
+                    if(propType != typeof(float)) {
+                        TILER2Plugin._logger.LogError($"{errorStr2}RoOSlider may only be applied to float properties (got {propType.Name}).");
+                    } else {
+                        Compat_RiskOfOptions.AddOption_Slider((ConfigEntry<float>)cfe,
+                            slider.min, slider.max, slider.format,
+                            slider.catOverride ?? categoryName, slider.nameOverride ?? cfgName, cfgDesc,
+                            deferForever, () => {
+                            if(deferRun && Run.instance) return true;
+                            return false;
+                        });
+                    }
+                }
+                if(checkbox != null) {
+                    if(propType != typeof(bool)) {
+                        TILER2Plugin._logger.LogError($"{errorStr2}RoOCheckbox may only be applied to bool properties (got {propType.Name}).");
+                    } else {
+                        Compat_RiskOfOptions.AddOption_CheckBox((ConfigEntry<bool>)cfe,
+                            slider.catOverride ?? categoryName, slider.nameOverride ?? cfgName, cfgDesc,
+                            deferForever, () => {
+                                if(deferRun && Run.instance) return true;
+                                return false;
+                            });
+                    }
+                }
+            }
         }
 
         /// <summary>Calls Bind on all properties in this AutoConfigContainer which have an AutoConfigAttribute.</summary>

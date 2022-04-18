@@ -147,4 +147,34 @@ namespace TILER2 {
             this.flags = flags;
         }
     }
+
+    ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a slider. Only supports float properties.</summary>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public class AutoConfigRoOSliderAttribute : Attribute {
+        public string format;
+        public float min;
+        public float max;
+        public string nameOverride;
+        public string catOverride;
+
+        public AutoConfigRoOSliderAttribute(string format, float min, float max, string nameOverride = null, string catOverride = null) {
+            this.format = format;
+            this.min = min;
+            this.max = max;
+            this.nameOverride = null;
+            this.catOverride = null;
+        }
+    }
+
+    ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a checkbox. Only supports bool properties.</summary>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public class AutoConfigRoOCheckboxAttribute : Attribute {
+        public string nameOverride;
+        public string catOverride;
+
+        public AutoConfigRoOCheckboxAttribute(string nameOverride = null, string catOverride = null) {
+            this.nameOverride = null;
+            this.catOverride = null;
+        }
+    }
 }
