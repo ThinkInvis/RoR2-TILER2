@@ -298,8 +298,8 @@ namespace TILER2 {
                                 category = slider.catOverride ?? categoryName,
                                 name = slider.nameOverride ?? cfgName,
                                 description = cfgDesc,
-                                modGuid = containerInfo.ownerPlugin.GUID,
-                                modName = containerInfo.ownerPlugin.Name
+                                modGuid = containerInfo.modGuid,
+                                modName = containerInfo.modName
                             };
                             Compat_RiskOfOptions.AddOption_Slider((ConfigEntry<float>)cfe, identStrings,
                                 slider.min, slider.max, slider.format,
@@ -317,8 +317,8 @@ namespace TILER2 {
                                 category = checkbox.catOverride ?? categoryName,
                                 name = checkbox.nameOverride ?? cfgName,
                                 description = cfgDesc,
-                                modGuid = containerInfo.ownerPlugin.GUID,
-                                modName = containerInfo.ownerPlugin.Name
+                                modGuid = containerInfo.modGuid,
+                                modName = containerInfo.modName
                             };
                             Compat_RiskOfOptions.AddOption_CheckBox((ConfigEntry<bool>)cfe, identStrings,
                                 deferForever, () => {

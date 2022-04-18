@@ -3,6 +3,8 @@ using System;
 using RoR2;
 using RoR2.Networking;
 using UnityEngine.SceneManagement;
+using BepInEx;
+using System.Reflection;
 
 namespace TILER2 {
     internal class AutoConfigModule : T2Module<AutoConfigModule> {
@@ -181,10 +183,17 @@ namespace TILER2 {
     ///<summary>Used to point the Risk Of Options mod to the owner plugin of an AutoConfigContainer. If not present, options will be registered under TILER2's options tab.</summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class AutoConfigContainerRoOInfoAttribute : Attribute {
-        public BepInEx.BepInPlugin ownerPlugin;
+        public string modGuid;
+        public string modName;
 
-        public AutoConfigContainerRoOInfoAttribute(BepInEx.BepInPlugin ownerPlugin) {
-            this.ownerPlugin = ownerPlugin;
+        public AutoConfigContainerRoOInfoAttribute(System.Type ownerPluginType) {
+            var plugin = ownerPluginType.GetCustomAttribute<BepInPlugin>();
+            if(plugin == null) {
+                TILER2Plugin._logger.LogError($"AutoConfigContainerRoOInfoAttribute received an invalid type {ownerPluginType.Name}");
+                return;
+            }
+            modGuid = plugin.GUID;
+            modName = plugin.Name;
         }
     }
 }
