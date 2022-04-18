@@ -287,8 +287,29 @@ namespace TILER2 {
                 var slider = prop.GetCustomAttribute<AutoConfigRoOSliderAttribute>(true);
                 var checkbox = prop.GetCustomAttribute<AutoConfigRoOCheckboxAttribute>(true);
 
-                if(containerInfo == null) {
-                    TILER2Plugin._logger.LogWarning($"{errorStr2}container must have an AutoConfigRoOInfoAttribute.");
+                string ownerModGuid = null;
+                string ownerModName = null;
+                bool foundModInfo = false;
+                if(containerInfo != null) {
+                    ownerModGuid = containerInfo.modGuid;
+                    ownerModName = containerInfo.modName;
+                    foundModInfo = true;
+                } else {
+                    var ownerAssembly = Assembly.GetAssembly(this.GetType());
+                    var ownerAssemblyTypes = ownerAssembly.GetExportedTypes();
+                    foreach(var t in ownerAssemblyTypes) {
+                        var attr = t.GetCustomAttribute<BepInEx.BepInPlugin>();
+                        if(attr != null) {
+                            ownerModGuid = attr.GUID;
+                            ownerModName = attr.Name;
+                            foundModInfo = true;
+                            break;
+                        }
+                    }
+                }
+
+                if(!foundModInfo) {
+                    TILER2Plugin._logger.LogError($"{errorStr2}could not find mod info. Declaring type must be in an assembly with a BepInPlugin, or have an AutoConfigContainerRoOInfoAttribute on it.");
                 } else {
                     if(slider != null) {
                         if(propType != typeof(float)) {
@@ -298,8 +319,8 @@ namespace TILER2 {
                                 category = slider.catOverride ?? categoryName,
                                 name = slider.nameOverride ?? cfgName,
                                 description = cfgDesc,
-                                modGuid = containerInfo.modGuid,
-                                modName = containerInfo.modName
+                                modGuid = ownerModGuid,
+                                modName = ownerModName
                             };
                             Compat_RiskOfOptions.AddOption_Slider((ConfigEntry<float>)cfe, identStrings,
                                 slider.min, slider.max, slider.format,
@@ -317,8 +338,8 @@ namespace TILER2 {
                                 category = checkbox.catOverride ?? categoryName,
                                 name = checkbox.nameOverride ?? cfgName,
                                 description = cfgDesc,
-                                modGuid = containerInfo.modGuid,
-                                modName = containerInfo.modName
+                                modGuid = ownerModGuid,
+                                modName = ownerModName
                             };
                             Compat_RiskOfOptions.AddOption_CheckBox((ConfigEntry<bool>)cfe, identStrings,
                                 deferForever, () => {
