@@ -283,32 +283,49 @@ namespace TILER2 {
 
             if(Compat_RiskOfOptions.enabled) {
                 var errorStr2 = $"AutoConfigContainer.Bind on property {prop.Name} in category {categoryName} could not apply Risk of Options compat: ";
+                var containerInfo = this.GetType().GetCustomAttribute<AutoConfigContainerRoOInfoAttribute>();
                 var slider = prop.GetCustomAttribute<AutoConfigRoOSliderAttribute>(true);
                 var checkbox = prop.GetCustomAttribute<AutoConfigRoOCheckboxAttribute>(true);
-                
-                if(slider != null) {
-                    if(propType != typeof(float)) {
-                        TILER2Plugin._logger.LogError($"{errorStr2}RoOSlider may only be applied to float properties (got {propType.Name}).");
-                    } else {
-                        Compat_RiskOfOptions.AddOption_Slider((ConfigEntry<float>)cfe,
-                            slider.min, slider.max, slider.format,
-                            slider.catOverride ?? categoryName, slider.nameOverride ?? cfgName, cfgDesc,
-                            deferForever, () => {
-                            if(deferRun && Run.instance) return true;
-                            return false;
-                        });
+
+                if(containerInfo == null) {
+                    TILER2Plugin._logger.LogWarning($"{errorStr2}container must have an AutoConfigRoOInfoAttribute.");
+                } else {
+                    if(slider != null) {
+                        if(propType != typeof(float)) {
+                            TILER2Plugin._logger.LogError($"{errorStr2}RoOSlider may only be applied to float properties (got {propType.Name}).");
+                        } else {
+                            var identStrings = new Compat_RiskOfOptions.OptionIdentityStrings {
+                                category = slider.catOverride ?? categoryName,
+                                name = slider.nameOverride ?? cfgName,
+                                description = cfgDesc,
+                                modGuid = containerInfo.ownerPlugin.GUID,
+                                modName = containerInfo.ownerPlugin.Name
+                            };
+                            Compat_RiskOfOptions.AddOption_Slider((ConfigEntry<float>)cfe, identStrings,
+                                slider.min, slider.max, slider.format,
+                                deferForever, () => {
+                                    if(deferRun && Run.instance) return true;
+                                    return false;
+                                });
+                        }
                     }
-                }
-                if(checkbox != null) {
-                    if(propType != typeof(bool)) {
-                        TILER2Plugin._logger.LogError($"{errorStr2}RoOCheckbox may only be applied to bool properties (got {propType.Name}).");
-                    } else {
-                        Compat_RiskOfOptions.AddOption_CheckBox((ConfigEntry<bool>)cfe,
-                            slider.catOverride ?? categoryName, slider.nameOverride ?? cfgName, cfgDesc,
-                            deferForever, () => {
-                                if(deferRun && Run.instance) return true;
-                                return false;
-                            });
+                    if(checkbox != null) {
+                        if(propType != typeof(bool)) {
+                            TILER2Plugin._logger.LogError($"{errorStr2}RoOCheckbox may only be applied to bool properties (got {propType.Name}).");
+                        } else {
+                            var identStrings = new Compat_RiskOfOptions.OptionIdentityStrings {
+                                category = checkbox.catOverride ?? categoryName,
+                                name = checkbox.nameOverride ?? cfgName,
+                                description = cfgDesc,
+                                modGuid = containerInfo.ownerPlugin.GUID,
+                                modName = containerInfo.ownerPlugin.Name
+                            };
+                            Compat_RiskOfOptions.AddOption_CheckBox((ConfigEntry<bool>)cfe, identStrings,
+                                deferForever, () => {
+                                    if(deferRun && Run.instance) return true;
+                                    return false;
+                                });
+                        }
                     }
                 }
             }

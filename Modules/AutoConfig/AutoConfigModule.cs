@@ -177,4 +177,14 @@ namespace TILER2 {
             this.catOverride = null;
         }
     }
+
+    ///<summary>Used to point the Risk Of Options mod to the owner plugin of an AutoConfigContainer. If not present, options will be registered under TILER2's options tab.</summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+    public class AutoConfigContainerRoOInfoAttribute : Attribute {
+        public BepInEx.BepInPlugin ownerPlugin;
+
+        public AutoConfigContainerRoOInfoAttribute(BepInEx.BepInPlugin ownerPlugin) {
+            this.ownerPlugin = ownerPlugin;
+        }
+    }
 }

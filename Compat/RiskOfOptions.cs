@@ -4,35 +4,51 @@ using System.Runtime.CompilerServices;
 using RiskOfOptions;
 using RiskOfOptions.Options;
 using RiskOfOptions.OptionConfigs;
+using UnityEngine;
 
 namespace TILER2 {
     ///<summary>
     ///Provides safe hooks for the RiskOfOptions mod. Check Compat_RiskOfOptions.enabled before using any other contained members.
     ///</summary>
     public static class Compat_RiskOfOptions {
-        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public static void AddOption_CheckBox(ConfigEntry<bool> configEntry, string category, string name, string description, bool restartRequired, Func<bool> isDisabledDelegate) {
-            ModSettingsManager.AddOption(new CheckBoxOption(configEntry, new CheckBoxConfig {
-                category = category,
-                name = name,
-                restartRequired = restartRequired,
-                description = description,
-                checkIfDisabled = () => { return isDisabledDelegate(); }
-            }));
+        public struct OptionIdentityStrings {
+            public string category;
+            public string name;
+            public string description;
+            public string modName;
+            public string modGuid;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public static void AddOption_Slider(ConfigEntry<float> configEntry, float min, float max, string formatString, string category, string name, string description, bool restartRequired, Func<bool> isDisabledDelegate) {
+        public static void SetupMod(string modGuid, string modName, string description, Sprite icon = null) {
+            ModSettingsManager.SetModDescription(description, modGuid, modName);
+            if(icon != null)
+                ModSettingsManager.SetModIcon(icon, modGuid, modName);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void AddOption_CheckBox(ConfigEntry<bool> configEntry, OptionIdentityStrings ident, bool restartRequired, Func<bool> isDisabledDelegate) {
+            ModSettingsManager.AddOption(new CheckBoxOption(configEntry, new CheckBoxConfig {
+                category = ident.category,
+                name = ident.name,
+                restartRequired = restartRequired,
+                description = ident.description,
+                checkIfDisabled = () => { return isDisabledDelegate(); }
+            }), ident.modGuid, ident.modName);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void AddOption_Slider(ConfigEntry<float> configEntry, OptionIdentityStrings ident, float min, float max, string formatString, bool restartRequired, Func<bool> isDisabledDelegate) {
             ModSettingsManager.AddOption(new SliderOption(configEntry, new SliderConfig {
-                category = category,
-                name = name,
+                category = ident.category,
+                name = ident.name,
                 max = max,
                 min = min,
                 formatString = formatString,
                 restartRequired = restartRequired,
-                description = description,
+                description = ident.description,
                 checkIfDisabled = () => { return isDisabledDelegate(); }
-            }));
+            }), ident.modGuid, ident.modName);
         }
 
         private static bool? _enabled;
