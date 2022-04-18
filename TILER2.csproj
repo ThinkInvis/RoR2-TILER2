@@ -25,6 +25,9 @@
     <Reference Include="MMHOOK_RoR2">
       <HintPath>lib\MMHOOK_RoR2.dll</HintPath>
     </Reference>
+    <Reference Include="RiskOfOptions">
+      <HintPath>lib\RiskOfOptions.dll</HintPath>
+    </Reference>
     <Reference Include="ShareSuite">
       <HintPath>lib\ShareSuite.dll</HintPath>
     </Reference>
