@@ -1,5 +1,16 @@
 ﻿# TILER2 Changelog
 
+**7.0.0**
+	- BREAKING CHANGES:
+		- Removed obsolete ItemStats and BetterUI support code.
+		- `Equipment : CatalogBoilerplate` now adds restart-required config entries for `isEnigmaCompatible` and `canBeRandomlyTriggered`. Added setters to these properties, which were previously getter-only; may require a recompile.
+	- Added RiskOfOptions integration to AutoConfig as a new category of attributes. Apply with e.g. `[AutoConfigRoOCheckbox()]`.
+		- Implemented by default on `T2Module.enabled`, `Item.itemIsAIBlacklisted`, `Equipment.isEnigmaCompatible`, `Equipment.canBeRandomlyTriggered`, and `Equipment.cooldown`.
+	- CatalogBoilerplate implementations now expose a substage for modifying the ItemDef/EquipmentDef/ArtifactDef before registration with R2API (`public virtual void SetupModify[x]Def()`).
+	- CatalogBoilerplate now exposes a substage for firing an event when the catalog is ready (`public virtual void SetupCatalogReady()`).
+	- Lots of behind-the-scenes VS warning/message cleanup.
+	- Updated for latest RoR2 version.
+
 **6.3.0**
 	- FakeInventory.ignoreFakes is now exposed to public API, and is now an int instead of a bool.
 		- Increment FakeInventory.ignoreFakes whenever you enter a method where you don't want fake items to be considered as part of item count (e.g. while removing or upgrading items). Decrement it before leaving the method.
