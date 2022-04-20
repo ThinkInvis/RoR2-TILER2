@@ -163,8 +163,8 @@ namespace TILER2 {
             this.format = format;
             this.min = min;
             this.max = max;
-            this.nameOverride = null;
-            this.catOverride = null;
+            this.nameOverride = nameOverride;
+            this.catOverride = catOverride;
         }
     }
 
@@ -175,8 +175,8 @@ namespace TILER2 {
         public string catOverride;
 
         public AutoConfigRoOCheckboxAttribute(string nameOverride = null, string catOverride = null) {
-            this.nameOverride = null;
-            this.catOverride = null;
+            this.nameOverride = nameOverride;
+            this.catOverride = catOverride;
         }
     }
 
