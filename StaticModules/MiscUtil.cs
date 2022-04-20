@@ -500,7 +500,7 @@ namespace TILER2 {
         /// <param name="self">The DirectorCore to perform NodeGraph operations with.</param>
         /// <param name="oldObj">The to-dispose object to retrieve NodeGraph info from.</param>
         /// <param name="newObj">The new object to add NodeGraph info to.</param>
-        public static void UpdateOccupiedNodesReference(this DirectorCore self, GameObject oldObj, GameObject newObj) {
+        public static void UpdateOccupiedNodesReference(this DirectorCore _, GameObject oldObj, GameObject newObj) {
             var oldcpt = oldObj.GetComponent<NodeOccupationInfo>();
             var newcpt = newObj.GetComponent<NodeOccupationInfo>();
             if(!oldcpt || newcpt) return;
