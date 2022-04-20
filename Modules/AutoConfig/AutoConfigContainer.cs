@@ -284,24 +284,24 @@ namespace TILER2 {
             BindRoO(cfe, prop, propType, categoryName, cfgName, cfgDesc, deferForever, deferRun || deferForever);
         }
 
-        public void BindRoO(AutoConfigBinding bind, params Attribute[] EntryRoOAttributes) {
-            BindRoO(bind.configEntry, bind.boundProperty, bind.propType, bind.configEntry.Definition.Section, bind.configEntry.Definition.Key, bind.configEntry.Description.Description, bind.deferType >= AutoConfigBinding.DeferType.NeverAutoUpdate, bind.deferType >= AutoConfigBinding.DeferType.WaitForRunEnd);
+        public void BindRoO(AutoConfigBinding bind, params Attribute[] entryRoOAttributes) {
+            BindRoO(bind.configEntry, bind.boundProperty, bind.propType, bind.configEntry.Definition.Section, bind.configEntry.Definition.Key, bind.configEntry.Description.Description, bind.deferType >= AutoConfigBinding.DeferType.NeverAutoUpdate, bind.deferType >= AutoConfigBinding.DeferType.WaitForRunEnd, entryRoOAttributes);
         }
 
-        public void BindRoO(ConfigEntryBase cfe, PropertyInfo prop, Type propType, string categoryName, string cfgName, string cfgDesc, bool deferForever, bool deferRun, params Attribute[] EntryRoOAttributes) {
+        public void BindRoO(ConfigEntryBase cfe, PropertyInfo prop, Type propType, string categoryName, string cfgName, string cfgDesc, bool deferForever, bool deferRun, params Attribute[] entryRoOAttributes) {
             if(!Compat_RiskOfOptions.enabled) return;
 
             var errorStr2 = $"AutoConfigContainer.Bind on property {prop.Name} in category {categoryName} could not apply Risk of Options compat: ";
 
             var containerModInfo = this.GetType().GetCustomAttribute<AutoConfigRoOInfoOverridesAttribute>();
-            var propertyModInfo = (AutoConfigRoOInfoOverridesAttribute)EntryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOInfoOverridesAttribute);
-            var slider = (AutoConfigRoOSliderAttribute)EntryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOSliderAttribute);
-            var stepslider = (AutoConfigRoOStepSliderAttribute)EntryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOStepSliderAttribute);
-            var intslider = (AutoConfigRoOIntSliderAttribute)EntryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOIntSliderAttribute);
-            var checkbox = (AutoConfigRoOCheckboxAttribute)EntryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOCheckboxAttribute);
-            var choice = (AutoConfigRoOChoiceAttribute)EntryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOChoiceAttribute);
-            var stringinp = (AutoConfigRoOStringAttribute)EntryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOStringAttribute);
-            var keybind = (AutoConfigRoOKeybindAttribute)EntryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOKeybindAttribute);
+            var propertyModInfo = (AutoConfigRoOInfoOverridesAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOInfoOverridesAttribute);
+            var slider = (AutoConfigRoOSliderAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOSliderAttribute);
+            var stepslider = (AutoConfigRoOStepSliderAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOStepSliderAttribute);
+            var intslider = (AutoConfigRoOIntSliderAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOIntSliderAttribute);
+            var checkbox = (AutoConfigRoOCheckboxAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOCheckboxAttribute);
+            var choice = (AutoConfigRoOChoiceAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOChoiceAttribute);
+            var stringinp = (AutoConfigRoOStringAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOStringAttribute);
+            var keybind = (AutoConfigRoOKeybindAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOKeybindAttribute);
 
             if(slider == null && stepslider == null && intslider == null && checkbox == null && choice == null && stringinp == null && keybind == null)
                 return;
