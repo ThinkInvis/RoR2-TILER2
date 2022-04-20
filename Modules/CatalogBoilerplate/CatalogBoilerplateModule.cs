@@ -180,8 +180,8 @@ namespace TILER2 {
 
             foreach(CatalogBoilerplate bpl in allInstances) {
                 PickupIndex pind;
-                if(bpl is Equipment) pind = PickupCatalog.FindPickupIndex(((Equipment)bpl).catalogIndex);
-                else if(bpl is Item) pind = PickupCatalog.FindPickupIndex(((Item)bpl).catalogIndex);
+                if(bpl is Equipment equipment) pind = PickupCatalog.FindPickupIndex(equipment.catalogIndex);
+                else if(bpl is Item item) pind = PickupCatalog.FindPickupIndex(item.catalogIndex);
                 else continue;
                 var pickup = PickupCatalog.GetPickupDef(pind);
 
