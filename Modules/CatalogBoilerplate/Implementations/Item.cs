@@ -31,6 +31,7 @@ namespace TILER2 {
 
         public abstract ItemTier itemTier {get;}
 
+        [AutoConfigRoOCheckbox()]
         [AutoConfig("If true, the item will not be given to enemies by Evolution nor in the arena map, and it will not be found by Scavengers.")]
         public virtual bool itemIsAIBlacklisted {get;protected set;} = false;
 
