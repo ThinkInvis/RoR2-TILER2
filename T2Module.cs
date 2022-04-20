@@ -45,6 +45,8 @@ namespace TILER2 {
 
         ///<summary>If true, Module.enabled will be registered as a config entry.</summary>
         public virtual bool managedEnable => true;
+        ///<summary>If true and managedEnabled is true, Module.enabled will be registered as a Risk Of Options option.</summary>
+        public virtual bool managedEnableRoO => true;
         ///<summary>If managedEnable is true, this will be appended to the module's enable/disable config description.</summary>
         public virtual string enabledConfigDescription => null;
         ///<summary>If managedEnable is true, this will be used for the resultant config entry.</summary>
@@ -75,10 +77,16 @@ namespace TILER2 {
         /// </summary>
         public virtual void SetupConfig() {
             var moduleConfigName = $"{configCategoryPrefix}{name}";
-            if(managedEnable)
+            if(managedEnable) {
                 Bind(typeof(T2Module).GetProperty(nameof(enabled)), modInfo.mainConfigFile, modInfo.displayName, moduleConfigName, new AutoConfigAttribute(
                     $"{((enabledConfigDescription != null) ? (enabledConfigDescription + "\n") : "")}Set to False to disable this module, and as much of its content as can be disabled after initial load. Doing so may cause changes in other modules as well.",
                     enabledConfigFlags), enabledConfigUpdateActionTypes != AutoConfigUpdateActionTypes.None ? new AutoConfigUpdateActionsAttribute(enabledConfigUpdateActionTypes) : null);
+                if(managedEnableRoO && Compat_RiskOfOptions.enabled) {
+                    var binding = bindings.First(x => x.boundProperty == typeof(T2Module).GetProperty(nameof(enabled)));
+                    BindRoO(binding, new AutoConfigRoOCheckboxAttribute());
+                }
+
+            }
             BindAll(modInfo.mainConfigFile, modInfo.displayName, moduleConfigName);
             ConfigEntryChanged += (sender, args) => {
                 if(args.target.boundProperty.Name == nameof(enabled)) {
