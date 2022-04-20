@@ -302,8 +302,13 @@ namespace TILER2 {
                     foundModInfo = true;
                 } else {
                     var ownerAssembly = Assembly.GetAssembly(this.GetType());
-                    var ownerAssemblyTypes = ownerAssembly.GetExportedTypes();
-                    foreach(var t in ownerAssemblyTypes) {
+                    Type[] types = new Type[] { };
+                    try {
+                        var ownerAssemblyTypes = ownerAssembly.GetTypes();
+                    } catch(ReflectionTypeLoadException e) { //handles missing soft dependencies
+                        types = e.Types;
+                    }
+                    foreach(var t in types) {
                         var attr = t.GetCustomAttribute<BepInEx.BepInPlugin>();
                         if(attr != null) {
                             ownerModGuid = attr.GUID;
