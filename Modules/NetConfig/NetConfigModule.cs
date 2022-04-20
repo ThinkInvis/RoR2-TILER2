@@ -39,7 +39,7 @@ namespace TILER2 {
         private const float CONN_CHECK_WAIT_TIME = 15f;
         internal const int MAX_MESSAGE_SIZE_BYTES = 1000;
         private static readonly List<NetConfigClientInfo> clients = new List<NetConfigClientInfo>();
-        List<NetConfigClientInfo> _updateKickList = new List<NetConfigClientInfo>();
+        readonly List<NetConfigClientInfo> _updateKickList = new List<NetConfigClientInfo>();
 
         internal enum ConfigSyncStatus : byte {
             Invalid, Connect, BeginSync, SyncPass, SyncPassWithChange, SyncWarn, SyncFail

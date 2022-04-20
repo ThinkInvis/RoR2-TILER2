@@ -73,7 +73,7 @@ namespace TILER2 {
         }
 
         public bool IsActiveAndEnabled() {
-            return enabled && (RunArtifactManager.instance != null ? RunArtifactManager.instance.IsArtifactEnabled(catalogIndex) : false);
+            return enabled && RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(catalogIndex);
         }
 
         public override ConsoleStrings GetConsoleStrings() {

@@ -15,8 +15,7 @@ namespace TILER2 {
         }
         #region Read/Write Helpers
         public static byte[] PackStringArray(string[] strings) {
-            var header = new List<int>();
-            header.Add(strings.Length);
+            var header = new List<int> {strings.Length};
             foreach(var str in strings) {
                 header.Add(str.Length);
             }

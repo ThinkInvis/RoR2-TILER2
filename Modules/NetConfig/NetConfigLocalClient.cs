@@ -13,7 +13,7 @@ namespace TILER2 {
         private static int netId;
         private static int syncReceiveBytesMax = 0;
         private static int syncReceiveBytes = 0;
-        private static Dictionary<int, byte[]> syncReceiveData = new Dictionary<int, byte[]>();
+        private static readonly Dictionary<int, byte[]> syncReceiveData = new Dictionary<int, byte[]>();
 
         private static void ClientCleanupConfigSync() {
             syncReceiveData.Clear();

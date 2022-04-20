@@ -73,6 +73,7 @@ namespace TILER2 {
 			itemStacks = new ReadOnlyCollection<int>(_itemStacks);
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
 		private void OnDestroy() {
 			ItemCatalog.ReturnItemStackArray(_itemStacks);
 		}
@@ -185,6 +186,7 @@ namespace TILER2 {
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
 		private void Awake() {
 			if(NetworkServer.active) {
 				var netId = GetComponent<NetworkIdentity>().netId;
@@ -193,6 +195,7 @@ namespace TILER2 {
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
 		private void Update() {
 			if(itemsDirty && NetworkServer.active) {
 				var netId = GetComponent<NetworkIdentity>().netId;

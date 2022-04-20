@@ -64,7 +64,7 @@ namespace TILER2 {
                 TILER2Plugin._logger.LogError($"FindSkillFamilyFromBody: Body with name {bodyName} has no SkillLocator");
                 return null;
             }
-            foreach(var skillInstance in BodyCatalog.GetBodyPrefabSkillSlots(targetBodyIndex)) {
+            foreach(var skillInstance in allSlots) {
                 var targetSlot = skLoc.FindSkillSlot(skillInstance);
                 if(targetSlot == slot) return skillInstance.skillFamily;
             }

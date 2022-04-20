@@ -180,12 +180,12 @@ namespace TILER2 {
             var mDevSq = maxDeviation * maxDeviation;
 
             foreach(var loc in nodeLocs) {
-                var trajectory = CalculateVelocityForFinalPosition(source, loc, extraPeakHeight);
+                var (vInitial, tFinal) = CalculateVelocityForFinalPosition(source, loc, extraPeakHeight);
                 var didHit = TrajectorySphereCast(out RaycastHit hit,
-                    source, trajectory.vInitial, trajectory.tFinal,
+                    source, vInitial, tFinal,
                     radius, trajectoryResolution, layerMask, qTI);
                 if(didHit && (hit.point - loc).sqrMagnitude <= mDevSq)
-                    retv.Add(trajectory.vInitial);
+                    retv.Add(vInitial);
                 if(retv.Count >= desiredCount)
                     break;
             }

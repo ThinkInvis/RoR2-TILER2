@@ -26,10 +26,10 @@ namespace TILER2 {
 		private TeamComponent teamComponent;
 		private float rangeIndicatorScaleVelocity;
 
-		private List<GameObject> displays = new List<GameObject>(); //client & server
-		private List<Vector3> displayVelocities = new List<Vector3>(); //client
-		private List<ItemIndex> displayItems = new List<ItemIndex>(); //server
-		private List<Inventory> trackedInventories = new List<Inventory>(); //server
+		private readonly List<GameObject> displays = new List<GameObject>(); //client & server
+		private readonly List<Vector3> displayVelocities = new List<Vector3>(); //client
+		private readonly List<ItemIndex> displayItems = new List<ItemIndex>(); //server
+		private readonly List<Inventory> trackedInventories = new List<Inventory>(); //server
 
 		private float _radius = 10f;
 		public float radius {
@@ -82,11 +82,13 @@ namespace TILER2 {
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
 		private void Awake() {
 			teamFilter = base.GetComponent<TeamFilter>();
 			teamComponent = base.GetComponent<TeamComponent>();
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
 		private void OnDestroy() {
 			if(!NetworkServer.active) return;
 			foreach(var display in displays) {
@@ -94,6 +96,7 @@ namespace TILER2 {
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
 		private void OnEnable() {
 			if(rangeIndicator)
 				rangeIndicator.gameObject.SetActive(true);
@@ -103,6 +106,7 @@ namespace TILER2 {
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
 		private void OnDisable() {
 			if(this.rangeIndicator)
 				this.rangeIndicator.gameObject.SetActive(false);
@@ -117,6 +121,7 @@ namespace TILER2 {
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
 		private void Update() {
 			if(!NetworkClient.active) return;
 			if(this.rangeIndicator) {
@@ -138,6 +143,7 @@ namespace TILER2 {
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
 		private void FixedUpdate() {
 			stopwatch += Time.fixedDeltaTime;
 			if(stopwatch > updateTickRate) {
