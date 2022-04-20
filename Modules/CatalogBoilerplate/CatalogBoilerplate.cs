@@ -72,6 +72,8 @@ namespace TILER2 {
             loreToken = $"{modInfo.longIdentifier}_{name.ToUpper()}_LORE";
         }
 
+        public virtual void SetupCatalogReady() { }
+
         public override void Install() {
             base.Install();
             if(PreGameController.instance)

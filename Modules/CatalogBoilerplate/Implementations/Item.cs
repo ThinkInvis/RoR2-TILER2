@@ -89,6 +89,8 @@ namespace TILER2 {
             customItem = new CustomItem(itemDef, displayRules);
 
             ItemAPI.Add(customItem);
+
+            ItemCatalog.availability.CallWhenAvailable(this.SetupCatalogReady);
         }
 
         public virtual void SetupModifyItemDef() { }

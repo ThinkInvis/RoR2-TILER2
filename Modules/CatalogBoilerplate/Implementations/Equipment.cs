@@ -75,6 +75,8 @@ namespace TILER2 {
 
             customEquipment = new CustomEquipment(equipmentDef, displayRules);
             ItemAPI.Add(customEquipment);
+
+            EquipmentCatalog.availability.CallWhenAvailable(this.SetupCatalogReady);
         }
 
         public virtual void SetupModifyEquipmentDef() { }

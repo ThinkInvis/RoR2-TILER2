@@ -56,6 +56,8 @@ namespace TILER2 {
             SetupModifyArtifactDef();
 
             ContentAddition.AddArtifactDef(artifactDef);
+
+            ArtifactCatalog.availability.CallWhenAvailable(this.SetupCatalogReady);
         }
 
         public virtual void SetupModifyArtifactDef() {}
