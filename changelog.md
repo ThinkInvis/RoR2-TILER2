@@ -1,5 +1,8 @@
 ﻿# TILER2 Changelog
 
+**7.0.1**
+	- Temporarily switched `Item : CatalogBoilerplate` to use ItemDef.deprecatedTier.
+
 **7.0.0**
 	- BREAKING CHANGES:
 		- Removed obsolete ItemStats and BetterUI support code.

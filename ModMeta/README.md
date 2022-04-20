@@ -46,6 +46,9 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.0.1**
+	- Temporarily switched `Item : CatalogBoilerplate` to use ItemDef.deprecatedTier.
+
 **7.0.0**
 	- BREAKING CHANGES:
 		- Removed obsolete ItemStats and BetterUI support code.
@@ -85,7 +88,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 
 - CatalogBoilerplate > Equipment now exposes canBeRandomlyTriggered on its EquipmentDef.
 - CatalogBoilerplateModule now updates Enigma and random-trigger equipment lists to remove disabled equipment.
-
-**6.1.2**
-
-- Temporarily disabled BetterUI.ItemStats support due to item load failures, caused by TILER2 attempting to use an older API (recent update caused breaking changes).
