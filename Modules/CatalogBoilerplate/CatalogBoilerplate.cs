@@ -50,7 +50,7 @@ namespace TILER2 {
             permanentGenericLanguageTokens[nameToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetNameString();
             permanentGenericLanguageTokens[pickupToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetPickupString();
             permanentGenericLanguageTokens[descToken] = (enabled ? "" : $"{LANG_PREFIX_DISABLED}\n") + GetDescString();
-            permanentGenericLanguageTokens[loreToken] = GetLoreString();
+            permanentGenericLanguageTokens[loreToken] = "" + GetLoreString();
 
             foreach(var lang in extraLanguages) {
                 if(!specificLanguageTokens.ContainsKey(lang)) permanentSpecificLanguageTokens.Add(lang, new Dictionary<string, string>());
@@ -58,7 +58,7 @@ namespace TILER2 {
                 specLang[nameToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetNameString(lang);
                 specLang[pickupToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetPickupString(lang);
                 specLang[descToken] = (enabled ? "" : $"{LANG_PREFIX_DISABLED}\n") + GetDescString(lang);
-                specLang[loreToken] = GetLoreString(lang);
+                specLang[loreToken] = "" + GetLoreString(lang);
             }
 
             base.RefreshPermanentLanguage();
