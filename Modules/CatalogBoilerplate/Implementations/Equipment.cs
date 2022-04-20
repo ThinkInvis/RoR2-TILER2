@@ -36,11 +36,11 @@ namespace TILER2 {
 
         [AutoConfigRoOCheckbox()]
         [AutoConfig("Whether the equipment can be granted by Artifact of Enigma.", AutoConfigFlags.DeferForever)]
-        public virtual bool isEnigmaCompatible => true;
+        public virtual bool isEnigmaCompatible { get; protected set; } = true;
 
         [AutoConfigRoOCheckbox()]
         [AutoConfig("Whether the equipment can be triggered by Bottled Chaos.", AutoConfigFlags.DeferForever)]
-        public virtual bool canBeRandomlyTriggered => true;
+        public virtual bool canBeRandomlyTriggered { get; protected set; } = true;
 
         public virtual bool isLunar => false;
 
