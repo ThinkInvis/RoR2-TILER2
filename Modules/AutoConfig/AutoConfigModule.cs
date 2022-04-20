@@ -254,20 +254,30 @@ namespace TILER2 {
         }
     }
 
-    ///<summary>Used to point the Risk Of Options mod to the owner plugin of an AutoConfigContainer. If not present, AutoConfig will attempt to read mod info from your plugin assembly's exported types.</summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    public class AutoConfigContainerRoOInfoAttribute : Attribute {
+    ///<summary>Used to point the Risk Of Options mod to the owner plugin of an AutoConfigContainer or property. If not present, AutoConfig will attempt to read mod info from your plugin assembly's exported types.</summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public class AutoConfigRoOInfoOverridesAttribute : Attribute {
         public string modGuid;
         public string modName;
+        public string categoryName;
+        public string entryName;
 
-        public AutoConfigContainerRoOInfoAttribute(System.Type ownerPluginType) {
+        public AutoConfigRoOInfoOverridesAttribute(string guid, string name, string cat = null, string ent = null) {
+            modGuid = guid;
+            modName = name;
+            categoryName = cat;
+            entryName = ent;
+        }
+        public AutoConfigRoOInfoOverridesAttribute(System.Type ownerPluginType, string cat = null, string ent = null) {
             var plugin = ownerPluginType.GetCustomAttribute<BepInPlugin>();
             if(plugin == null) {
-                TILER2Plugin._logger.LogError($"AutoConfigContainerRoOInfoAttribute received an invalid type {ownerPluginType.Name}");
+                TILER2Plugin._logger.LogError($"AutoConfigContainerRoOInfoAttribute received an invalid type {ownerPluginType.Name} with no BepInPluginAttribute");
                 return;
             }
             modGuid = plugin.GUID;
             modName = plugin.Name;
+            categoryName = cat;
+            entryName = ent;
         }
     }
 }
