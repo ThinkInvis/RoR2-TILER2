@@ -150,7 +150,7 @@ namespace TILER2 {
         }
     }
 
-    ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a slider. Only supports float properties.</summary>
+    ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a slider. Only supports float properties; use AutoConfigRoOIntSliderAttribute for ints.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class AutoConfigRoOSliderAttribute : Attribute {
         public string format;
@@ -168,6 +168,68 @@ namespace TILER2 {
         }
     }
 
+    ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a stepped slider. Only supports float properties; use AutoConfigRoOIntSliderAttribute for ints.</summary>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public class AutoConfigRoOStepSliderAttribute : Attribute {
+        public string format;
+        public float min;
+        public float max;
+        public float step;
+        public string nameOverride;
+        public string catOverride;
+
+        public AutoConfigRoOStepSliderAttribute(string format, float min, float max, float step, string nameOverride = null, string catOverride = null) {
+            this.format = format;
+            this.min = min;
+            this.max = max;
+            this.step = step;
+            this.nameOverride = nameOverride;
+            this.catOverride = catOverride;
+        }
+    }
+
+    ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a slider. Only supports int properties; use AutoConfigRoOSliderAttribute for floats.</summary>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public class AutoConfigRoOIntSliderAttribute : Attribute {
+        public string format;
+        public int min;
+        public int max;
+        public string nameOverride;
+        public string catOverride;
+
+        public AutoConfigRoOIntSliderAttribute(string format, int min, int max, string nameOverride = null, string catOverride = null) {
+            this.format = format;
+            this.min = min;
+            this.max = max;
+            this.nameOverride = nameOverride;
+            this.catOverride = catOverride;
+        }
+    }
+
+    ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a dropdown list. Only supports enum properties.</summary>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public class AutoConfigRoOChoiceAttribute : Attribute {
+        public string nameOverride;
+        public string catOverride;
+
+        public AutoConfigRoOChoiceAttribute(string nameOverride = null, string catOverride = null) {
+            this.nameOverride = nameOverride;
+            this.catOverride = catOverride;
+        }
+    }
+
+    ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a keybind. Only supports BepInEx KeyboardShortcut properties.</summary>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public class AutoConfigRoOKeybindAttribute : Attribute {
+        public string nameOverride;
+        public string catOverride;
+
+        public AutoConfigRoOKeybindAttribute(string nameOverride = null, string catOverride = null) {
+            this.nameOverride = nameOverride;
+            this.catOverride = catOverride;
+        }
+    }
+
     ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a checkbox. Only supports bool properties.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class AutoConfigRoOCheckboxAttribute : Attribute {
@@ -180,7 +242,19 @@ namespace TILER2 {
         }
     }
 
-    ///<summary>Used to point the Risk Of Options mod to the owner plugin of an AutoConfigContainer. If not present, options will be registered under TILER2's options tab.</summary>
+    ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a text input. Only supports string properties.</summary>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public class AutoConfigRoOStringAttribute : Attribute {
+        public string nameOverride;
+        public string catOverride;
+
+        public AutoConfigRoOStringAttribute(string nameOverride = null, string catOverride = null) {
+            this.nameOverride = nameOverride;
+            this.catOverride = catOverride;
+        }
+    }
+
+    ///<summary>Used to point the Risk Of Options mod to the owner plugin of an AutoConfigContainer. If not present, AutoConfig will attempt to read mod info from your plugin assembly's exported types.</summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class AutoConfigContainerRoOInfoAttribute : Attribute {
         public string modGuid;

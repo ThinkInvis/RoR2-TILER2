@@ -51,6 +51,68 @@ namespace TILER2 {
             }), ident.modGuid, ident.modName);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void AddOption_IntSlider(ConfigEntry<int> configEntry, OptionIdentityStrings ident, int min, int max, string formatString, bool restartRequired, Func<bool> isDisabledDelegate) {
+            ModSettingsManager.AddOption(new IntSliderOption(configEntry, new IntSliderConfig {
+                category = ident.category,
+                name = ident.name,
+                max = max,
+                min = min,
+                formatString = formatString,
+                restartRequired = restartRequired,
+                description = ident.description,
+                checkIfDisabled = () => { return isDisabledDelegate(); }
+            }), ident.modGuid, ident.modName);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void AddOption_Choice(ConfigEntryBase configEntry, OptionIdentityStrings ident, bool restartRequired, Func<bool> isDisabledDelegate) {
+            ModSettingsManager.AddOption(new ChoiceOption(configEntry, new ChoiceConfig {
+                category = ident.category,
+                name = ident.name,
+                restartRequired = restartRequired,
+                description = ident.description,
+                checkIfDisabled = () => { return isDisabledDelegate(); }
+            }), ident.modGuid, ident.modName);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void AddOption_Keybind(ConfigEntry<KeyboardShortcut> configEntry, OptionIdentityStrings ident, bool restartRequired, Func<bool> isDisabledDelegate) {
+            ModSettingsManager.AddOption(new KeyBindOption(configEntry, new KeyBindConfig {
+                category = ident.category,
+                name = ident.name,
+                restartRequired = restartRequired,
+                description = ident.description,
+                checkIfDisabled = () => { return isDisabledDelegate(); }
+            }), ident.modGuid, ident.modName);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void AddOption_String(ConfigEntry<string> configEntry, OptionIdentityStrings ident, bool restartRequired, Func<bool> isDisabledDelegate) {
+            ModSettingsManager.AddOption(new StringInputFieldOption(configEntry, new InputFieldConfig {
+                category = ident.category,
+                name = ident.name,
+                restartRequired = restartRequired,
+                description = ident.description,
+                checkIfDisabled = () => { return isDisabledDelegate(); }
+            }), ident.modGuid, ident.modName);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void AddOption_StepSlider(ConfigEntry<float> configEntry, OptionIdentityStrings ident, float min, float max, float step, string formatString, bool restartRequired, Func<bool> isDisabledDelegate) {
+            ModSettingsManager.AddOption(new StepSliderOption(configEntry, new StepSliderConfig {
+                category = ident.category,
+                name = ident.name,
+                min = min,
+                max = max,
+                formatString = formatString,
+                increment = step,
+                restartRequired = restartRequired,
+                description = ident.description,
+                checkIfDisabled = () => { return isDisabledDelegate(); }
+            }), ident.modGuid, ident.modName);
+        }
+
         private static bool? _enabled;
         public static bool enabled {
             get {
