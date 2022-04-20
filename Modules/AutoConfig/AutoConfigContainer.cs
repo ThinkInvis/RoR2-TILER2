@@ -315,9 +315,9 @@ namespace TILER2 {
                 foundModInfo = true;
             } else {
                 var ownerAssembly = Assembly.GetAssembly(this.GetType());
-                Type[] types = new Type[] { };
+                Type[] types;
                 try {
-                    var ownerAssemblyTypes = ownerAssembly.GetTypes();
+                    types = ownerAssembly.GetTypes();
                 } catch(ReflectionTypeLoadException e) { //handles missing soft dependencies
                     types = e.Types;
                 }
