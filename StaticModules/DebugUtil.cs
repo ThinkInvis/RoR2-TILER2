@@ -5,10 +5,22 @@ using UnityEngine;
 using System.Reflection;
 using R2API.Utils;
 using System.Collections.Generic;
+using UnityEngine.AddressableAssets;
 
 namespace TILER2 {
     internal static class DebugUtil {
         internal static void Setup() {
+        }
+
+        [ConCommand(commandName = "goto_itemrender", helpText = "Opens the item rendering scene.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
+        private static void CCGotoRenderScene(ConCommandArgs args) {
+            if(Run.instance) {
+                Debug.Log("Cannot goto render scene while a run is active.");
+                return;
+            }
+            Addressables.LoadSceneAsync("RoR2/Dev/renderitem/renderitem.unity",
+                UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
 
         [ConCommand(commandName = "evo_setitem", flags = ConVarFlags.ExecuteOnServer
