@@ -16,7 +16,7 @@ namespace TILER2 {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private static void CCGotoRenderScene(ConCommandArgs args) {
             if(Run.instance) {
-                Debug.Log("Cannot goto render scene while a run is active.");
+                Debug.LogError("Cannot goto render scene while a run is active.");
                 return;
             }
             Addressables.LoadSceneAsync("RoR2/Dev/renderitem/renderitem.unity",
