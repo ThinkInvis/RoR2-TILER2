@@ -66,6 +66,11 @@ namespace TILER2 {
             var idef = ItemCatalog.GetItemDef(item);
             var idefModel = idef.pickupModelPrefab;
 
+            foreach(Transform child in igh.transform) {
+                if(igh)
+                    igh.gameObject.SetActive(false);
+            }
+
             GameObject.Instantiate(idefModel, igh.transform);
         }
 
@@ -111,6 +116,11 @@ namespace TILER2 {
 
             var idef = EquipmentCatalog.GetEquipmentDef(item);
             var idefModel = idef.pickupModelPrefab;
+
+            foreach(Transform child in igh.transform) {
+                if(igh)
+                    igh.gameObject.SetActive(false);
+            }
 
             GameObject.Instantiate(idefModel, igh.transform);
         }
