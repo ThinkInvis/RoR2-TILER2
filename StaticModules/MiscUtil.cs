@@ -85,8 +85,8 @@ namespace TILER2 {
                 .WaitForCompletion()
                 .InstantiateClone("Temporary Setup Prefab", false);
             var newObj = modifierCallback(origObj);
-            GameObject.Destroy(origObj);
             var newObjPrefabified = newObj.InstantiateClone(newName, shouldNetwork);
+            GameObject.Destroy(origObj);
             GameObject.Destroy(newObj);
             return newObjPrefabified;
         }
