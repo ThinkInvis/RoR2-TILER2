@@ -1,5 +1,15 @@
 ﻿# TILER2 Changelog
 
+**7.1.0**
+
+- Fixed a typo in `MiscUtil.Remap` that caused incorrect behavior (was adding `maxTo` to result as final step, should have been `minTo`).
+- Added method `MiscUtil.ModifyVanillaPrefab(string addressablePath, string newName, bool shouldNetwork, Func&lt;GameObject, GameObject&gt;)` for concise modification of vanilla prefabs using R2API.PrefabAPI.
+- Added new ConCmds to DebugUtil module for rendering items:
+	- `goto_itemrender`: opens the internal item rendering scene. Cannot be used while a run is active.
+	- `ir_sim`: with the item rendering scene open, spawns an item's pickup model in the proper place and hides existing models. Accepts numeric index or display name (NOT name token).
+	- `ir_sqm`: with the item rendering scene open, spawns an equipment's pickup model in the proper place and hides existing models. Accepts numeric index or display name (NOT name token).
+- Updated R2API dependency to 4.3.21.
+
 **7.0.1**
 
 - Temporarily switched `Item : CatalogBoilerplate` to use ItemDef.deprecatedTier.

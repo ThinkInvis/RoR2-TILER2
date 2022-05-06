@@ -46,6 +46,16 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.1.0**
+
+- Fixed a typo in `MiscUtil.Remap` that caused incorrect behavior (was adding `maxTo` to result as final step, should have been `minTo`).
+- Added method `MiscUtil.ModifyVanillaPrefab(string addressablePath, string newName, bool shouldNetwork, Func&lt;GameObject, GameObject&gt;)` for concise modification of vanilla prefabs using R2API.PrefabAPI.
+- Added new ConCmds to DebugUtil module for rendering items:
+	- `goto_itemrender`: opens the internal item rendering scene. Cannot be used while a run is active.
+	- `ir_sim`: with the item rendering scene open, spawns an item's pickup model in the proper place and hides existing models. Accepts numeric index or display name (NOT name token).
+	- `ir_sqm`: with the item rendering scene open, spawns an equipment's pickup model in the proper place and hides existing models. Accepts numeric index or display name (NOT name token).
+- Updated R2API dependency to 4.3.21.
+
 **7.0.1**
 
 - Temporarily switched `Item : CatalogBoilerplate` to use ItemDef.deprecatedTier.
@@ -86,8 +96,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 		- `displayIndivScale`: multiplies scale of individual display prefabs.
 		- `displayRadiusOffset`: fixed offset applied to local position of each individual display prefab.
 - Updated R2API dependency to 4.3.5.
-
-**6.1.3**
-
-- CatalogBoilerplate > Equipment now exposes canBeRandomlyTriggered on its EquipmentDef.
-- CatalogBoilerplateModule now updates Enigma and random-trigger equipment lists to remove disabled equipment.
