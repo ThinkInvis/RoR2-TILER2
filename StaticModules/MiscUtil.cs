@@ -115,7 +115,7 @@ namespace TILER2 {
         /// <param name="maxTo">The new upper bound of the remap operation.</param>
         /// <returns>The result of the remap operation of x from [minFrom, maxFrom] to [minTo, maxTo].</returns>
         public static float Remap(float x, float minFrom, float maxFrom, float minTo, float maxTo) {
-            return maxTo + (maxTo - minTo) * ((x - minFrom) / (maxFrom - minFrom));
+            return minTo + (maxTo - minTo) * ((x - minFrom) / (maxFrom - minFrom));
         }
 
         /// <summary>
