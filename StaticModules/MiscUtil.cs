@@ -10,6 +10,8 @@ using MonoMod.Cil;
 using Mono.Cecil.Cil;
 using System.Collections.ObjectModel;
 using RoR2.Navigation;
+using UnityEngine.AddressableAssets;
+using R2API;
 
 namespace TILER2 {
     /// <summary>
@@ -73,6 +75,20 @@ namespace TILER2 {
                 });
                 c.Index++;
             }
+        }
+
+        /// <summary>
+        /// Loads a prefab from RoR2 addressable assets, clones it without awakening it, applies a modifier function to the clone, then performs a second InstantiateClone operation to freeze the modified version into a new named prefab.
+        /// </summary>
+        public static GameObject ModifyVanillaPrefab(string addressablePath, string newName, bool shouldNetwork, Func<GameObject, GameObject> modifierCallback) {
+            var origObj = Addressables.LoadAssetAsync<GameObject>(addressablePath)
+                .WaitForCompletion()
+                .InstantiateClone("Temporary Setup Prefab", false);
+            var newObj = modifierCallback(origObj);
+            GameObject.Destroy(origObj);
+            var newObjPrefabified = newObj.InstantiateClone(newName, shouldNetwork);
+            GameObject.Destroy(newObj);
+            return newObjPrefabified;
         }
 
         /// <summary>
