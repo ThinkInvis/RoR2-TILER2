@@ -16,9 +16,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Reference Include="BetterUI">
-      <HintPath>lib\BetterUI.dll</HintPath>
-    </Reference>
     <Reference Include="ItemStats">
       <HintPath>lib\ItemStats.dll</HintPath>
     </Reference>
