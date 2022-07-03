@@ -113,6 +113,11 @@ namespace TILER2 {
             }), ident.modGuid, ident.modName);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void AddOption_Button(OptionIdentityStrings ident, Action del) {
+            ModSettingsManager.AddOption(new GenericButtonOption(ident.name, ident.category, new UnityEngine.Events.UnityAction(del)), ident.modGuid, ident.modName);
+        }
+
         private static bool? _enabled;
         public static bool enabled {
             get {
