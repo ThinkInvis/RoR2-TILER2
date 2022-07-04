@@ -54,12 +54,12 @@ namespace TILER2 {
         ///<summary>If managedEnable is true, this will be used for the resultant config entry.</summary>
         public virtual AutoConfigUpdateActionTypes enabledConfigUpdateActionTypes => AutoConfigUpdateActionTypes.InvalidateLanguage;
 
-        protected readonly List<LanguageAPI.LanguageOverlay> languageOverlays = new List<LanguageAPI.LanguageOverlay>();
-        protected readonly List<LanguageAPI.LanguageOverlay> permanentLanguageOverlays = new List<LanguageAPI.LanguageOverlay>();
-        protected readonly Dictionary<string, string> genericLanguageTokens = new Dictionary<string, string>();
-        protected readonly Dictionary<string, Dictionary<string, string>> specificLanguageTokens = new Dictionary<string, Dictionary<string, string>>();
-        protected readonly Dictionary<string, string> permanentGenericLanguageTokens = new Dictionary<string, string>();
-        protected readonly Dictionary<string, Dictionary<string, string>> permanentSpecificLanguageTokens = new Dictionary<string, Dictionary<string, string>>();
+        protected readonly List<LanguageAPI.LanguageOverlay> languageOverlays = new();
+        protected readonly List<LanguageAPI.LanguageOverlay> permanentLanguageOverlays = new();
+        protected readonly Dictionary<string, string> genericLanguageTokens = new();
+        protected readonly Dictionary<string, Dictionary<string, string>> specificLanguageTokens = new();
+        protected readonly Dictionary<string, string> permanentGenericLanguageTokens = new();
+        protected readonly Dictionary<string, Dictionary<string, string>> permanentSpecificLanguageTokens = new();
         public bool languageInstalled { get; private set; } = false;
         public bool permanentLanguageInstalled { get; private set; } = false;
 
