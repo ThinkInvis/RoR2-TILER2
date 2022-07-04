@@ -12,10 +12,10 @@ namespace TILER2 {
     internal class CatalogBoilerplateModule : T2Module<CatalogBoilerplateModule> {
         public override bool managedEnable => false;
 
-        internal static readonly FilingDictionary<CatalogBoilerplate> allInstances = new FilingDictionary<CatalogBoilerplate>();
-        internal static readonly Dictionary<ItemIndex, Item> itemInstances = new Dictionary<ItemIndex, Item>();
-        internal static readonly Dictionary<EquipmentIndex, Equipment> equipmentInstances = new Dictionary<EquipmentIndex, Equipment>();
-        internal static readonly Dictionary<ArtifactIndex, Artifact> artifactInstances = new Dictionary<ArtifactIndex, Artifact>();
+        internal static readonly FilingDictionary<CatalogBoilerplate> allInstances = new();
+        internal static readonly Dictionary<ItemIndex, Item> itemInstances = new();
+        internal static readonly Dictionary<EquipmentIndex, Equipment> equipmentInstances = new();
+        internal static readonly Dictionary<ArtifactIndex, Artifact> artifactInstances = new();
 
         public static Sprite lockIcon { get; private set; }
 
@@ -68,7 +68,7 @@ namespace TILER2 {
         }
 
         private void PreGameController_ResolveChoiceMask(ILContext il) {
-            ILCursor c = new ILCursor(il);
+            ILCursor c = new(il);
 
             if(c.TryGotoNext(MoveType.Before,
                 x => x.MatchLdfld<PreGameController>(nameof(PreGameController.choiceMaskBuffer)),

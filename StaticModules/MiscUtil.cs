@@ -40,7 +40,7 @@ namespace TILER2 {
         }
 
         private static void IL_DCTrySpawnObject(ILContext il) {
-            ILCursor c = new ILCursor(il);
+            ILCursor c = new(il);
             
             int graphind = -1;
             if(!c.TryGotoNext(
@@ -191,7 +191,7 @@ namespace TILER2 {
                 .Select(x => { graph.GetNodePosition(x, out Vector3 xloc); return xloc; })
                 .OrderBy(x => (x - source).sqrMagnitude);
 
-            List<Vector3> retv = new List<Vector3>();
+            List<Vector3> retv = new();
 
             var mDevSq = maxDeviation * maxDeviation;
 
@@ -236,7 +236,7 @@ namespace TILER2 {
         /// </summary>
         /// <typeparam name="T">The type to enforce inheritance from for the contents of the FilingDictionary.</typeparam>
         public class FilingDictionary<T> : IEnumerable<T> {
-            private readonly Dictionary<Type, T> _dict = new Dictionary<Type, T>();
+            private readonly Dictionary<Type, T> _dict = new();
 
             /// <summary>
             /// Gets the number of instances contained in the FilingDictionary.
@@ -312,7 +312,7 @@ namespace TILER2 {
             /// Returns a new ReadOnlyFilingDictionary wrapping this FilingDictionary.
             /// </summary>
             /// <returns>A new ReadOnlyFilingDictionary wrapping this FilingDictionary.</returns>
-            public ReadOnlyFilingDictionary<T> AsReadOnly() => new ReadOnlyFilingDictionary<T>(this);
+            public ReadOnlyFilingDictionary<T> AsReadOnly() => new(this);
         }
         
         /// <summary>

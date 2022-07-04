@@ -67,7 +67,7 @@ namespace TILER2 {
 		public readonly ReadOnlyCollection<int> itemStacks;
 		
 		///<summary>Items in this HashSet cannot be added to nor removed from a FakeInventory.</summary>
-		public static HashSet<ItemDef> blacklist = new HashSet<ItemDef>();
+		public static HashSet<ItemDef> blacklist = new();
 
 		public FakeInventory() {
 			itemStacks = new ReadOnlyCollection<int>(_itemStacks);
@@ -260,7 +260,7 @@ namespace TILER2 {
 		}
 
 		private static void gPayCostItemsHook(ILContext il) {
-			ILCursor c = new ILCursor(il);
+			ILCursor c = new(il);
 			c.GotoNext(x => x.MatchCallvirt<Inventory>("GetItemCount"));
 			c.EmitDelegate<Action>(() => {ignoreFakes++;});
 			c.GotoNext(MoveType.After, x => x.MatchCallvirt<Inventory>("GetItemCount"));

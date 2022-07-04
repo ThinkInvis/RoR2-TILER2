@@ -36,7 +36,7 @@ namespace TILER2 {
         public virtual bool itemIsAIBlacklisted {get;protected set;} = false;
 
         public virtual ReadOnlyCollection<ItemTag> itemTags {get; private set;}
-        protected ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict();
+        protected ItemDisplayRuleDict displayRules = new();
 
         public override void SetupConfig() {
             base.SetupConfig();

@@ -36,7 +36,7 @@ namespace TILER2 {
                 module.rng = new Xoroshiro128Plus(rngGenerator.nextUlong);
         }
 
-        private static readonly FilingDictionary<T2Module> _allModules = new FilingDictionary<T2Module>();
+        private static readonly FilingDictionary<T2Module> _allModules = new();
         public static readonly ReadOnlyFilingDictionary<T2Module> allModules = _allModules.AsReadOnly();
 
         public bool enabled { get; protected internal set; } = true;

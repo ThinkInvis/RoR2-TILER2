@@ -12,7 +12,7 @@ namespace TILER2 {
         public string password; //netids are sequential; password detrivializes being able to kick other clients by spamming fail replies
         public bool hasAcked = false;
         public ConfigExchange? currentExchange;
-        public readonly List<ConfigExchange> pendingExchanges = new List<ConfigExchange>();
+        public readonly List<ConfigExchange> pendingExchanges = new();
         public readonly float connectedAt = UnityEngine.Time.unscaledTime;
 
         public void AddExchangeOne(AutoConfigBinding bind) {

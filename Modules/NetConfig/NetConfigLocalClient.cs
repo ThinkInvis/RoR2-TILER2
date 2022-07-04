@@ -13,7 +13,7 @@ namespace TILER2 {
         private static int netId;
         private static int syncReceiveBytesMax = 0;
         private static int syncReceiveBytes = 0;
-        private static readonly Dictionary<int, byte[]> syncReceiveData = new Dictionary<int, byte[]>();
+        private static readonly Dictionary<int, byte[]> syncReceiveData = new();
 
         private static void ClientCleanupConfigSync() {
             syncReceiveData.Clear();
@@ -26,7 +26,7 @@ namespace TILER2 {
                 TILER2Plugin._logger.LogError("NetConfigLocalClient.ClientFinalizeConfigSync called on server");
                 return;
             }
-            List<byte> payload = new List<byte>();
+            List<byte> payload = new();
             for(var i = 0; i < syncReceiveData.Count; i++) {
                 if(!syncReceiveData.ContainsKey(i)) {
                     TILER2Plugin._logger.LogError($"Gap in received MsgRequestConfigSyncContinue data at index {i} of {syncReceiveData.Count}");

@@ -16,9 +16,9 @@ namespace TILER2 {
 		public float displayRadiusFracH = 0.5f;
 		public float displayRadiusFracV = 0.3f;
 		public Vector3 displayIndivScale = Vector3.one;
-		public Vector3 displayRadiusOffset = new Vector3(0f, 0f, 0f);
+		public Vector3 displayRadiusOffset = new(0f, 0f, 0f);
 		public Transform rangeIndicator;
-		public Dictionary<ItemIndex, int> itemcounts = new Dictionary<ItemIndex, int>();
+		public Dictionary<ItemIndex, int> itemcounts = new();
 
 		private const float updateTickRate = 1f;
 		private float stopwatch = 0f;
@@ -26,10 +26,10 @@ namespace TILER2 {
 		private TeamComponent teamComponent;
 		private float rangeIndicatorScaleVelocity;
 
-		private readonly List<GameObject> displays = new List<GameObject>(); //client & server
-		private readonly List<Vector3> displayVelocities = new List<Vector3>(); //client
-		private readonly List<ItemIndex> displayItems = new List<ItemIndex>(); //server
-		private readonly List<Inventory> trackedInventories = new List<Inventory>(); //server
+		private readonly List<GameObject> displays = new(); //client & server
+		private readonly List<Vector3> displayVelocities = new(); //client
+		private readonly List<ItemIndex> displayItems = new(); //server
+		private readonly List<Inventory> trackedInventories = new(); //server
 
 		private float _radius = 10f;
 		public float radius {

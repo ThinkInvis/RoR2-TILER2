@@ -8,9 +8,9 @@ using UnityEngine.Networking;
 
 namespace TILER2 {
     public class AutoConfigBinding {
-        internal readonly static List<AutoConfigBinding> instances = new List<AutoConfigBinding>();
-        internal readonly static Dictionary<AutoConfigBinding, (object, bool)> stageDirtyInstances = new Dictionary<AutoConfigBinding, (object, bool)>();
-        internal readonly static Dictionary<AutoConfigBinding, object> runDirtyInstances = new Dictionary<AutoConfigBinding, object>();
+        internal readonly static List<AutoConfigBinding> instances = new();
+        internal readonly static Dictionary<AutoConfigBinding, (object, bool)> stageDirtyInstances = new();
+        internal readonly static Dictionary<AutoConfigBinding, object> runDirtyInstances = new();
 
         internal static void CleanupDirty(bool isRunEnd) {
             TILER2Plugin._logger.LogDebug($"Stage ended; applying {stageDirtyInstances.Count} deferred config changes...");
@@ -108,10 +108,10 @@ namespace TILER2 {
             var p2u = path2?.ToUpper();
             var p3u = path3?.ToUpper();
 
-            List<AutoConfigBinding> matchesLevel1 = new List<AutoConfigBinding>(); //no enforced order, no enforced caps, partial matches
-            List<AutoConfigBinding> matchesLevel2 = new List<AutoConfigBinding>(); //enforced order, no enforced caps, partial matches
-            List<AutoConfigBinding> matchesLevel3 = new List<AutoConfigBinding>(); //enforced order, no enforced caps, full matches
-            List<AutoConfigBinding> matchesLevel4 = new List<AutoConfigBinding>(); //enforced order, enforced caps, full matches
+            List<AutoConfigBinding> matchesLevel1 = new(); //no enforced order, no enforced caps, partial matches
+            List<AutoConfigBinding> matchesLevel2 = new(); //enforced order, no enforced caps, partial matches
+            List<AutoConfigBinding> matchesLevel3 = new(); //enforced order, no enforced caps, full matches
+            List<AutoConfigBinding> matchesLevel4 = new(); //enforced order, enforced caps, full matches
 
             AutoConfigBinding.instances.ForEach(x => {
                 if(!x.allowConCmd) return;

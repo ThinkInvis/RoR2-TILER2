@@ -30,16 +30,20 @@ namespace TILER2 {
         [AutoConfig("If true, NetConfig will kick clients that take too long to respond to config checks (may be caused by missing mods on client, or by major network issues).")]
         public bool timeoutKick {get; private set;} = true;
 
-        public static readonly SimpleLocalizedKickReason kickCritMismatch = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCCRITMISMATCH");
-        public static readonly SimpleLocalizedKickReason kickTimeout = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCTIMEOUT");
-        public static readonly SimpleLocalizedKickReason kickMissingEntry = new SimpleLocalizedKickReason("TILER2_KICKREASON_NCMISSINGENTRY");
+        public static readonly SimpleLocalizedKickReason kickCritMismatch = new("TILER2_KICKREASON_NCCRITMISMATCH");
+        public static readonly SimpleLocalizedKickReason kickTimeout = new("TILER2_KICKREASON_NCTIMEOUT");
+        public static readonly SimpleLocalizedKickReason kickMissingEntry = new("TILER2_KICKREASON_NCMISSINGENTRY");
 
-        private static readonly RoR2.ConVar.BoolConVar allowClientNCFGSet = new RoR2.ConVar.BoolConVar("ncfg_allowclientset", ConVarFlags.None, "false", "If true, clients may use the ConCmds ncfg_set or ncfg_settemp to temporarily set config values on the server. If false, ncfg_set and ncfg_settemp will not work for clients.");
+        private static readonly RoR2.ConVar.BoolConVar allowClientNCFGSet = new(
+            "ncfg_allowclientset",
+            ConVarFlags.None,
+            "false",
+            "If true, clients may use the ConCmds ncfg_set or ncfg_settemp to temporarily set config values on the server. If false, ncfg_set and ncfg_settemp will not work for clients.");
 
         private const float CONN_CHECK_WAIT_TIME = 15f;
         internal const int MAX_MESSAGE_SIZE_BYTES = 1000;
-        private static readonly List<NetConfigClientInfo> clients = new List<NetConfigClientInfo>();
-        readonly List<NetConfigClientInfo> _updateKickList = new List<NetConfigClientInfo>();
+        private static readonly List<NetConfigClientInfo> clients = new();
+        readonly List<NetConfigClientInfo> _updateKickList = new();
 
         internal enum ConfigSyncStatus : byte {
             Invalid, Connect, BeginSync, SyncPass, SyncPassWithChange, SyncWarn, SyncFail

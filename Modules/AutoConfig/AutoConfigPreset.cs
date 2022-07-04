@@ -5,7 +5,7 @@ using System.Linq;
 namespace TILER2 {
     public static class AutoConfigPresetExtensions {
         public static void ApplyPreset(this AutoConfigContainer container, string name) {
-            HashSet<BepInEx.Configuration.ConfigFile> needsManualSave = new HashSet<BepInEx.Configuration.ConfigFile>();
+            HashSet<BepInEx.Configuration.ConfigFile> needsManualSave = new();
 
             foreach(var bind in container.bindings) {
                 var presets = bind.boundProperty.GetCustomAttributes(typeof(AutoConfigPresetAttribute), true).Cast<AutoConfigPresetAttribute>();

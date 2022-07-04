@@ -28,7 +28,7 @@ namespace TILER2 {
         public EquipmentDef equipmentDef {get; private set;}
         public CustomEquipment customEquipment {get; private set;}
 
-        protected ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict();
+        protected ItemDisplayRuleDict displayRules = new();
 
         [AutoConfigRoOSlider("{0:N0} s", 0f, 300f)]
         [AutoConfig("The base cooldown of the equipment, in seconds.", AutoConfigFlags.DeferUntilNextStage, 0f, float.MaxValue)]
