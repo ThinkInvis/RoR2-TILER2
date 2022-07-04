@@ -115,8 +115,8 @@ namespace TILER2 {
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public static void AddOption_Button(OptionIdentityStrings ident, UnityAction del) {
-            ModSettingsManager.AddOption(new GenericButtonOption(ident.name, ident.category, del), ident.modGuid, ident.modName);
+        public static void AddOption_Button(OptionIdentityStrings ident, string text, UnityAction del) {
+            ModSettingsManager.AddOption(new GenericButtonOption(ident.name, ident.category, ident.description, text, del), ident.modGuid, ident.modName);
         }
 
         private static bool? _enabled;
