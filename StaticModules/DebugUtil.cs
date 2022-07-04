@@ -14,6 +14,7 @@ namespace TILER2 {
 
         [ConCommand(commandName = "goto_itemrender", helpText = "Opens the item rendering scene.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Used by RoR2")]
         private static void CCGotoRenderScene(ConCommandArgs args) {
             if(Run.instance) {
                 Debug.LogError("Cannot goto render scene while a run is active.");
