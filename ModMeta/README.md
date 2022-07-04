@@ -20,9 +20,12 @@ TILER2 mostly contains features that are useful for mod developers, but it also 
 
 #### DebugUtil
 
-The DebugUtil module adds the console commands `evo_setitem` and `t2_stat`.
+The DebugUtil module adds several console commands:
 
 - `evo_setitem itemIndexOrName count`: Sets the count of the target item in the Artifact of Evolution item pool. Marked as a cheat command.
+- `goto_itemrender`: Travels to the ingame item rendering scene. Can only be used from the main menu. Best paired with a runtime inspector mod.
+- `ir_sim itemIndexOrName`: Spawns an item model while in the ingame item rendering scene.
+- `ir_sqm itemIndexOrName`: Spawns an equipment model while in the ingame item rendering scene.
 
 #### NetConfig
 
@@ -45,6 +48,17 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 ## Changelog
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
+
+**7.2.0**
+
+- Added barebones config preset support to the AutoConfig module.
+	- See `AutoConfigPresetAttribute`, `AutoConfigContainer.ApplyPreset()`.
+- Added support for Risk of Options buttons.
+	- No attribute, must use `Compat_RiskOfOptions.AddOption_Button()` manually.
+- Publicized `AutoConfigContainer.FindConfig()`.
+- Removed remaining unused BetterUI references.
+- Updated lang version to C#9 and implemented its features for some minor project cleanup.
+- Updated dependencies.
 
 **7.1.0**
 
@@ -77,22 +91,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - FakeInventory.ignoreFakes is now exposed to public API, and is now an int instead of a bool.
 	- Increment FakeInventory.ignoreFakes whenever you enter a method where you don't want fake items to be considered as part of item count (e.g. while removing or upgrading items). Decrement it before leaving the method.
 - Added more sources of IgnoreFakes. FakeInventory should now have better interaction with Egocentrism, Benthic Bloom, Bulwark's Ambry (if player has fake artifact keys *somehow*), and ItemStealController.
-
-**6.2.0**
-
-- Migrated some math/util methods from other mods.
-	- `MiscUtil.Remap`: remaps a float from one range to another.
-	- `MiscUtil.CalculateVelocityForFinalPosition`: calculates the initial velocity and final time required for a jump-pad-like trajectory between two points.
-	- `MiscUtil.TrajectorySphereCast`: performs a spherecast over a parabolic trajectory.
-	- `MiscUtil.CollectNearestNodeLaunchVelocities`: collects a specified number of launch velocities that will reach (without hitting anything else) the nearest free navnodes outside a minimum range.
-	- `MiscUtil.SteepSigmoid01`: sigmoid-like curve as a function of x with fixed points at (0, 0), (0.5, 0.5), and (1, 1). Has flatter ends and steeper midpoint as b increases.
-- Some improvements to ItemWard.
-	- No longer hard requires a TeamFilter component. Will instead try to find team from TeamFilter or TeamComponent on the same object, and default to TeamIndex.None otherwise.
-	- Fixed a potential net message loop caused by setting radius.
-	- Now exposes a stock indicator prefab based on the warbanner area indicator: `TILER2.ItemWard.stockIndicatorPrefab`. Will *not* be created by default if an ItemWard's indicator is unset.
-	- Now exposes some extra fields to customize display:
-		- `displayRadiusFracH`: horizontal distance at which displays will orbit as a fraction of `radius`.
-		- `displayRadiusFracV`: vertical distance at which displays will orbit as a fraction of `radius`.
-		- `displayIndivScale`: multiplies scale of individual display prefabs.
-		- `displayRadiusOffset`: fixed offset applied to local position of each individual display prefab.
-- Updated R2API dependency to 4.3.5.

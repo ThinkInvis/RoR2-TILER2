@@ -1,5 +1,16 @@
 ﻿# TILER2 Changelog
 
+**7.2.0**
+
+- Added barebones config preset support to the AutoConfig module.
+	- See `AutoConfigPresetAttribute`, `AutoConfigContainer.ApplyPreset()`.
+- Added support for Risk of Options buttons.
+	- No attribute, must use `Compat_RiskOfOptions.AddOption_Button()` manually.
+- Publicized `AutoConfigContainer.FindConfig()`.
+- Removed remaining unused BetterUI references.
+- Updated lang version to C#9 and implemented its features for some minor project cleanup.
+- Updated dependencies.
+
 **7.1.0**
 
 - Fixed a typo in `MiscUtil.Remap` that caused incorrect behavior (was adding `maxTo` to result as final step, should have been `minTo`).

@@ -1,10 +1,10 @@
 {
   "name": "TILER2",
-  "version_number": "7.1.0",
+  "version_number": "7.2.0",
   "website_url": "https://github.com/ThinkInvis/RoR2-TILER2",
   "description": "ThinkInvisible's Library of Extras for RoR2.",
   "dependencies": [
     "bbepis-BepInExPack-5.4.1902",
-    "tristanmcpherson-R2API-4.3.21"
+    "tristanmcpherson-R2API-4.4.1"
   ]
 }
