@@ -194,7 +194,7 @@ namespace TILER2 {
             var retv = orig(expansionAvailability);
             var bplsLeft = allInstances.ToList();
             foreach(var entry in retv) {
-                if(!(entry.extraData is PickupIndex)) continue;
+                if(entry.extraData is not PickupIndex) continue;
                 CatalogBoilerplate matchedBpl = null;
                 foreach(CatalogBoilerplate bpl in bplsLeft) {
                     if((PickupIndex)entry.extraData == bpl.pickupIndex) {
