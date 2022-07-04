@@ -23,14 +23,13 @@ namespace TILER2 {
                 .Concat(System.Text.Encoding.Unicode.GetBytes(string.Join("", strings)))
                 .ToArray();
 
-            using(var inputStream = new MemoryStream(serBytes))
-            using(var outputStream = new MemoryStream()) {
-                using(var compressor = new System.IO.Compression.DeflateStream(outputStream, System.IO.Compression.CompressionMode.Compress)) {
-                    inputStream.CopyTo(compressor);
-                }
-
-                return outputStream.ToArray();
+            using var inputStream = new MemoryStream(serBytes);
+            using var outputStream = new MemoryStream();
+            using(var compressor = new System.IO.Compression.DeflateStream(outputStream, System.IO.Compression.CompressionMode.Compress)) {
+                inputStream.CopyTo(compressor);
             }
+
+            return outputStream.ToArray();
         }
 
         public static string[] UnpackStringArray(byte[] packed) {
@@ -55,12 +54,11 @@ namespace TILER2 {
                     stringLengths[i] = BitConverter.ToInt32(outputBuffer, 0);
                 }
                 //read remaining: strings
-                using(var reader = new StreamReader(outputStream, System.Text.Encoding.Unicode)) {
-                    for(var i = 0; i < stringLengths.Length; i++) {
-                        char[] readerBuffer = new char[stringLengths[i]];
-                        reader.Read(readerBuffer, 0, stringLengths[i]);
-                        strings[i] = new string(readerBuffer);
-                    }
+                using var reader = new StreamReader(outputStream, System.Text.Encoding.Unicode);
+                for(var i = 0; i < stringLengths.Length; i++) {
+                    char[] readerBuffer = new char[stringLengths[i]];
+                    reader.Read(readerBuffer, 0, stringLengths[i]);
+                    strings[i] = new string(readerBuffer);
                 }
             }
 
