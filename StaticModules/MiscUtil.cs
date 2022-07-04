@@ -426,38 +426,18 @@ namespace TILER2 {
         /// <param name="tier">The tier of item to spawn. Must be within 0 and 8, inclusive (Tier 1, Tier 2, Tier 3, Lunar, Equipment, Lunar Equipment, Void Tier 1, Void Tier 2, Void Tier 3).</param>
         /// <param name="rng">An instance of Xoroshiro128Plus to use for random item selection.</param>
         public static void SpawnItemFromBody(CharacterBody src, int tier, Xoroshiro128Plus rng) {
-            List<PickupIndex> spawnList;
-            switch(tier) {
-                case 1:
-                    spawnList = Run.instance.availableTier2DropList;
-                    break;
-                case 2:
-                    spawnList = Run.instance.availableTier3DropList;
-                    break;
-                case 3:
-                    spawnList = Run.instance.availableLunarItemDropList;
-                    break;
-                case 4:
-                    spawnList = Run.instance.availableEquipmentDropList;
-                    break;
-                case 5:
-                    spawnList = Run.instance.availableLunarEquipmentDropList;
-                    break;
-                case 6:
-                    spawnList = Run.instance.availableVoidTier1DropList;
-                    break;
-                case 7:
-                    spawnList = Run.instance.availableVoidTier2DropList;
-                    break;
-                case 8:
-                    spawnList = Run.instance.availableVoidTier3DropList;
-                    break;
-                case 0:
-                    spawnList = Run.instance.availableTier1DropList;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException("tier", tier, "spawnItemFromBody: Item tier must be between 0 and 8 inclusive");
-            }
+            List<PickupIndex> spawnList = tier switch {
+                0 => Run.instance.availableTier1DropList,
+                1 => Run.instance.availableTier2DropList,
+                2 => Run.instance.availableTier3DropList,
+                3 => Run.instance.availableLunarItemDropList,
+                4 => Run.instance.availableEquipmentDropList,
+                5 => Run.instance.availableLunarEquipmentDropList,
+                6 => Run.instance.availableVoidTier1DropList,
+                7 => Run.instance.availableVoidTier2DropList,
+                8 => Run.instance.availableVoidTier3DropList,
+                _ => throw new ArgumentOutOfRangeException("tier", tier, "spawnItemFromBody: Item tier must be between 0 and 8 inclusive"),
+            };
             PickupDropletController.CreatePickupDroplet(spawnList[rng.RangeInt(0,spawnList.Count)], src.transform.position, new Vector3(UnityEngine.Random.Range(-5.0f, 5.0f), 20f, UnityEngine.Random.Range(-5.0f, 5.0f)));
         }
 
