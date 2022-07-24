@@ -10,6 +10,10 @@ using UnityEngine.Networking;
 namespace TILER2 {
 	[RequireComponent(typeof(NetworkIdentity))]
     public class ItemWard : NetworkBehaviour {
+		public enum DisplayPerformanceMode {
+			None, OnePerItemIndex, All
+		}
+
 		public static GameObject stockIndicatorPrefab;
 		public static GameObject displayPrefab;
 
@@ -48,6 +52,10 @@ namespace TILER2 {
 			: TeamIndex.None);
 
 		internal class ItemWardModule : T2Module<ItemWardModule> {
+			[AutoConfigRoOChoice()]
+            [AutoConfig("Controls how many item displays are created on ItemWards.", AutoConfigFlags.DeferUntilEndGame)]
+			public DisplayPerformanceMode displayPerformanceMode { get; private set; } = DisplayPerformanceMode.All;
+
 			public override void SetupConfig() {
 				base.SetupConfig();
 				R2API.Networking.NetworkingAPI.RegisterMessageType<MsgDeltaDisplay>();
@@ -221,6 +229,12 @@ namespace TILER2 {
 		}
 
 		internal void ClientAddItemDisplay(ItemIndex ind) {
+			if(!NetworkServer.active) {
+				if(!itemcounts.ContainsKey(ind)) itemcounts[ind] = 1;
+				else itemcounts[ind]++;
+			}
+			if(ItemWardModule.instance.displayPerformanceMode == DisplayPerformanceMode.None) return;
+			if(ItemWardModule.instance.displayPerformanceMode == DisplayPerformanceMode.OnePerItemIndex && displayItems.Contains(ind)) return;
 			var display = UnityEngine.Object.Instantiate(displayPrefab, transform.position, transform.rotation);
 			display.transform.Find("BillboardBase").Find("PickupSprite").GetComponent<SpriteRenderer>().sprite = ItemCatalog.GetItemDef(ind).pickupIconSprite;
 			display.transform.parent = this.transform;
@@ -230,6 +244,13 @@ namespace TILER2 {
 		}
 
 		internal void ClientRemoveItemDisplay(ItemIndex ind) {
+			if(!NetworkServer.active) {
+				if(!itemcounts.ContainsKey(ind)) return;
+				else itemcounts[ind]--;
+				if(itemcounts[ind] == 0) itemcounts.Remove(ind);
+			}
+			if(ItemWardModule.instance.displayPerformanceMode == DisplayPerformanceMode.None) return;
+			if(ItemWardModule.instance.displayPerformanceMode == DisplayPerformanceMode.OnePerItemIndex && itemcounts[ind] != 0) return;
 			var listInd = displayItems.IndexOf(ind);
 			GameObject.Destroy(displays[listInd]);
 			displays.RemoveAt(listInd);
