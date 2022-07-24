@@ -403,10 +403,8 @@ namespace TILER2 {
             if(!target) return null;
             GameObject scan = target;
             for(int i = 0; i < maxSearch; i++) {
-                var cpt = scan.GetComponent<EntityLocator>();
-
-                if(cpt) {
-                    scan = cpt.entity;
+                if(scan.TryGetComponent<EntityLocator>(out var eloc) && eloc.entity) {
+                    scan = eloc.entity;
                     continue;
                 }
 
