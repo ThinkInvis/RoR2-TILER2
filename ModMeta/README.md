@@ -49,6 +49,12 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.2.1**
+
+- Added a performance option to hide duplicate or all Item Ward displays.
+- Patched a null safety hole in MiscUtil.GetRootWithLocators.
+- Removed some unused BepInEx plugin soft dependency flags.
+
 **7.2.0**
 
 - Added barebones config preset support to the AutoConfig module.
@@ -85,9 +91,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - CatalogBoilerplate now exposes a substage for firing an event when the catalog is ready (`public virtual void SetupCatalogReady()`).
 - Lots of behind-the-scenes VS warning/message cleanup.
 - Updated for latest RoR2 version.
-
-**6.3.0**
-
-- FakeInventory.ignoreFakes is now exposed to public API, and is now an int instead of a bool.
-	- Increment FakeInventory.ignoreFakes whenever you enter a method where you don't want fake items to be considered as part of item count (e.g. while removing or upgrading items). Decrement it before leaving the method.
-- Added more sources of IgnoreFakes. FakeInventory should now have better interaction with Egocentrism, Benthic Bloom, Bulwark's Ambry (if player has fake artifact keys *somehow*), and ItemStealController.

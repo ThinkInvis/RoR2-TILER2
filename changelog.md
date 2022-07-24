@@ -1,5 +1,11 @@
 ﻿# TILER2 Changelog
 
+**7.2.1**
+
+- Added a performance option to hide duplicate or all Item Ward displays.
+- Patched a null safety hole in MiscUtil.GetRootWithLocators.
+- Removed some unused BepInEx plugin soft dependency flags.
+
 **7.2.0**
 
 - Added barebones config preset support to the AutoConfig module.
