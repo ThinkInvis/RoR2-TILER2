@@ -339,7 +339,7 @@ namespace TILER2 {
                 modName = propertyModInfo?.modName ?? ownerModName
             };
             foreach(BaseAutoConfigRoOAttribute opt in entryRoOAttributes) {
-                if((propType == typeof(Enum)) ? propType.IsEnum : (propType != opt.requiredType)) {
+                if((propType == typeof(Enum)) ? !propType.IsEnum : (propType != opt.requiredType)) {
                     TILER2Plugin._logger.LogError($"{errorStr2}{opt.GetType().Name} may only be applied to {opt.requiredType.Name} properties (got {propType.Name}).");
                     continue;
                 }
