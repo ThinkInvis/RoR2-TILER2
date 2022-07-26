@@ -294,17 +294,12 @@ namespace TILER2 {
             var errorStr2 = $"AutoConfigContainer.Bind on property {prop.Name} in category {categoryName} could not apply Risk of Options compat: ";
 
             var containerModInfo = this.GetType().GetCustomAttribute<AutoConfigRoOInfoOverridesAttribute>();
-            var propertyModInfo = (AutoConfigRoOInfoOverridesAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOInfoOverridesAttribute);
-            var slider = (AutoConfigRoOSliderAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOSliderAttribute);
-            var stepslider = (AutoConfigRoOStepSliderAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOStepSliderAttribute);
-            var intslider = (AutoConfigRoOIntSliderAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOIntSliderAttribute);
-            var checkbox = (AutoConfigRoOCheckboxAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOCheckboxAttribute);
-            var choice = (AutoConfigRoOChoiceAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOChoiceAttribute);
-            var stringinp = (AutoConfigRoOStringAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOStringAttribute);
-            var keybind = (AutoConfigRoOKeybindAttribute)entryRoOAttributes.FirstOrDefault(x => x is AutoConfigRoOKeybindAttribute);
+            var propertyModInfo = prop.GetCustomAttribute<AutoConfigRoOInfoOverridesAttribute>();
 
-            if(slider == null && stepslider == null && intslider == null && checkbox == null && choice == null && stringinp == null && keybind == null)
-                return;
+            if(entryRoOAttributes.Length == 0) return;
+
+            if(entryRoOAttributes.GroupBy(x => x.GetType()).Any(x => x.Count() > 1))
+                TILER2Plugin._logger.LogWarning($"AutoConfigContainer.BindRoO on property {prop.Name} in category {categoryName} has multiple RoO options of the same type");
 
             string ownerModGuid = null;
             string ownerModName = null;
@@ -343,85 +338,15 @@ namespace TILER2 {
                 modGuid = propertyModInfo?.modGuid ?? ownerModGuid,
                 modName = propertyModInfo?.modName ?? ownerModName
             };
-            if(slider != null) {
-                if(propType != typeof(float)) {
-                    TILER2Plugin._logger.LogError($"{errorStr2}RoOSlider may only be applied to float properties (got {propType.Name}).");
-                } else {
-                    Compat_RiskOfOptions.AddOption_Slider((ConfigEntry<float>)cfe, identStrings,
-                        slider.min, slider.max, slider.format,
-                        deferForever, () => {
-                            if(deferRun && Run.instance) return true;
-                            return false;
-                        });
+            foreach(BaseAutoConfigRoOAttribute opt in entryRoOAttributes) {
+                if((propType == typeof(Enum)) ? propType.IsEnum : (propType != opt.requiredType)) {
+                    TILER2Plugin._logger.LogError($"{errorStr2}{opt.GetType().Name} may only be applied to {opt.requiredType.Name} properties (got {propType.Name}).");
+                    continue;
                 }
-            }
-            if(stepslider != null) {
-                if(propType != typeof(float)) {
-                    TILER2Plugin._logger.LogError($"{errorStr2}RoOStepSlider may only be applied to float properties (got {propType.Name}).");
-                } else {
-                    Compat_RiskOfOptions.AddOption_StepSlider((ConfigEntry<float>)cfe, identStrings,
-                        stepslider.min, stepslider.max, stepslider.step, stepslider.format,
-                        deferForever, () => {
-                            if(deferRun && Run.instance) return true;
-                            return false;
-                        });
-                }
-            }
-            if(intslider != null) {
-                if(propType != typeof(int)) {
-                    TILER2Plugin._logger.LogError($"{errorStr2}RoOIntSlider may only be applied to int properties (got {propType.Name}).");
-                } else {
-                    Compat_RiskOfOptions.AddOption_IntSlider((ConfigEntry<int>)cfe, identStrings,
-                        intslider.min, intslider.max, intslider.format,
-                        deferForever, () => {
-                            if(deferRun && Run.instance) return true;
-                            return false;
-                        });
-                }
-            }
-            if(choice != null) {
-                if(!propType.IsEnum) {
-                    TILER2Plugin._logger.LogError($"{errorStr2}RoOChoice may only be applied to enum properties (got {propType.Name}).");
-                } else {
-                    Compat_RiskOfOptions.AddOption_Choice(cfe, identStrings,
-                        deferForever, () => {
-                            if(deferRun && Run.instance) return true;
-                            return false;
-                        });
-                }
-            }
-            if(keybind != null) {
-                if(propType != typeof(KeyboardShortcut)) {
-                    TILER2Plugin._logger.LogError($"{errorStr2}RoOKeybind may only be applied to BepInEx.Configuration.KeyboardShortcut properties (got {propType.Name}).");
-                } else {
-                    Compat_RiskOfOptions.AddOption_Keybind((ConfigEntry<KeyboardShortcut>)cfe, identStrings,
-                        deferForever, () => {
-                            if(deferRun && Run.instance) return true;
-                            return false;
-                        });
-                }
-            }
-            if(stringinp != null) {
-                if(propType != typeof(string)) {
-                    TILER2Plugin._logger.LogError($"{errorStr2}RoOString may only be applied to string properties (got {propType.Name}).");
-                } else {
-                    Compat_RiskOfOptions.AddOption_String((ConfigEntry<string>)cfe, identStrings,
-                        deferForever, () => {
-                            if(deferRun && Run.instance) return true;
-                            return false;
-                        });
-                }
-            }
-            if(checkbox != null) {
-                if(propType != typeof(bool)) {
-                    TILER2Plugin._logger.LogError($"{errorStr2}RoOCheckbox may only be applied to bool properties (got {propType.Name}).");
-                } else {
-                    Compat_RiskOfOptions.AddOption_CheckBox((ConfigEntry<bool>)cfe, identStrings,
-                        deferForever, () => {
-                            if(deferRun && Run.instance) return true;
-                            return false;
-                        });
-                }
+                opt.Apply(cfe, identStrings, deferForever, () => {
+                    if(deferRun && Run.instance) return true;
+                    return false;
+                });
             }
         }
 
@@ -429,14 +354,7 @@ namespace TILER2 {
             if(!Compat_RiskOfOptions.enabled) return;
 
             BindRoO(cfe, prop, propType, categoryName, cfgName, cfgDesc, deferForever, deferRun,
-                prop.GetCustomAttribute<AutoConfigRoOInfoOverridesAttribute>(), 
-                prop.GetCustomAttribute<AutoConfigRoOSliderAttribute>(true),
-                prop.GetCustomAttribute<AutoConfigRoOStepSliderAttribute>(true),
-                prop.GetCustomAttribute<AutoConfigRoOIntSliderAttribute>(true),
-                prop.GetCustomAttribute<AutoConfigRoOCheckboxAttribute>(true),
-                prop.GetCustomAttribute<AutoConfigRoOChoiceAttribute>(true),
-                prop.GetCustomAttribute<AutoConfigRoOStringAttribute>(true),
-                prop.GetCustomAttribute<AutoConfigRoOKeybindAttribute>(true)
+                prop.GetCustomAttributes<BaseAutoConfigRoOAttribute>().ToArray()
                 );
         }
 

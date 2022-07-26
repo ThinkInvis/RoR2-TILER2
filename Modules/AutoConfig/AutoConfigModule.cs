@@ -150,107 +150,138 @@ namespace TILER2 {
         }
     }
 
+    ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod.</summary>
+    public abstract class BaseAutoConfigRoOAttribute : Attribute {
+        public string nameOverride;
+        public string catOverride;
+        public abstract Type requiredType { get; }
+
+        public BaseAutoConfigRoOAttribute(string nameOverride = null, string catOverride = null) {
+            this.nameOverride = nameOverride;
+            this.catOverride = catOverride;
+        }
+
+        public abstract void Apply(ConfigEntryBase cfe, Compat_RiskOfOptions.OptionIdentityStrings identStrings, bool deferForever, Func<bool> isDisabledDelegate);
+    }
+
     ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a slider. Only supports float properties; use AutoConfigRoOIntSliderAttribute for ints.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class AutoConfigRoOSliderAttribute : Attribute {
+    public class AutoConfigRoOSliderAttribute : BaseAutoConfigRoOAttribute {
         public string format;
         public float min;
         public float max;
-        public string nameOverride;
-        public string catOverride;
+        public override Type requiredType => typeof(float);
 
-        public AutoConfigRoOSliderAttribute(string format, float min, float max, string nameOverride = null, string catOverride = null) {
+        public AutoConfigRoOSliderAttribute(string format, float min, float max, string nameOverride = null, string catOverride = null) : base(nameOverride, catOverride) {
             this.format = format;
             this.min = min;
             this.max = max;
-            this.nameOverride = nameOverride;
-            this.catOverride = catOverride;
+        }
+
+        public override void Apply(ConfigEntryBase cfe, Compat_RiskOfOptions.OptionIdentityStrings identStrings, bool deferForever, Func<bool> isDisabledDelegate) {
+            Compat_RiskOfOptions.AddOption_Slider((ConfigEntry<float>)cfe, identStrings,
+                min, max, format,
+                deferForever, isDisabledDelegate);
         }
     }
 
     ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a stepped slider. Only supports float properties; use AutoConfigRoOIntSliderAttribute for ints.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class AutoConfigRoOStepSliderAttribute : Attribute {
+    public class AutoConfigRoOStepSliderAttribute : BaseAutoConfigRoOAttribute {
         public string format;
         public float min;
         public float max;
         public float step;
-        public string nameOverride;
-        public string catOverride;
+        public override Type requiredType => typeof(float);
 
-        public AutoConfigRoOStepSliderAttribute(string format, float min, float max, float step, string nameOverride = null, string catOverride = null) {
+        public AutoConfigRoOStepSliderAttribute(string format, float min, float max, float step, string nameOverride = null, string catOverride = null) : base(nameOverride, catOverride) {
             this.format = format;
             this.min = min;
             this.max = max;
             this.step = step;
-            this.nameOverride = nameOverride;
-            this.catOverride = catOverride;
+        }
+
+        public override void Apply(ConfigEntryBase cfe, Compat_RiskOfOptions.OptionIdentityStrings identStrings, bool deferForever, Func<bool> isDisabledDelegate) {
+            Compat_RiskOfOptions.AddOption_StepSlider((ConfigEntry<float>)cfe, identStrings,
+                min, max, step, format,
+                deferForever, isDisabledDelegate);
         }
     }
 
     ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a slider. Only supports int properties; use AutoConfigRoOSliderAttribute for floats.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class AutoConfigRoOIntSliderAttribute : Attribute {
+    public class AutoConfigRoOIntSliderAttribute : BaseAutoConfigRoOAttribute {
         public string format;
         public int min;
         public int max;
-        public string nameOverride;
-        public string catOverride;
+        public override Type requiredType => typeof(int);
 
-        public AutoConfigRoOIntSliderAttribute(string format, int min, int max, string nameOverride = null, string catOverride = null) {
+        public AutoConfigRoOIntSliderAttribute(string format, int min, int max, string nameOverride = null, string catOverride = null) : base(nameOverride, catOverride) {
             this.format = format;
             this.min = min;
             this.max = max;
-            this.nameOverride = nameOverride;
-            this.catOverride = catOverride;
+        }
+
+        public override void Apply(ConfigEntryBase cfe, Compat_RiskOfOptions.OptionIdentityStrings identStrings, bool deferForever, Func<bool> isDisabledDelegate) {
+            Compat_RiskOfOptions.AddOption_IntSlider((ConfigEntry<int>)cfe, identStrings,
+                min, max, format,
+                deferForever, isDisabledDelegate);
         }
     }
 
     ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a dropdown list. Only supports enum properties.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class AutoConfigRoOChoiceAttribute : Attribute {
-        public string nameOverride;
-        public string catOverride;
+    public class AutoConfigRoOChoiceAttribute : BaseAutoConfigRoOAttribute {
+        public override Type requiredType => typeof(Enum);
 
-        public AutoConfigRoOChoiceAttribute(string nameOverride = null, string catOverride = null) {
-            this.nameOverride = nameOverride;
-            this.catOverride = catOverride;
+        public AutoConfigRoOChoiceAttribute(string nameOverride = null, string catOverride = null) : base(nameOverride, catOverride) {
+        }
+
+        public override void Apply(ConfigEntryBase cfe, Compat_RiskOfOptions.OptionIdentityStrings identStrings, bool deferForever, Func<bool> isDisabledDelegate) {
+            Compat_RiskOfOptions.AddOption_Choice(cfe, identStrings,
+                deferForever, isDisabledDelegate);
         }
     }
 
     ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a keybind. Only supports BepInEx KeyboardShortcut properties.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class AutoConfigRoOKeybindAttribute : Attribute {
-        public string nameOverride;
-        public string catOverride;
+    public class AutoConfigRoOKeybindAttribute : BaseAutoConfigRoOAttribute {
+        public override Type requiredType => typeof(KeyboardShortcut);
 
-        public AutoConfigRoOKeybindAttribute(string nameOverride = null, string catOverride = null) {
-            this.nameOverride = nameOverride;
-            this.catOverride = catOverride;
+        public AutoConfigRoOKeybindAttribute(string nameOverride = null, string catOverride = null) : base(nameOverride, catOverride) {
+        }
+
+        public override void Apply(ConfigEntryBase cfe, Compat_RiskOfOptions.OptionIdentityStrings identStrings, bool deferForever, Func<bool> isDisabledDelegate) {
+            Compat_RiskOfOptions.AddOption_Keybind((ConfigEntry<KeyboardShortcut>)cfe, identStrings,
+                deferForever, isDisabledDelegate);
         }
     }
 
     ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a checkbox. Only supports bool properties.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class AutoConfigRoOCheckboxAttribute : Attribute {
-        public string nameOverride;
-        public string catOverride;
+    public class AutoConfigRoOCheckboxAttribute : BaseAutoConfigRoOAttribute {
+        public override Type requiredType => typeof(bool);
 
-        public AutoConfigRoOCheckboxAttribute(string nameOverride = null, string catOverride = null) {
-            this.nameOverride = nameOverride;
-            this.catOverride = catOverride;
+        public AutoConfigRoOCheckboxAttribute(string nameOverride = null, string catOverride = null) : base(nameOverride, catOverride) {
+        }
+
+        public override void Apply(ConfigEntryBase cfe, Compat_RiskOfOptions.OptionIdentityStrings identStrings, bool deferForever, Func<bool> isDisabledDelegate) {
+            Compat_RiskOfOptions.AddOption_CheckBox((ConfigEntry<bool>)cfe, identStrings,
+                deferForever, isDisabledDelegate);
         }
     }
 
     ///<summary>Used to register an AutoConfigAttribute with the Risk Of Options mod as a text input. Only supports string properties.</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class AutoConfigRoOStringAttribute : Attribute {
-        public string nameOverride;
-        public string catOverride;
+    public class AutoConfigRoOStringAttribute : BaseAutoConfigRoOAttribute {
+        public override Type requiredType => typeof(string);
 
-        public AutoConfigRoOStringAttribute(string nameOverride = null, string catOverride = null) {
-            this.nameOverride = nameOverride;
-            this.catOverride = catOverride;
+        public AutoConfigRoOStringAttribute(string nameOverride = null, string catOverride = null) : base(nameOverride, catOverride) {
+        }
+
+        public override void Apply(ConfigEntryBase cfe, Compat_RiskOfOptions.OptionIdentityStrings identStrings, bool deferForever, Func<bool> isDisabledDelegate) {
+            Compat_RiskOfOptions.AddOption_String((ConfigEntry<string>)cfe, identStrings,
+                deferForever, isDisabledDelegate);
         }
     }
 
