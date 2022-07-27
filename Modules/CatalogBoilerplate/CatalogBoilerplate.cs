@@ -19,18 +19,20 @@ namespace TILER2 {
         protected virtual string[] GetDescStringArgs(string langID = null) => new string[0];
         protected virtual string[] GetLoreStringArgs(string langID = null) => new string[0];
 
+        Language GetBestLanguage(string langID) => ((langID == null) ? null : Language.FindLanguageByName(langID)) ?? Language.currentLanguage ?? Language.english;
+
         /// <summary>Used by TILER2 to request language token value updates (object name). If langID is null, the request is for the invariant token.</summary>
         protected virtual string GetNameString(string langID = null) =>
-            string.Format((langID != null) ? Language.GetString(nameToken,langID) : Language.GetString(nameToken), GetNameStringArgs(langID));
+            string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(nameToken, GetNameStringArgs(langID)) ?? "Language load error!");
         /// <summary>Used by TILER2 to request language token value updates (pickup text, where applicable). If langID is null, the request is for the invariant token.</summary>
         protected virtual string GetPickupString(string langID = null) =>
-            string.Format((langID != null) ? Language.GetString(pickupToken, langID) : Language.GetString(pickupToken), GetPickupStringArgs(langID));
+            string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(pickupToken, GetPickupStringArgs(langID)) ?? "Language load error!");
         /// <summary>Used by TILER2 to request language token value updates (description text). If langID is null, the request is for the invariant token.</summary>
         protected virtual string GetDescString(string langID = null) =>
-            string.Format((langID != null) ? Language.GetString(descToken, langID) : Language.GetString(descToken), GetDescStringArgs(langID));
+            string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(descToken, GetDescStringArgs(langID)) ?? "Language load error!");
         /// <summary>Used by TILER2 to request language token value updates (lore text, where applicable). If langID is null, the request is for the invariant token.</summary>
         protected virtual string GetLoreString(string langID = null) =>
-            string.Format((langID != null) ? Language.GetString(loreToken, langID) : Language.GetString(loreToken), GetLoreStringArgs(langID));
+            string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(loreToken, GetLoreStringArgs(langID)) ?? "Language load error!");
         /// <summary>Used by TILER2 to request pickup/logbook model updates, where applicable. Return null (default behavior) to keep the original.</summary>
         protected virtual GameObject GetPickupModel() {
             return null;
