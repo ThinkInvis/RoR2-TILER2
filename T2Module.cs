@@ -25,6 +25,7 @@ namespace TILER2 {
         internal static void SetupModuleClass() {
             On.RoR2.Run.Start += On_RunStart;
             On.RoR2.Language.Init += Language_Init;
+            On.RoR2.Language.CCLanguageReload += Language_CCLanguageReload;
         }
 
         private static void On_RunStart(On.RoR2.Run.orig_Start orig, Run self) {
@@ -42,6 +43,18 @@ namespace TILER2 {
                 if(module.enabled)
                     module.InstallLanguage();
             }
+        }
+
+        private static void Language_CCLanguageReload(On.RoR2.Language.orig_CCLanguageReload orig, RoR2.ConCommandArgs args) {
+            foreach(var module in allModules) {
+                if(module.enabled) {
+                    if(module.languageInstalled)
+                        module.UninstallLanguage();
+                    module.InstallLanguage();
+                }
+                module.RefreshPermanentLanguage();
+            }
+            orig(args);
         }
 
         private static readonly FilingDictionary<T2Module> _allModules = new();
