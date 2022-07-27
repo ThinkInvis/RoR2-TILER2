@@ -49,6 +49,10 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.3.1**
+
+- Migrated private method CatalogBoilerplate.GetBestLanguage to public in MiscUtil.
+
 **7.3.0**
 
 - Refactored AutoConfig Risk of Options integration into a much more extensible pattern.
@@ -86,7 +90,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 	- `ir_sim`: with the item rendering scene open, spawns an item's pickup model in the proper place and hides existing models. Accepts numeric index or display name (NOT name token).
 	- `ir_sqm`: with the item rendering scene open, spawns an equipment's pickup model in the proper place and hides existing models. Accepts numeric index or display name (NOT name token).
 - Updated R2API dependency to 4.3.21.
-
-**7.0.1**
-
-- Temporarily switched `Item : CatalogBoilerplate` to use ItemDef.deprecatedTier.

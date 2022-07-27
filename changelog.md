@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**7.3.1**
+
+- Migrated private method CatalogBoilerplate.GetBestLanguage to public in MiscUtil.
+
 **7.3.0**
 
 - Refactored AutoConfig Risk of Options integration into a much more extensible pattern.
