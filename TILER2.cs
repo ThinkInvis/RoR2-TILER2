@@ -46,17 +46,6 @@ namespace TILER2 {
             DebugUtil.Setup();
 
             CommandHelper.AddToConsoleWhenReady();
-
-            On.RoR2.Language.Init += Language_Init;
-        }
-
-        private void Language_Init(On.RoR2.Language.orig_Init orig) {
-            orig();
-            foreach(var module in T2Module.allModules) {
-                module.RefreshPermanentLanguage();
-                if(module.enabled)
-                    module.InstallLanguage();
-            }
         }
 
         private void Start() {
