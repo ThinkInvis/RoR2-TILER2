@@ -418,6 +418,13 @@ namespace TILER2 {
         }
 
         /// <summary>
+        /// Attempt to retrieve the language with the given name, falling back to the current language and then to english.
+        /// </summary>
+        /// <param name="langID">The name of the language to find. If null, fallback languages will be used.</param>
+        /// <returns>The best available language, or null if languages have not been loaded yet.</returns>
+        public static Language GetBestLanguage(string langID) => ((langID == null) ? null : Language.FindLanguageByName(langID)) ?? Language.currentLanguage ?? Language.english;
+
+        /// <summary>
         /// Spawn an item of the given tier at the position of the given CharacterBody.
         /// </summary>
         /// <param name="src">The body to spawn an item from.</param>

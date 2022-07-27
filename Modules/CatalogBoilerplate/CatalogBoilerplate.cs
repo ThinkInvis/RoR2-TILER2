@@ -19,8 +19,6 @@ namespace TILER2 {
         protected virtual string[] GetDescStringArgs(string langID = null) => new string[0];
         protected virtual string[] GetLoreStringArgs(string langID = null) => new string[0];
 
-        Language GetBestLanguage(string langID) => ((langID == null) ? null : Language.FindLanguageByName(langID)) ?? Language.currentLanguage ?? Language.english;
-
         /// <summary>Used by TILER2 to request language token value updates (object name). If langID is null, the request is for the invariant token.</summary>
         protected virtual string GetNameString(string langID = null) =>
             string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(nameToken, GetNameStringArgs(langID)) ?? "Language load error!");
