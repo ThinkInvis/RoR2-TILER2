@@ -71,10 +71,10 @@ namespace TILER2 {
             equipmentDef.name = modInfo.shortIdentifier + name;
             equipmentDef.pickupModelPrefab = modelResource;
             equipmentDef.pickupIconSprite = iconResource;
-            equipmentDef.nameToken = this.nameToken;
-            equipmentDef.pickupToken = this.pickupToken;
-            equipmentDef.descriptionToken = this.descToken;
-            equipmentDef.loreToken = this.loreToken;
+            equipmentDef.nameToken = this.nameToken + "_RENDERED";
+            equipmentDef.pickupToken = this.pickupToken + "_RENDERED";
+            equipmentDef.descriptionToken = this.descToken + "_RENDERED";
+            equipmentDef.loreToken = this.loreToken + "_RENDERED";
             equipmentDef.cooldown = cooldown;
             equipmentDef.enigmaCompatible = isEnigmaCompatible;
             equipmentDef.canBeRandomlyTriggered = canBeRandomlyTriggered;

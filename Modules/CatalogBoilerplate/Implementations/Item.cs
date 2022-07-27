@@ -82,10 +82,10 @@ namespace TILER2 {
             itemDef.deprecatedTier = itemTier;
             itemDef.pickupModelPrefab = modelResource;
             itemDef.pickupIconSprite = iconResource;
-            itemDef.nameToken = this.nameToken;
-            itemDef.pickupToken = this.pickupToken;
-            itemDef.descriptionToken = this.descToken;
-            itemDef.loreToken = this.loreToken;
+            itemDef.nameToken = this.nameToken + "_RENDERED";
+            itemDef.pickupToken = this.pickupToken + "_RENDERED";
+            itemDef.descriptionToken = this.descToken + "_RENDERED";
+            itemDef.loreToken = this.loreToken + "_RENDERED";
             itemDef.tags = iarr;
 
             SetupModifyItemDef();

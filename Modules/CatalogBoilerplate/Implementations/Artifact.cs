@@ -50,8 +50,8 @@ namespace TILER2 {
             base.SetupAttributes();
 
             artifactDef = ScriptableObject.CreateInstance<ArtifactDef>();
-            artifactDef.nameToken = nameToken;
-            artifactDef.descriptionToken = descToken;
+            artifactDef.nameToken = nameToken + "_RENDERED";
+            artifactDef.descriptionToken = descToken + "_RENDERED";
             artifactDef.smallIconDeselectedSprite = iconResourceDisabled;
             artifactDef.smallIconSelectedSprite = iconResource;
 
