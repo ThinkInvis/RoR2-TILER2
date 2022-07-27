@@ -50,11 +50,11 @@ namespace TILER2 {
                         if((bool)args.newValue == true) {
                             if(Run.instance && Run.instance.enabled)
                                 Chat.AddMessage(Language.GetStringFormatted("TILER2_CHAT_ITEM_ENABLED",
-                                        ColorCatalog.GetColorHexString(itemColor), displayName));
+                                        ColorCatalog.GetColorHexString(itemColor), Language.GetString(nameToken + "_RENDERED")));
                         } else {
                             if(Run.instance && Run.instance.enabled)
                                 Chat.AddMessage(Language.GetStringFormatted("TILER2_CHAT_ITEM_DISABLED",
-                                        ColorCatalog.GetColorHexString(itemColor), displayName));
+                                        ColorCatalog.GetColorHexString(itemColor), Language.GetString(nameToken + "_RENDERED")));
                         }
                     }
                 } else if(args.target.boundProperty.Name == nameof(itemIsAIBlacklisted)) {

@@ -1,4 +1,5 @@
 ﻿using RoR2;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static TILER2.MiscUtil;
@@ -108,9 +109,10 @@ namespace TILER2 {
         public GameObject modelResource {get; protected set;} = null;
         ///<summary>A sprite object to use as the object's icon.</summary>
         public Sprite iconResource {get; protected set;} = null;
-        
+
         ///<summary>The object's display name in the mod's default language. Will be used in config files; should also be used in generic language tokens.</summary>
-        public abstract string displayName {get;}
+        [Obsolete("No longer in use. Replaced by LanguageAPI systems: use a language file or similar to define token ModIdent_ClassName_NAME, e.g. MYMOD_MYITEM_NAME.")]
+        public virtual string displayName { get; } = null;
 
         public static void ConsoleDump(BepInEx.Logging.ManualLogSource logger, FilingDictionary<CatalogBoilerplate> instances) {
             int longestClassName = 0;

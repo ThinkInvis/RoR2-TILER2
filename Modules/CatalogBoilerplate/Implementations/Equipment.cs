@@ -53,11 +53,11 @@ namespace TILER2 {
                         if((bool)args.newValue == true) {
                             if(Run.instance && Run.instance.enabled)
                                 Chat.AddMessage(Language.GetStringFormatted("TILER2_CHAT_ITEM_ENABLED",
-                                        ColorCatalog.GetColorHexString(equipmentDef.colorIndex), displayName));
+                                        ColorCatalog.GetColorHexString(equipmentDef.colorIndex), Language.GetString(nameToken + "_RENDERED")));
                         } else {
                             if(Run.instance && Run.instance.enabled)
                                 Chat.AddMessage(Language.GetStringFormatted("TILER2_CHAT_ITEM_DISABLED",
-                                        ColorCatalog.GetColorHexString(equipmentDef.colorIndex), displayName));
+                                        ColorCatalog.GetColorHexString(equipmentDef.colorIndex), Language.GetString(nameToken + "_RENDERED")));
                         }
                     }
                 }

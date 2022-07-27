@@ -30,13 +30,13 @@ namespace TILER2 {
                     if(args.oldValue != args.newValue) {
                         if((bool)args.newValue == true) {
                             if(Run.instance && Run.instance.enabled)
-                                Chat.AddMessage(Language.GetStringFormatted("TILER2_CHAT_ARTIFACT_ENABLED", displayName));
+                                Chat.AddMessage(Language.GetStringFormatted("TILER2_CHAT_ARTIFACT_ENABLED", Language.GetString(nameToken + "_RENDERED")));
                             artifactDef.descriptionToken = descToken;
                             artifactDef.smallIconDeselectedSprite = iconResourceDisabled;
                             artifactDef.smallIconSelectedSprite = iconResource;
                         } else {
                             if(Run.instance && Run.instance.enabled)
-                                Chat.AddMessage(Language.GetStringFormatted("TILER2_CHAT_ARTIFACT_DISABLED", displayName));
+                                Chat.AddMessage(Language.GetStringFormatted("TILER2_CHAT_ARTIFACT_DISABLED", Language.GetString(nameToken + "_RENDERED")));
                             artifactDef.descriptionToken = "TILER2_DISABLED_ARTIFACT";
                             artifactDef.smallIconDeselectedSprite = LegacyResourcesAPI.Load<Sprite>("textures/miscicons/texUnlockIcon");
                             artifactDef.smallIconSelectedSprite = LegacyResourcesAPI.Load<Sprite>("textures/miscicons/texUnlockIcon");
