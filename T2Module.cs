@@ -211,13 +211,8 @@ namespace TILER2 {
                 module.SetupLate();
             }
             foreach(var module in modulesToSetup) {
-                if(installUnmanaged || module.managedEnable) {
-                    module.RefreshPermanentLanguage();
-                    if(module.enabled) {
-                        module.InstallLanguage();
-                        module.Install();
-                    }
-                }
+                if((installUnmanaged || module.managedEnable) && module.enabled)
+                    module.Install();
             }
         }
 
