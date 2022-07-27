@@ -118,16 +118,6 @@ namespace TILER2 {
             };
             RoR2.RoR2Application.onUpdate += UpdateConnections;
 
-            /*On.RoR2.Run.EndStage += (orig, self) => {
-                orig(self);
-                AutoItemConfig.CleanupDirty(false);
-            };*/
-
-            LanguageAPI.Add("TILER2_KICKREASON_NCCRITMISMATCH", "TILER2 NetConfig: unable to resolve some config mismatches.\nSome settings must be synced, but cannot be changed while the game is running. Please check your console window for details.");
-            LanguageAPI.Add("TILER2_KICKREASON_NCTIMEOUT", "TILER2 NetConfig: mismatch check timed out.\nThis may be caused by a mod version mismatch, a network outage, or an error while applying changes.\nIf seeking support for this issue, please make sure to have FULL CONSOLE LOGS from BOTH CLIENT AND SERVER ready to post.");
-            LanguageAPI.Add("TILER2_KICKREASON_NCMISSINGENTRY", "TILER2 NetConfig: mismatch check found missing config entries.\nYou are likely using a different version of a mod than the server.");
-            LanguageAPI.Add("TILER2_DISABLED_ARTIFACT", "This artifact is <color=#ff7777>force-disabled</color>; it will have no effect ingame.");
-
             NetworkingAPI.RegisterMessageType<NetConfigLocalClient.MsgRequestNetConfigAck>();
             NetworkingAPI.RegisterMessageType<NetConfigLocalClient.MsgRequestConfigSyncBegin>();
             NetworkingAPI.RegisterMessageType<NetConfigLocalClient.MsgRequestConfigSyncContinue>();

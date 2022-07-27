@@ -1,0 +1,16 @@
+﻿{
+	"strings": {
+		"TILER2_CONFIG_DISABLED": "<color=#FF0000>[CONFIG DISABLED] </color>",
+		"TILER2_KICKREASON_NCCRITMISMATCH": "TILER2 NetConfig: unable to resolve some config mismatches.\nSome settings must be synced, but cannot be changed while the game is running. Please check your console window for details.",
+        "TILER2_KICKREASON_NCTIMEOUT": "TILER2 NetConfig: mismatch check timed out.\nThis may be caused by a mod version mismatch, a network outage, or an error while applying changes.\nIf seeking support for this issue, please make sure to have FULL CONSOLE LOGS from BOTH CLIENT AND SERVER ready to post.",
+		"TILER2_KICKREASON_NCMISSINGENTRY": "TILER2 NetConfig: mismatch check found missing config entries.\nYou are likely using a different version of a mod than the server.",
+        "TILER2_DISABLED_ARTIFACT": "This artifact is <color=#ff7777>force-disabled</color>; it will have no effect ingame.",
+		"TILER2_CHAT_ARTIFACT_ENABLED": "{0} is <color=#aaffaa>NO LONGER FORCE-DISABLED</color>, and it will now take effect if enabled ingame.",
+		"TILER2_CHAT_ARTIFACT_DISABLED": "{0} has been <color=#ffaaaa>FORCE-DISABLED</color>. If enabled ingame, it will not have any effect."
+		"TILER2_CHAT_ITEM_ENABLED": "<color=#{0}>{1}</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.",
+		"TILER2_CHAT_ITEM_DISABLED": "<color=#{0}>{1}</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.",
+		"TILER2_NETCONFIG_SYNCED": "Synced <color=#ffff00>{0} setting change(s)</color> from the server temporarily. Check the console for details.",
+		"TILER2_NETCONFIG_ERROR_MULTIPATH": "TILER2 NetConfig: There are multiple config entries with the path \"{0}/{1}/{2}\"; this should never happen! Please report this as a bug.",
+		"TILER2_AUTOCONFIG_ANNOUNCE_CHANGE": "The setting <color=#ffffaa>{0}</color> has been changed from <color=#ffaaaa>{1}</color> to <color=#aaffaa>{2}</color>."
+	}
+}

@@ -32,7 +32,7 @@ namespace TILER2 {
             if((e.flags & AutoConfigUpdateActionTypes.InvalidateDropTable) == AutoConfigUpdateActionTypes.InvalidateDropTable)
                 AutoConfigModule.globalDropsDirty = true;
             if(!e.silent && (e.flags & AutoConfigUpdateActionTypes.AnnounceToRun) == AutoConfigUpdateActionTypes.AnnounceToRun && NetworkServer.active)
-                NetUtil.ServerSendGlobalChatMsg($"The setting <color=#ffffaa>{e.target.readablePath}</color> has been changed from <color=#ffaaaa>{e.oldValue}</color> to <color=#aaffaa>{e.newValue}</color>.");
+                NetUtil.ServerSendGlobalChatMsg(Language.GetStringFormatted("TILER2_AUTOCONFIG_ANNOUNCE_CHANGE", e.target.readablePath, e.oldValue, e.newValue));
         }
 
         private static readonly Dictionary<ConfigFile, DateTime> observedFiles = new();

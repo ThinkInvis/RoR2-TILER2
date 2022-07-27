@@ -13,17 +13,23 @@ namespace TILER2 {
         public string descToken {get; private protected set;}
         public string loreToken {get; private protected set;}
 
-        /// <summary>Specifies non-generic languages to scan during language invalidation.</summary>
-        protected virtual string[] extraLanguages => new string[] { };
+        protected virtual string[] GetNameStringArgs(string langID = null) => new string[0];
+        protected virtual string[] GetPickupStringArgs(string langID = null) => new string[0];
+        protected virtual string[] GetDescStringArgs(string langID = null) => new string[0];
+        protected virtual string[] GetLoreStringArgs(string langID = null) => new string[0];
 
         /// <summary>Used by TILER2 to request language token value updates (object name). If langID is null, the request is for the invariant token.</summary>
-        protected abstract string GetNameString(string langID = null);
+        protected virtual string GetNameString(string langID = null) =>
+            string.Format((langID != null) ? Language.GetString(nameToken,langID) : Language.GetString(nameToken), GetNameStringArgs(langID));
         /// <summary>Used by TILER2 to request language token value updates (pickup text, where applicable). If langID is null, the request is for the invariant token.</summary>
-        protected abstract string GetPickupString(string langID = null);
+        protected virtual string GetPickupString(string langID = null) =>
+            string.Format((langID != null) ? Language.GetString(pickupToken, langID) : Language.GetString(pickupToken), GetPickupStringArgs(langID));
         /// <summary>Used by TILER2 to request language token value updates (description text). If langID is null, the request is for the invariant token.</summary>
-        protected abstract string GetDescString(string langID = null);
+        protected virtual string GetDescString(string langID = null) =>
+            string.Format((langID != null) ? Language.GetString(descToken, langID) : Language.GetString(descToken), GetDescStringArgs(langID));
         /// <summary>Used by TILER2 to request language token value updates (lore text, where applicable). If langID is null, the request is for the invariant token.</summary>
-        protected abstract string GetLoreString(string langID = null);
+        protected virtual string GetLoreString(string langID = null) =>
+            string.Format((langID != null) ? Language.GetString(loreToken, langID) : Language.GetString(loreToken), GetLoreStringArgs(langID));
         /// <summary>Used by TILER2 to request pickup/logbook model updates, where applicable. Return null (default behavior) to keep the original.</summary>
         protected virtual GameObject GetPickupModel() {
             return null;
@@ -47,18 +53,20 @@ namespace TILER2 {
         }
 
         public override void RefreshPermanentLanguage() {
-            permanentGenericLanguageTokens[nameToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetNameString();
-            permanentGenericLanguageTokens[pickupToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetPickupString();
-            permanentGenericLanguageTokens[descToken] = (enabled ? "" : $"{LANG_PREFIX_DISABLED}\n") + GetDescString();
-            permanentGenericLanguageTokens[loreToken] = "" + GetLoreString();
+            var ldis = Language.GetString("TILER2_CONFIG_DISABLED");
+            permanentGenericLanguageTokens[nameToken + "_RENDERED"] = (enabled ? "" : ldis) + GetNameString();
+            permanentGenericLanguageTokens[pickupToken + "_RENDERED"] = (enabled ? "" : ldis) + GetPickupString();
+            permanentGenericLanguageTokens[descToken + "_RENDERED"] = (enabled ? "" : $"{ldis}\n") + GetDescString();
+            permanentGenericLanguageTokens[loreToken + "_RENDERED"] = "" + GetLoreString();
 
-            foreach(var lang in extraLanguages) {
+            foreach(var lang in Language.languagesByName.Keys) {
                 if(!specificLanguageTokens.ContainsKey(lang)) permanentSpecificLanguageTokens.Add(lang, new Dictionary<string, string>());
                 var specLang = permanentSpecificLanguageTokens[lang];
-                specLang[nameToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetNameString(lang);
-                specLang[pickupToken] = (enabled ? "" : LANG_PREFIX_DISABLED) + GetPickupString(lang);
-                specLang[descToken] = (enabled ? "" : $"{LANG_PREFIX_DISABLED}\n") + GetDescString(lang);
-                specLang[loreToken] = "" + GetLoreString(lang);
+                var ldisSpec = Language.GetString("TILER2_CONFIG_DISABLED", lang);
+                specLang[nameToken + "_RENDERED"] = (enabled ? "" : ldisSpec) + GetNameString(lang);
+                specLang[pickupToken + "_RENDERED"] = (enabled ? "" : ldisSpec) + GetPickupString(lang);
+                specLang[descToken + "_RENDERED"] = (enabled ? "" : $"{ldisSpec}\n") + GetDescString(lang);
+                specLang[loreToken + "_RENDERED"] = "" + GetLoreString(lang);
             }
 
             base.RefreshPermanentLanguage();
@@ -66,10 +74,10 @@ namespace TILER2 {
 
         public override void SetupAttributes() {
             base.SetupAttributes();
-            nameToken = $"{modInfo.longIdentifier}_{name.ToUpper()}_NAME";
-            descToken = $"{modInfo.longIdentifier}_{name.ToUpper()}_DESC";
-            pickupToken = $"{modInfo.longIdentifier}_{name.ToUpper()}_PICKUP";
-            loreToken = $"{modInfo.longIdentifier}_{name.ToUpper()}_LORE";
+            nameToken = $"{modInfo.longIdentifier.ToUpper()}_{name.ToUpper()}_NAME";
+            descToken = $"{modInfo.longIdentifier.ToUpper()}_{name.ToUpper()}_DESC";
+            pickupToken = $"{modInfo.longIdentifier.ToUpper()}_{name.ToUpper()}_PICKUP";
+            loreToken = $"{modInfo.longIdentifier.ToUpper()}_{name.ToUpper()}_LORE";
         }
 
         public virtual void SetupCatalogReady() { }

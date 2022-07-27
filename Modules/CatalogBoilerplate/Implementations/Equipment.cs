@@ -51,9 +51,13 @@ namespace TILER2 {
                 if(args.target.boundProperty.Name == nameof(enabled)) {
                     if(args.oldValue != args.newValue) {
                         if((bool)args.newValue == true) {
-                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage($"<color=#{ColorCatalog.GetColorHexString(equipmentDef.colorIndex)}>{displayName}</color> has been <color=#aaffaa>ENABLED</color>. It will now drop, and existing copies will start working again.");
+                            if(Run.instance && Run.instance.enabled)
+                                Chat.AddMessage(Language.GetStringFormatted("TILER2_CHAT_ITEM_ENABLED",
+                                        ColorCatalog.GetColorHexString(equipmentDef.colorIndex), displayName));
                         } else {
-                            if(Run.instance != null && Run.instance.enabled) Chat.AddMessage($"<color=#{ColorCatalog.GetColorHexString(equipmentDef.colorIndex)}>{displayName}</color> has been <color=#ffaaaa>DISABLED</color>. It will no longer drop, and existing copies will stop working.");
+                            if(Run.instance && Run.instance.enabled)
+                                Chat.AddMessage(Language.GetStringFormatted("TILER2_CHAT_ITEM_DISABLED",
+                                        ColorCatalog.GetColorHexString(equipmentDef.colorIndex), displayName));
                         }
                     }
                 }

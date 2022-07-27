@@ -60,7 +60,7 @@ namespace TILER2 {
             if(foundCrit) {
                 Debug.LogError("TILER2 NetConfig: The above config entries marked with \"UNRESOLVABLE MISMATCH\" are different on the server, must be identical between server and client, and cannot be changed while the game is running. Close the game, change these entries to match the server's, then restart and rejoin the server.");
                 result = ConfigSyncStatus.SyncFail;
-            } else if(matches > 0) RoR2.Chat.AddMessage($"Synced <color=#ffff00>{matches} setting change{(matches > 1 ? "s" : "")}</color> from the server temporarily. Check the console for details.");
+            } else if(matches > 0) RoR2.Chat.AddMessage(RoR2.Language.GetStringFormatted("TILER2_NETCONFIG_SYNCED", matches));
             if(foundWarn)
                 result = ConfigSyncStatus.SyncWarn;
             new MsgReplyNetConfig(netId, password, result)
@@ -78,7 +78,7 @@ namespace TILER2 {
                 && x.modName == modname;
             });
             if(exactMatches.Count > 1) {
-                var msg = $"TILER2 NetConfig: There are multiple config entries with the path \"{modname}/{category}/{cfgname}\"; this should never happen! Please report this as a bug.";
+                var msg = RoR2.Language.GetStringFormatted("TILER2_NETCONFIG_ERROR_MULTIPATH", modname, category, cfgname);
                 Debug.LogError(msg);
                 //important, make sure user knows
                 RoR2.Chat.AddMessage(msg);

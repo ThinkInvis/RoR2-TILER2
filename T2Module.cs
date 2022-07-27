@@ -22,8 +22,6 @@ namespace TILER2 {
     /// Provides a relatively low-extra-code pattern for dividing a mod into smaller modules, each of which has its own config category managed by TILER2.AutoConfig.
     /// </summary>
     public abstract class T2Module : AutoConfigContainer {
-        public const string LANG_PREFIX_DISABLED = "<color=#FF0000>[CONFIG DISABLED] </color>";
-
         internal static void SetupModuleClass() {
             On.RoR2.Run.Start += On_RunStart;
         }
