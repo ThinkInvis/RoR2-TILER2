@@ -41,7 +41,7 @@ namespace TILER2 {
             }
             if(globalLanguageDirty) {
                 globalLanguageDirty = false;
-                Language.CCLanguageReload(new ConCommandArgs());
+                Language.SetCurrentLanguage(Language.currentLanguageName);
             }
         }
 
