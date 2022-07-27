@@ -61,7 +61,7 @@ namespace TILER2 {
             permanentGenericLanguageTokens[loreToken + "_RENDERED"] = "" + GetLoreString();
 
             foreach(var lang in Language.languagesByName.Keys) {
-                if(!specificLanguageTokens.ContainsKey(lang)) permanentSpecificLanguageTokens.Add(lang, new Dictionary<string, string>());
+                if(!permanentSpecificLanguageTokens.ContainsKey(lang)) permanentSpecificLanguageTokens.Add(lang, new Dictionary<string, string>());
                 var specLang = permanentSpecificLanguageTokens[lang];
                 var ldisSpec = Language.GetString("TILER2_CONFIG_DISABLED", lang);
                 specLang[nameToken + "_RENDERED"] = (enabled ? "" : ldisSpec) + GetNameString(lang);
