@@ -1,5 +1,16 @@
 ﻿# TILER2 Changelog
 
+**7.3.0**
+
+- Refactored AutoConfig Risk of Options integration into a much more extensible pattern.
+	- Attributes inheriting from `BaseAutoConfigRoOAttribute` will be automatically scanned during `AutoConfigContainer.BindRoO()`.
+- Overhauled CatalogBoilerplate language systems to work with R2API.LanguageAPI's language file auto-loading.
+	- Non-breaking change: `GetNameString()` et. al. remain in place, and are now virtual instead of abstract.
+	- Default behavior is to read tokens with old names ("ModName_ItemName_NAME"), and use the new methods `GetNameStringArgs()` et. al. to retrieve strings to insert during interpolation into a rendered-at-runtime token ("ModName_ItemName_NAME_RENDERED").
+		- ItemDefs, EquipmentDefs, etc. now use these rendered tokens.
+- Language tokens managed by TILER2 are now completely rebuilt and reloaded during ConCmd language_reload.
+- Also migrated some internal strings (mostly in NetConfig/AutoConfig) to language tokens.
+
 **7.2.1**
 
 - Added a performance option to hide duplicate or all Item Ward displays.

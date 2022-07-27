@@ -49,6 +49,17 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.3.0**
+
+- Refactored AutoConfig Risk of Options integration into a much more extensible pattern.
+	- Attributes inheriting from `BaseAutoConfigRoOAttribute` will be automatically scanned during `AutoConfigContainer.BindRoO()`.
+- Overhauled CatalogBoilerplate language systems to work with R2API.LanguageAPI's language file auto-loading.
+	- Non-breaking change: `GetNameString()` et. al. remain in place, and are now virtual instead of abstract.
+	- Default behavior is to read tokens with old names ("ModName_ItemName_NAME"), and use the new methods `GetNameStringArgs()` et. al. to retrieve strings to insert during interpolation into a rendered-at-runtime token ("ModName_ItemName_NAME_RENDERED").
+		- ItemDefs, EquipmentDefs, etc. now use these rendered tokens.
+- Language tokens managed by TILER2 are now completely rebuilt and reloaded during ConCmd language_reload.
+- Also migrated some internal strings (mostly in NetConfig/AutoConfig) to language tokens.
+
 **7.2.1**
 
 - Added a performance option to hide duplicate or all Item Ward displays.
@@ -79,15 +90,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **7.0.1**
 
 - Temporarily switched `Item : CatalogBoilerplate` to use ItemDef.deprecatedTier.
-
-**7.0.0**
-
-- BREAKING CHANGES:
-	- Removed obsolete ItemStats and BetterUI support code.
-	- `Equipment : CatalogBoilerplate` now adds restart-required config entries for `isEnigmaCompatible` and `canBeRandomlyTriggered`. Added setters to these properties, which were previously getter-only; may require a recompile.
-- Added RiskOfOptions integration to AutoConfig as a new category of attributes. Apply with e.g. `[AutoConfigRoOCheckbox()]`.
-	- Implemented by default on `T2Module.enabled`, `Item.itemIsAIBlacklisted`, `Equipment.isEnigmaCompatible`, `Equipment.canBeRandomlyTriggered`, and `Equipment.cooldown`.
-- CatalogBoilerplate implementations now expose a substage for modifying the ItemDef/EquipmentDef/ArtifactDef before registration with R2API (`public virtual void SetupModify[x]Def()`).
-- CatalogBoilerplate now exposes a substage for firing an event when the catalog is ready (`public virtual void SetupCatalogReady()`).
-- Lots of behind-the-scenes VS warning/message cleanup.
-- Updated for latest RoR2 version.
