@@ -61,11 +61,11 @@ namespace TILER2 {
         None = 0,
         ///<summary>If UNSET (default): expects acceptableValues to contain 0 or 2 values, which will be added to an AcceptableValueRange. If SET: an AcceptableValueList will be used instead.</summary>
         AVIsList = 1 << 0,
-        ///<summary>(TODO: needs testing) If SET: will cache config changes, through auto-update or otherwise, and prevent them from applying to the attached property until the next stage transition.</summary>
+        ///<summary>If SET: will cache config changes, through auto-update or otherwise, and prevent them from applying to the attached property until the next stage transition.</summary>
         DeferUntilNextStage = 1 << 1,
-        ///<summary>(TODO: needs testing) If SET: will cache config changes, through auto-update or otherwise, and prevent them from applying to the attached property while there is an active run. Takes precedence over DeferUntilNextStage and PreventConCmd.</summary>
+        ///<summary>If SET: will cache config changes, through auto-update or otherwise, and prevent them from applying to the attached property while there is an active run. Takes precedence over DeferUntilNextStage and PreventConCmd.</summary>
         DeferUntilEndGame = 1 << 2,
-        ///<summary>(TODO: needs testing) If SET: the attached property will never be changed by config. If combined with PreventNetMismatch, mismatches will cause the client to be kicked. Takes precedence over DeferUntilNextStage, DeferUntilEndGame, and PreventConCmd.</summary>
+        ///<summary>If SET: the attached property will never be changed by config, only read once during game startup. If combined with PreventNetMismatch, mismatches will cause the client to be kicked. Takes precedence over DeferUntilNextStage, DeferUntilEndGame, and PreventConCmd.</summary>
         DeferForever = 1 << 3,
         ///<summary>If SET: will prevent the AIC_set console command from being used on this AutoConfig.</summary>
         PreventConCmd = 1 << 4,
