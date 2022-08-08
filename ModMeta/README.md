@@ -49,6 +49,14 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.3.2**
+
+- Various fixes and improvements to ConCmds `ir_sim` and `ir_sqm`:
+	- Fixed hiding the entire model placeholder instead of individual models.
+	- Fixed failing if the model placeholder is inactive but present.
+	- Now searches by internal code name instead of by language token lookup (latter failed inexplicably in some cases).
+- For developers: NuGet config is now localized (building project no longer requires end-user modification of system or directory NuGet config).
+
 **7.3.1**
 
 - Migrated private method CatalogBoilerplate.GetBestLanguage to public in MiscUtil.
@@ -80,13 +88,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - Removed remaining unused BetterUI references.
 - Updated lang version to C#9 and implemented its features for some minor project cleanup.
 - Updated dependencies.
-
-**7.1.0**
-
-- Fixed a typo in `MiscUtil.Remap` that caused incorrect behavior (was adding `maxTo` to result as final step, should have been `minTo`).
-- Added method `MiscUtil.ModifyVanillaPrefab(string addressablePath, string newName, bool shouldNetwork, Func&lt;GameObject, GameObject&gt;)` for concise modification of vanilla prefabs using R2API.PrefabAPI.
-- Added new ConCmds to DebugUtil module for rendering items:
-	- `goto_itemrender`: opens the internal item rendering scene. Cannot be used while a run is active.
-	- `ir_sim`: with the item rendering scene open, spawns an item's pickup model in the proper place and hides existing models. Accepts numeric index or display name (NOT name token).
-	- `ir_sqm`: with the item rendering scene open, spawns an equipment's pickup model in the proper place and hides existing models. Accepts numeric index or display name (NOT name token).
-- Updated R2API dependency to 4.3.21.

@@ -1,6 +1,6 @@
 {
   "name": "TILER2",
-  "version_number": "7.3.1",
+  "version_number": "7.3.2",
   "website_url": "https://github.com/ThinkInvis/RoR2-TILER2",
   "description": "ThinkInvisible's Library of Extras for RoR2 -- modularization/boilerplate and multiplayer config sync tools for other mods.",
   "dependencies": [

@@ -1,5 +1,13 @@
 ﻿# TILER2 Changelog
 
+**7.3.2**
+
+- Various fixes and improvements to ConCmds `ir_sim` and `ir_sqm`:
+	- Fixed hiding the entire model placeholder instead of individual models.
+	- Fixed failing if the model placeholder is inactive but present.
+	- Now searches by internal code name instead of by language token lookup (latter failed inexplicably in some cases).
+- For developers: NuGet config is now localized (building project no longer requires end-user modification of system or directory NuGet config).
+
 **7.3.1**
 
 - Migrated private method CatalogBoilerplate.GetBestLanguage to public in MiscUtil.
