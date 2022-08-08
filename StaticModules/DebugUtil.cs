@@ -6,6 +6,7 @@ using System.Reflection;
 using R2API.Utils;
 using System.Collections.Generic;
 using UnityEngine.AddressableAssets;
+using UnityEngine.SceneManagement;
 
 namespace TILER2 {
     internal static class DebugUtil {
@@ -27,7 +28,7 @@ namespace TILER2 {
         [ConCommand(commandName = "ir_sim", helpText = "Spawns an item's entire pickup model, for use with the item rendering scene and a runtime inspector.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private static void CCSpawnItemModel(ConCommandArgs args) {
-            var igh = GameObject.Find("ITEM GOES HERE (can offset from here)");
+            var igh = SceneManager.GetActiveScene().GetRootGameObjects().FirstOrDefault(o => o.name == "ITEM GOES HERE (can offset from here)");
             if(Run.instance || !igh) {
                 Debug.LogError("Cannot spawn an item model outside the item render scene (use concmd goto_itemrender).");
                 return;
@@ -50,8 +51,7 @@ namespace TILER2 {
                 }
             } else {
                 var results = ItemCatalog.allItems.Where((ind) => {
-                    var iNameToken = ItemCatalog.GetItemDef(ind).nameToken;
-                    var iName = Language.GetString(iNameToken);
+                    var iName = ItemCatalog.GetItemDef(ind).name;
                     return iName.ToUpper().Contains(itemSearch.ToUpper());
                 });
                 if(results.Count() < 1) {
@@ -68,8 +68,8 @@ namespace TILER2 {
             var idefModel = idef.pickupModelPrefab;
 
             foreach(Transform child in igh.transform) {
-                if(igh)
-                    igh.gameObject.SetActive(false);
+                if(child)
+                    child.gameObject.SetActive(false);
             }
 
             GameObject.Instantiate(idefModel, igh.transform);
@@ -78,7 +78,7 @@ namespace TILER2 {
         [ConCommand(commandName = "ir_sqm", helpText = "Spawns an equipment's entire pickup model, for use with the item rendering scene and a runtime inspector.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private static void CCSpawnEquipmentModel(ConCommandArgs args) {
-            var igh = GameObject.Find("ITEM GOES HERE (can offset from here)");
+            var igh = SceneManager.GetActiveScene().GetRootGameObjects().FirstOrDefault(o => o.name == "ITEM GOES HERE (can offset from here)");
             if(Run.instance || !igh) {
                 Debug.LogError("Cannot spawn an equipment model outside the item render scene (use concmd goto_itemrender).");
                 return;
@@ -101,8 +101,7 @@ namespace TILER2 {
                 }
             } else {
                 var results = EquipmentCatalog.allEquipment.Where((ind) => {
-                    var iNameToken = EquipmentCatalog.GetEquipmentDef(ind).nameToken;
-                    var iName = Language.GetString(iNameToken);
+                    var iName = EquipmentCatalog.GetEquipmentDef(ind).name;
                     return iName.ToUpper().Contains(itemSearch.ToUpper());
                 });
                 if(results.Count() < 1) {
@@ -119,8 +118,8 @@ namespace TILER2 {
             var idefModel = idef.pickupModelPrefab;
 
             foreach(Transform child in igh.transform) {
-                if(igh)
-                    igh.gameObject.SetActive(false);
+                if(child)
+                    child.gameObject.SetActive(false);
             }
 
             GameObject.Instantiate(idefModel, igh.transform);
