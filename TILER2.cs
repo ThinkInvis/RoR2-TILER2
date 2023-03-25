@@ -4,6 +4,8 @@ using R2API;
 using BepInEx.Configuration;
 using static TILER2.MiscUtil;
 
+[assembly: HG.Reflection.SearchableAttribute.OptIn]
+
 namespace TILER2 {
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [BepInPlugin(ModGuid, ModName, ModVer)]
@@ -11,7 +13,7 @@ namespace TILER2 {
     [BepInDependency("com.funkfrog_sipondo.sharesuite",BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.rune580.riskofoptions", BepInDependency.DependencyFlags.SoftDependency)]
     [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI),
-        nameof(PrefabAPI), nameof(CommandHelper), nameof(R2API.Networking.NetworkingAPI))]
+        nameof(PrefabAPI), nameof(R2API.Networking.NetworkingAPI))]
     public class TILER2Plugin:BaseUnityPlugin {
         public const string ModVer = "7.3.2";
         public const string ModName = "TILER2";
@@ -44,8 +46,6 @@ namespace TILER2 {
             NetUtil.Setup();
             MiscUtil.Setup();
             DebugUtil.Setup();
-
-            CommandHelper.AddToConsoleWhenReady();
         }
 
         private void Start() {
