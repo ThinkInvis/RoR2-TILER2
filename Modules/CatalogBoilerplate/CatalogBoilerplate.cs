@@ -9,10 +9,10 @@ namespace TILER2 {
     /// A wrapper for T2Module that provides some fields/properties common to most RoR2 catalog types.
     /// </summary>
     public abstract class CatalogBoilerplate : T2Module {
-        public string nameToken {get; private protected set;}
-        public string pickupToken {get; private protected set;}
-        public string descToken {get; private protected set;}
-        public string loreToken {get; private protected set;}
+        public string nameToken { get; private protected set; }
+        public string pickupToken { get; private protected set; }
+        public string descToken { get; private protected set; }
+        public string loreToken { get; private protected set; }
 
         protected virtual string[] GetNameStringArgs(string langID = null) => new string[0];
         protected virtual string[] GetPickupStringArgs(string langID = null) => new string[0];
@@ -20,17 +20,41 @@ namespace TILER2 {
         protected virtual string[] GetLoreStringArgs(string langID = null) => new string[0];
 
         /// <summary>Used by TILER2 to request language token value updates (object name). If langID is null, the request is for the invariant token.</summary>
-        protected virtual string GetNameString(string langID = null) =>
-            string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(nameToken ?? "Language load error! (null token)", GetNameStringArgs(langID)) ?? "Language load error!");
+        protected virtual string GetNameString(string langID = null) {
+            try {
+                return string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(nameToken ?? "Language load error! (null token)", GetNameStringArgs(langID)) ?? "Language load error!");
+            } catch(FormatException) {
+                TILER2Plugin._logger.LogError($"Argument count mismatch while retrieving string {nameToken}");
+                return $"Language load error! (argument count mismatch; expected {GetNameStringArgs(langID).Length} total)";
+            }
+        }
         /// <summary>Used by TILER2 to request language token value updates (pickup text, where applicable). If langID is null, the request is for the invariant token.</summary>
-        protected virtual string GetPickupString(string langID = null) =>
-            string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(pickupToken ?? "Language load error! (null token)", GetPickupStringArgs(langID)) ?? "Language load error!");
+        protected virtual string GetPickupString(string langID = null) {
+            try {
+                return string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(pickupToken ?? "Language load error! (null token)", GetPickupStringArgs(langID)) ?? "Language load error!");
+            } catch(FormatException) {
+                TILER2Plugin._logger.LogError($"Argument count mismatch while retrieving string {pickupToken}");
+                return $"Language load error! (argument count mismatch; expected {GetPickupStringArgs(langID).Length} total)";
+            }
+        }
         /// <summary>Used by TILER2 to request language token value updates (description text). If langID is null, the request is for the invariant token.</summary>
-        protected virtual string GetDescString(string langID = null) =>
-            string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(descToken ?? "Language load error! (null token)", GetDescStringArgs(langID)) ?? "Language load error!");
+        protected virtual string GetDescString(string langID = null) {
+            try {
+                return string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(descToken ?? "Language load error! (null token)", GetDescStringArgs(langID)) ?? "Language load error!");
+            } catch(FormatException) {
+                TILER2Plugin._logger.LogError($"Argument count mismatch while retrieving string {descToken}");
+                return $"Language load error! (argument count mismatch; expected {GetDescStringArgs(langID).Length} total)";
+            }
+        }
         /// <summary>Used by TILER2 to request language token value updates (lore text, where applicable). If langID is null, the request is for the invariant token.</summary>
-        protected virtual string GetLoreString(string langID = null) =>
-            string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(loreToken ?? "Language load error! (null token)", GetLoreStringArgs(langID)) ?? "Language load error!");
+        protected virtual string GetLoreString(string langID = null) {
+            try {
+                return string.Format(GetBestLanguage(langID)?.GetLocalizedFormattedStringByToken(loreToken ?? "Language load error! (null token)", GetLoreStringArgs(langID)) ?? "Language load error!");
+            } catch(FormatException) {
+                TILER2Plugin._logger.LogError($"Argument count mismatch while retrieving string {loreToken}");
+                return $"Language load error! (argument count mismatch; expected {GetLoreStringArgs(langID).Length} total)";
+            }
+        }
         /// <summary>Used by TILER2 to request pickup/logbook model updates, where applicable. Return null (default behavior) to keep the original.</summary>
         protected virtual GameObject GetPickupModel() {
             return null;
