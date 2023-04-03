@@ -1,5 +1,12 @@
 ﻿# TILER2 Changelog
 
+**7.3.3**
+
+- Fixed a potential cascading error while trying to set up language for a CatalogBoilerplate which never received name tokens.
+- Updated R2API dependency to 5.0.6 (now using split assembly).
+	- Replaced deprecated R2API.CommandHelper with base RoR2's SearchableAttribute.
+- Updated BepInExPack dependency to 5.4.2103.
+
 **7.3.2**
 
 - Various fixes and improvements to ConCmds `ir_sim` and `ir_sqm`:

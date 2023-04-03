@@ -49,6 +49,13 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.3.3**
+
+- Fixed a potential cascading error while trying to set up language for a CatalogBoilerplate which never received name tokens.
+- Updated R2API dependency to 5.0.6 (now using split assembly).
+	- Replaced deprecated R2API.CommandHelper with base RoR2's SearchableAttribute.
+- Updated BepInExPack dependency to 5.4.2103.
+
 **7.3.2**
 
 - Various fixes and improvements to ConCmds `ir_sim` and `ir_sqm`:
@@ -77,14 +84,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - Added a performance option to hide duplicate or all Item Ward displays.
 - Patched a null safety hole in MiscUtil.GetRootWithLocators.
 - Removed some unused BepInEx plugin soft dependency flags.
-
-**7.2.0**
-
-- Added barebones config preset support to the AutoConfig module.
-	- See `AutoConfigPresetAttribute`, `AutoConfigContainer.ApplyPreset()`.
-- Added support for Risk of Options buttons.
-	- No attribute, must use `Compat_RiskOfOptions.AddOption_Button()` manually.
-- Publicized `AutoConfigContainer.FindConfig()`.
-- Removed remaining unused BetterUI references.
-- Updated lang version to C#9 and implemented its features for some minor project cleanup.
-- Updated dependencies.
