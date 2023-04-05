@@ -1,5 +1,10 @@
 ﻿# TILER2 Changelog
 
+**7.3.4**
+
+- CatalogBoilerplate language setup should no longer be able to cause a game-load-halting error if a token requests an unexpected number of sub-tokens.
+- Fixed incorrect assembly version string from last version (kind of a moot point now).
+
 **7.3.3**
 
 - Fixed a potential cascading error while trying to set up language for a CatalogBoilerplate which never received name tokens.

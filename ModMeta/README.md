@@ -49,6 +49,11 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.3.4**
+
+- CatalogBoilerplate language setup should no longer be able to cause a game-load-halting error if a token requests an unexpected number of sub-tokens.
+- Fixed incorrect assembly version string from last version (kind of a moot point now).
+
 **7.3.3**
 
 - Fixed a potential cascading error while trying to set up language for a CatalogBoilerplate which never received name tokens.
@@ -78,9 +83,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 		- ItemDefs, EquipmentDefs, etc. now use these rendered tokens.
 - Language tokens managed by TILER2 are now completely rebuilt and reloaded during ConCmd language_reload.
 - Also migrated some internal strings (mostly in NetConfig/AutoConfig) to language tokens.
-
-**7.2.1**
-
-- Added a performance option to hide duplicate or all Item Ward displays.
-- Patched a null safety hole in MiscUtil.GetRootWithLocators.
-- Removed some unused BepInEx plugin soft dependency flags.
