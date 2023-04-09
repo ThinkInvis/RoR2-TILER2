@@ -49,6 +49,10 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.3.5**
+
+- All stock CatalogBoilerplate implementations (Item, Equipment, Artifact) now add an automatic readonly config entry displaying the relevant content's name token and internal name.
+
 **7.3.4**
 
 - CatalogBoilerplate language setup should no longer be able to cause a game-load-halting error if a token requests an unexpected number of sub-tokens.
@@ -72,14 +76,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **7.3.1**
 
 - Migrated private method CatalogBoilerplate.GetBestLanguage to public in MiscUtil.
-
-**7.3.0**
-
-- Refactored AutoConfig Risk of Options integration into a much more extensible pattern.
-	- Attributes inheriting from `BaseAutoConfigRoOAttribute` will be automatically scanned during `AutoConfigContainer.BindRoO()`.
-- Overhauled CatalogBoilerplate language systems to work with R2API.LanguageAPI's language file auto-loading.
-	- Non-breaking change: `GetNameString()` et. al. remain in place, and are now virtual instead of abstract.
-	- Default behavior is to read tokens with old names ("ModName_ItemName_NAME"), and use the new methods `GetNameStringArgs()` et. al. to retrieve strings to insert during interpolation into a rendered-at-runtime token ("ModName_ItemName_NAME_RENDERED").
-		- ItemDefs, EquipmentDefs, etc. now use these rendered tokens.
-- Language tokens managed by TILER2 are now completely rebuilt and reloaded during ConCmd language_reload.
-- Also migrated some internal strings (mostly in NetConfig/AutoConfig) to language tokens.

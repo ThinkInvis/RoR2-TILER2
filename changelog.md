@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**7.3.5**
+
+- All stock CatalogBoilerplate implementations (Item, Equipment, Artifact) now add an automatic readonly config entry displaying the relevant content's name token and internal name.
+
 **7.3.4**
 
 - CatalogBoilerplate language setup should no longer be able to cause a game-load-halting error if a token requests an unexpected number of sub-tokens.
