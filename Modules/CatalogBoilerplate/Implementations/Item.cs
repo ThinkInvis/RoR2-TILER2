@@ -29,7 +29,15 @@ namespace TILER2 {
         public ItemDef itemDef {get; private set;}
         public CustomItem customItem {get; private set;}
 
-        public abstract ItemTier itemTier {get;}
+        public abstract ItemTier itemTier {get; }
+
+        [AutoConfigRoOString()]
+        [AutoConfig("The internal name of this item for use in other config entries. No effect if changed; will be reset on game launch.")]
+        public virtual string configNameInternal { get; protected set; } = null;
+
+        [AutoConfigRoOString()]
+        [AutoConfig("The name token of this item for use in other config entries. No effect if changed; will be reset on game launch.")]
+        public virtual string configNameToken { get; protected set; } = null;
 
         [AutoConfigRoOCheckbox()]
         [AutoConfig("If true, the item will not be given to enemies by Evolution nor in the arena map, and it will not be found by Scavengers.")]
@@ -96,6 +104,16 @@ namespace TILER2 {
             ItemAPI.Add(customItem);
 
             ItemCatalog.availability.CallWhenAvailable(this.SetupCatalogReady);
+        }
+
+        public override void SetupCatalogReady() {
+            base.SetupCatalogReady();
+            var ce1 = bindings.Find(x => x.boundProperty.Name == nameof(configNameInternal)).configEntry;
+            ce1.BoxedValue = this.itemDef.name;
+            if(!ce1.ConfigFile.SaveOnConfigSet) ce1.ConfigFile.Save();
+            var ce2 = bindings.Find(x => x.boundProperty.Name == nameof(configNameToken)).configEntry;
+            ce2.BoxedValue = this.itemDef.nameToken;
+            if(!ce2.ConfigFile.SaveOnConfigSet) ce2.ConfigFile.Save();
         }
 
         public virtual void SetupModifyItemDef() { }

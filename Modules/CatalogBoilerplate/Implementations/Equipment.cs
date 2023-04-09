@@ -30,6 +30,14 @@ namespace TILER2 {
 
         protected ItemDisplayRuleDict displayRules = new();
 
+        [AutoConfigRoOString()]
+        [AutoConfig("The internal name of this equipment for use in other config entries. No effect if changed; will be reset on game launch.")]
+        public virtual string configNameInternal { get; protected set; } = null;
+
+        [AutoConfigRoOString()]
+        [AutoConfig("The name token of this equipment for use in other config entries. No effect if changed; will be reset on game launch.")]
+        public virtual string configNameToken { get; protected set; } = null;
+
         [AutoConfigRoOSlider("{0:N0} s", 0f, 300f)]
         [AutoConfig("The base cooldown of the equipment, in seconds.", AutoConfigFlags.DeferUntilNextStage, 0f, float.MaxValue)]
         public virtual float cooldown {get; protected set;} = 45f; //TODO: add a getter function to update ingame cooldown properly if in use; marked as DeferUntilNextStage until then
@@ -89,6 +97,16 @@ namespace TILER2 {
             ItemAPI.Add(customEquipment);
 
             EquipmentCatalog.availability.CallWhenAvailable(this.SetupCatalogReady);
+        }
+
+        public override void SetupCatalogReady() {
+            base.SetupCatalogReady();
+            var ce1 = bindings.Find(x => x.boundProperty.Name == nameof(configNameInternal)).configEntry;
+            ce1.BoxedValue = this.equipmentDef.name;
+            if(!ce1.ConfigFile.SaveOnConfigSet) ce1.ConfigFile.Save();
+            var ce2 = bindings.Find(x => x.boundProperty.Name == nameof(configNameToken)).configEntry;
+            ce2.BoxedValue = this.equipmentDef.nameToken;
+            if(!ce2.ConfigFile.SaveOnConfigSet) ce2.ConfigFile.Save();
         }
 
         public virtual void SetupModifyEquipmentDef() { }

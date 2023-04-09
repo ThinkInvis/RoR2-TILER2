@@ -21,8 +21,16 @@ namespace TILER2 {
         public Sprite iconResourceDisabled {get; protected set;} = null;
 
         public ArtifactIndex catalogIndex => artifactDef.artifactIndex;
-        public ArtifactDef artifactDef {get; private set;}
-        
+        public ArtifactDef artifactDef {get; private set; }
+
+        [AutoConfigRoOString()]
+        [AutoConfig("The internal name of this artifact for use in other config entries. No effect if changed; will be reset on game launch.")]
+        public virtual string configNameInternal { get; protected set; } = null;
+
+        [AutoConfigRoOString()]
+        [AutoConfig("The name token of this artifact for use in other config entries. No effect if changed; will be reset on game launch.")]
+        public virtual string configNameToken { get; protected set; } = null;
+
         public override void SetupConfig() {
             base.SetupConfig();
             ConfigEntryChanged += (sender, args) => {
@@ -60,6 +68,16 @@ namespace TILER2 {
             ContentAddition.AddArtifactDef(artifactDef);
 
             ArtifactCatalog.availability.CallWhenAvailable(this.SetupCatalogReady);
+        }
+
+        public override void SetupCatalogReady() {
+            base.SetupCatalogReady();
+            var ce1 = bindings.Find(x => x.boundProperty.Name == nameof(configNameInternal)).configEntry;
+            ce1.BoxedValue = this.artifactDef.cachedName;
+            if(!ce1.ConfigFile.SaveOnConfigSet) ce1.ConfigFile.Save();
+            var ce2 = bindings.Find(x => x.boundProperty.Name == nameof(configNameToken)).configEntry;
+            ce2.BoxedValue = this.artifactDef.nameToken;
+            if(!ce2.ConfigFile.SaveOnConfigSet) ce2.ConfigFile.Save();
         }
 
         public virtual void SetupModifyArtifactDef() {}
