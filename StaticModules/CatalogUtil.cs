@@ -20,6 +20,7 @@ namespace TILER2 {
     public static class CatalogUtil {
         public static bool TryGetItemDef(PickupIndex pickupIndex, out ItemDef itemDef) {
             itemDef = null;
+            if(pickupIndex == PickupIndex.none) return false;
             var pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
             if(pickupDef == null || pickupDef.itemIndex == ItemIndex.None) return false;
             itemDef = ItemCatalog.GetItemDef(pickupDef.itemIndex);
@@ -40,6 +41,7 @@ namespace TILER2 {
 
         public static bool TryGetEquipmentDef(PickupIndex pickupIndex, out EquipmentDef equipmentDef) {
             equipmentDef = null;
+            if(pickupIndex == PickupIndex.none) return false;
             var pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
             if(pickupDef == null || pickupDef.equipmentIndex == EquipmentIndex.None) return false;
             equipmentDef = EquipmentCatalog.GetEquipmentDef(pickupDef.equipmentIndex);
