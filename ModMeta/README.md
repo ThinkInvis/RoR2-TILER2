@@ -49,6 +49,10 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.4.0**
+
+- Added the CatalogUtil static module, containing `TryGetItemDef` and `TryGetEquipmentDef` methods.
+
 **7.3.5**
 
 - All stock CatalogBoilerplate implementations (Item, Equipment, Artifact) now add an automatic readonly config entry displaying the relevant content's name token and internal name.
@@ -72,7 +76,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 	- Fixed failing if the model placeholder is inactive but present.
 	- Now searches by internal code name instead of by language token lookup (latter failed inexplicably in some cases).
 - For developers: NuGet config is now localized (building project no longer requires end-user modification of system or directory NuGet config).
-
-**7.3.1**
-
-- Migrated private method CatalogBoilerplate.GetBestLanguage to public in MiscUtil.

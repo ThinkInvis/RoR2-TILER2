@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**7.4.0**
+
+- Added the CatalogUtil static module, containing `TryGetItemDef` and `TryGetEquipmentDef` methods.
+
 **7.3.5**
 
 - All stock CatalogBoilerplate implementations (Item, Equipment, Artifact) now add an automatic readonly config entry displaying the relevant content's name token and internal name.
