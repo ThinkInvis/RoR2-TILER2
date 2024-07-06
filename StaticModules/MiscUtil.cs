@@ -69,6 +69,7 @@ namespace TILER2 {
                 c.Emit(OpCodes.Ldloc, graphind);
                 c.Emit(OpCodes.Ldloc, instind);
                 c.EmitDelegate<Action<NodeGraph.NodeIndex, NodeGraph, GameObject>>((ind,graph,res)=>{
+                    if(!res) return;
                     var cpt = res.gameObject.GetComponent<NodeOccupationInfo>();
                     if(!cpt) cpt = res.gameObject.AddComponent<NodeOccupationInfo>();
                     cpt._indices.Add(new KeyValuePair<NodeGraph, NodeGraph.NodeIndex>(graph, ind));
