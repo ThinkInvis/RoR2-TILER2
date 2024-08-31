@@ -125,7 +125,7 @@ namespace TILER2 {
         /// <param name="unlockableDef">An unlockable which should restrict access to this variant until unlocked. Default value results in no unlockable.</param>
         public static void AddVariant(this SkillFamily targetFamily, SkillDef newDef, UnlockableDef unlockableDef = null) {
             Array.Resize(ref targetFamily.variants, targetFamily.variants.Length + 1);
-            targetFamily.variants[targetFamily.variants.Length - 1] = new SkillFamily.Variant {
+            targetFamily.variants[^1] = new SkillFamily.Variant {
                 skillDef = newDef,
                 viewableNode = new ViewablesCatalog.Node(newDef.skillNameToken, false, null),
                 unlockableDef = unlockableDef

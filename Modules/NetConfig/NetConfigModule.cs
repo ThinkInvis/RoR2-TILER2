@@ -350,7 +350,7 @@ namespace TILER2 {
                 return;
             }
 
-            var convStr = args[args.Count - 1];
+            var convStr = args[^1];
 
             object convObj;
             try {

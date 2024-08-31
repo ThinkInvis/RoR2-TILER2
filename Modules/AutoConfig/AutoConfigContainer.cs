@@ -71,7 +71,7 @@ namespace TILER2 {
         /// Supported tags: AIC.Prop.[PropName], AIC.Field.[FieldName], AIC.DictKey, AIC.DictInd, AIC.DictKeyProp.[PropName], AIC.DictKeyField.[FieldName]</summary>
         private string ReplaceTags(string orig, PropertyInfo prop, string categoryName, BindSubDictInfo? subDict = null) {
             return Regex.Replace(orig, @"<AIC.([a-zA-Z\.]+)>", (m)=>{
-                string[] strParams = Regex.Split(m.Groups[0].Value.Substring(1, m.Groups[0].Value.Length - 2), @"(?<!\\)\.");;
+                string[] strParams = Regex.Split(m.Groups[0].Value[1..^1], @"(?<!\\)\.");;
                 if(strParams.Length < 2) return m.Value;
                 var errorStr = $"AutoConfigContainer.Bind on property {prop.Name} in category {categoryName}: malformed string param \"{m.Value}\" ";
                 switch(strParams[1]) {
@@ -209,7 +209,7 @@ namespace TILER2 {
             string cfgName = attrib.name;
             if(cfgName != null) {
                 cfgName = ReplaceTags(cfgName, prop, categoryName, subDict);
-            } else cfgName = $"{char.ToUpperInvariant(prop.Name[0])}{prop.Name.Substring(1)}{(subDict.HasValue ? ":" + subDict.Value.index : "")}";
+            } else cfgName = $"{char.ToUpperInvariant(prop.Name[0])}{prop.Name[1..]}{(subDict.HasValue ? ":" + subDict.Value.index : "")}";
 
             string cfgDesc = attrib.desc;
             if(cfgDesc != null) {
