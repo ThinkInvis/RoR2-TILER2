@@ -36,13 +36,16 @@ namespace TILER2 {
                 module.rng = new Xoroshiro128Plus(rngGenerator.nextUlong);
         }
 
-        private static void Language_Init(On.RoR2.Language.orig_Init orig) {
-            orig();
+        private static System.Collections.IEnumerator Language_Init(On.RoR2.Language.orig_Init orig) {
+            var retv = orig();
+
             foreach(var module in allModules) {
                 module.RefreshPermanentLanguage();
                 if(module.enabled)
                     module.InstallLanguage();
             }
+
+            return retv;
         }
 
         private static void Language_CCLanguageReload(On.RoR2.Language.orig_CCLanguageReload orig, RoR2.ConCommandArgs args) {

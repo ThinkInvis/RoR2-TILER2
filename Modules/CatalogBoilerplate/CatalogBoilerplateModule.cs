@@ -175,8 +175,8 @@ namespace TILER2 {
             UpdateRandomTriggerEquipmentTable();
         }
 
-        private void On_PickupCatalogInit(On.RoR2.PickupCatalog.orig_Init orig) {
-            orig();
+        private System.Collections.IEnumerator On_PickupCatalogInit(On.RoR2.PickupCatalog.orig_Init orig) {
+            var retv = orig();
 
             foreach(CatalogBoilerplate bpl in allInstances) {
                 PickupIndex pind;
@@ -188,6 +188,8 @@ namespace TILER2 {
                 bpl.pickupDef = pickup;
                 bpl.pickupIndex = pind;
             }
+
+            return retv;
         }
 
         private RoR2.UI.LogBook.Entry[] On_LogbookBuildPickupEntries(On.RoR2.UI.LogBook.LogBookController.orig_BuildPickupEntries orig, Dictionary<RoR2.ExpansionManagement.ExpansionDef, bool> expansionAvailability) {
