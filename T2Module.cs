@@ -36,6 +36,7 @@ namespace TILER2 {
         }
 
         [SystemInitializer(new Type[] { typeof(Language) })]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by RoR2 code.")]
         private static void PostProcessLanguage() {
             foreach(var module in allModules) {
                 module.RefreshPermanentLanguage();

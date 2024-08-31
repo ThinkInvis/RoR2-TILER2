@@ -46,10 +46,12 @@ namespace TILER2 {
             DebugUtil.Setup();
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
         private void Start() {
             T2Module.SetupAll_PluginStart(allModules);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
         private void Update() {
             if(!RoR2.RoR2Application.loadFinished) return;
             AutoConfigModule.Update();
