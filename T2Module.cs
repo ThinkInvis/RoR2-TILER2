@@ -24,7 +24,6 @@ namespace TILER2 {
     public abstract class T2Module : AutoConfigContainer {
         internal static void SetupModuleClass() {
             On.RoR2.Run.Start += On_RunStart;
-            On.RoR2.Language.Init += Language_Init;
             On.RoR2.Language.CCLanguageReload += Language_CCLanguageReload;
         }
 
@@ -36,16 +35,13 @@ namespace TILER2 {
                 module.rng = new Xoroshiro128Plus(rngGenerator.nextUlong);
         }
 
-        private static System.Collections.IEnumerator Language_Init(On.RoR2.Language.orig_Init orig) {
-            var retv = orig();
-
+        [SystemInitializer(new Type[] { typeof(Language) })]
+        private static void PostProcessLanguage() {
             foreach(var module in allModules) {
                 module.RefreshPermanentLanguage();
                 if(module.enabled)
                     module.InstallLanguage();
             }
-
-            return retv;
         }
 
         private static void Language_CCLanguageReload(On.RoR2.Language.orig_CCLanguageReload orig, RoR2.ConCommandArgs args) {

@@ -22,7 +22,6 @@ namespace TILER2 {
         public override void SetupConfig() {
             base.SetupConfig();
             lockIcon = LegacyResourcesAPI.Load<Sprite>("Textures/MiscIcons/texUnlockIcon");
-            On.RoR2.PickupCatalog.Init += On_PickupCatalogInit;
             On.RoR2.UI.LogBook.LogBookController.BuildPickupEntries += On_LogbookBuildPickupEntries;
             On.RoR2.Run.BuildDropTable += On_RunBuildDropTable;
             On.RoR2.PickupPickerController.GetOptionsFromPickupIndex += PickupPickerController_GetOptionsFromPickupIndex;
@@ -175,9 +174,8 @@ namespace TILER2 {
             UpdateRandomTriggerEquipmentTable();
         }
 
-        private System.Collections.IEnumerator On_PickupCatalogInit(On.RoR2.PickupCatalog.orig_Init orig) {
-            var retv = orig();
-
+        [SystemInitializer(new Type[] {typeof(PickupCatalog)})]
+        private static void PostCachePickups() {
             foreach(CatalogBoilerplate bpl in allInstances) {
                 PickupIndex pind;
                 if(bpl is Equipment equipment) pind = PickupCatalog.FindPickupIndex(equipment.catalogIndex);
@@ -188,8 +186,6 @@ namespace TILER2 {
                 bpl.pickupDef = pickup;
                 bpl.pickupIndex = pind;
             }
-
-            return retv;
         }
 
         private RoR2.UI.LogBook.Entry[] On_LogbookBuildPickupEntries(On.RoR2.UI.LogBook.LogBookController.orig_BuildPickupEntries orig, Dictionary<RoR2.ExpansionManagement.ExpansionDef, bool> expansionAvailability) {
