@@ -36,6 +36,7 @@ namespace TILER2 {
         }
 
         private static void Language_SetCurrentLanguage(On.RoR2.Language.orig_SetCurrentLanguage orig, string newCurrentLanguageName) {
+            orig(newCurrentLanguageName);
             foreach(var module in allModules) {
                 module.RefreshPermanentLanguage();
                 if(module.enabled) {
@@ -45,7 +46,6 @@ namespace TILER2 {
                 }
             }
             AutoConfigModule.globalLanguageDirty = false;
-            orig(newCurrentLanguageName);
         }
 
         private static readonly FilingDictionary<T2Module> _allModules = new();
