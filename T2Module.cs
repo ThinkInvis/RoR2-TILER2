@@ -24,7 +24,7 @@ namespace TILER2 {
     public abstract class T2Module : AutoConfigContainer {
         internal static void SetupModuleClass() {
             On.RoR2.Run.Start += On_RunStart;
-            On.RoR2.Language.CCLanguageReload += Language_CCLanguageReload;
+            On.RoR2.Language.SetCurrentLanguage += Language_SetCurrentLanguage;
         }
 
         private static void On_RunStart(On.RoR2.Run.orig_Start orig, Run self) {
@@ -35,26 +35,16 @@ namespace TILER2 {
                 module.rng = new Xoroshiro128Plus(rngGenerator.nextUlong);
         }
 
-        [SystemInitializer(new Type[] { typeof(Language) })]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by RoR2 code.")]
-        private static void PostProcessLanguage() {
+        private static void Language_SetCurrentLanguage(On.RoR2.Language.orig_SetCurrentLanguage orig, string newCurrentLanguageName) {
             foreach(var module in allModules) {
                 module.RefreshPermanentLanguage();
-                if(module.enabled)
-                    module.InstallLanguage();
-            }
-        }
-
-        private static void Language_CCLanguageReload(On.RoR2.Language.orig_CCLanguageReload orig, RoR2.ConCommandArgs args) {
-            foreach(var module in allModules) {
                 if(module.enabled) {
                     if(module.languageInstalled)
                         module.UninstallLanguage();
                     module.InstallLanguage();
                 }
-                module.RefreshPermanentLanguage();
             }
-            orig(args);
+            orig(newCurrentLanguageName);
         }
 
         private static readonly FilingDictionary<T2Module> _allModules = new();
