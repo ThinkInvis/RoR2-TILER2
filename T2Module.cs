@@ -44,6 +44,7 @@ namespace TILER2 {
                     module.InstallLanguage();
                 }
             }
+            AutoConfigModule.globalLanguageDirty = false;
             orig(newCurrentLanguageName);
         }
 
