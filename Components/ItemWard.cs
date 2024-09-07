@@ -61,7 +61,7 @@ namespace TILER2 {
 				R2API.Networking.NetworkingAPI.RegisterMessageType<MsgDeltaDisplay>();
 				R2API.Networking.NetworkingAPI.RegisterMessageType<MsgSyncRadius>();
 				
-				var displayPrefabPrefab = GameObject.Instantiate(LegacyResourcesAPI.Load<GameObject>("prefabs/effects/orbeffects/ItemTransferOrbEffect"));
+				var displayPrefabPrefab = LegacyResourcesAPI.Load<GameObject>("prefabs/effects/orbeffects/ItemTransferOrbEffect").InstantiateClone("TILER2TempSetupPrefab", false);
 				displayPrefabPrefab.GetComponent<EffectComponent>().enabled = false;
 				displayPrefabPrefab.GetComponent<OrbEffect>().enabled = false;
 				displayPrefabPrefab.GetComponent<ItemTakenOrbEffect>().enabled = false;
