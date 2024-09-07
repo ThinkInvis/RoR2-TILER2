@@ -49,15 +49,15 @@ namespace TILER2 {
                 On.RoR2.ItemStealController.StolenInventoryInfo.TakeItemFromLendee += StolenInventoryInfo_TakeItemFromLendee;
                 On.RoR2.ItemStealController.StolenInventoryInfo.TakeBackItemsFromLendee += StolenInventoryInfo_TakeBackItemsFromLendee;
                 On.RoR2.LunarSunBehavior.FixedUpdate += LunarSunBehavior_FixedUpdate;
+				On.RoR2.CostTypeDef.PayCost += On_CostTypeDef_PayCost;
+                On.RoR2.CostTypeDef.IsAffordable += CostTypeDef_IsAffordable;
 
-                //Stack checker
-                On.RoR2.Run.FixedUpdate += Run_FixedUpdate;
+				//Stack checker
+				On.RoR2.Run.FixedUpdate += Run_FixedUpdate;
 
 				//Display hooks
 				On.RoR2.UI.ItemInventoryDisplay.UpdateDisplay += On_IIDUpdateDisplay;
 				On.RoR2.UI.ItemInventoryDisplay.OnInventoryChanged += On_IIDInventoryChanged;
-
-                On.RoR2.CostTypeDef.PayCost += On_CostTypeDef_PayCost;
 			}
         }
 
@@ -260,6 +260,13 @@ namespace TILER2 {
 		private static CostTypeDef.PayCostResults On_CostTypeDef_PayCost(On.RoR2.CostTypeDef.orig_PayCost orig, CostTypeDef self, int cost, Interactor activator, GameObject purchasedObject, Xoroshiro128Plus rng, ItemIndex avoidedItemIndex) {
 			ignoreFakes++;
 			var retv = orig(self, cost, activator, purchasedObject, rng, avoidedItemIndex);
+			ignoreFakes--;
+			return retv;
+		}
+
+		private static bool CostTypeDef_IsAffordable(On.RoR2.CostTypeDef.orig_IsAffordable orig, CostTypeDef self, int cost, Interactor activator) {
+			ignoreFakes++;
+			var retv = orig(self, cost, activator);
 			ignoreFakes--;
 			return retv;
 		}
