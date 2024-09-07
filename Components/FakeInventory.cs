@@ -57,9 +57,7 @@ namespace TILER2 {
 				On.RoR2.UI.ItemInventoryDisplay.UpdateDisplay += On_IIDUpdateDisplay;
 				On.RoR2.UI.ItemInventoryDisplay.OnInventoryChanged += On_IIDInventoryChanged;
 
-				var cClass = typeof(CostTypeCatalog).GetNestedType("<>c", BindingFlags.NonPublic);
-				var subMethod = cClass.GetMethod("<Init>g__PayCostItems|5_1", BindingFlags.NonPublic | BindingFlags.Instance);
-				MonoMod.RuntimeDetour.HookGen.HookEndpointManager.Modify(subMethod, (Action<ILContext>)gPayCostItemsHook);
+                On.RoR2.CostTypeDef.PayCost += On_CostTypeDef_PayCost;
 			}
         }
 
@@ -259,12 +257,11 @@ namespace TILER2 {
 			});
 		}
 
-		private static void gPayCostItemsHook(ILContext il) {
-			ILCursor c = new(il);
-			c.GotoNext(x => x.MatchCallvirt<Inventory>("GetItemCount"));
-			c.EmitDelegate<Action>(() => {ignoreFakes++;});
-			c.GotoNext(MoveType.After, x => x.MatchCallvirt<Inventory>("GetItemCount"));
-			c.EmitDelegate<Action>(() => {ignoreFakes--;});
+		private static CostTypeDef.PayCostResults On_CostTypeDef_PayCost(On.RoR2.CostTypeDef.orig_PayCost orig, CostTypeDef self, int cost, Interactor activator, GameObject purchasedObject, Xoroshiro128Plus rng, ItemIndex avoidedItemIndex) {
+			ignoreFakes++;
+			var retv = orig(self, cost, activator, purchasedObject, rng, avoidedItemIndex);
+			ignoreFakes--;
+			return retv;
 		}
 
 		private static int Util_GetItemCountForTeam(On.RoR2.Util.orig_GetItemCountForTeam orig, TeamIndex teamIndex, ItemIndex itemIndex, bool requiresAlive, bool requiresConnected) {
