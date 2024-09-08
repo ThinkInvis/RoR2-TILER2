@@ -423,9 +423,20 @@ namespace TILER2 {
             foreach(var icon in self.itemIcons) {
 				var realCount = fakeInv.GetRealItemCount(icon.itemIndex);
 				var fakeCount = fakeInv.GetAdjustedItemCount(icon.itemIndex) - realCount;
+				var stackText = icon.spriteAsNumberManager;
+				stackText.SetSpriteColor(Color.white); //reset color in case count changed
 				if(fakeCount == 0) continue;
-				icon.stackText.enabled = true;
-				icon.stackText.text = $"x{realCount}\n<color=#C18FE0>+{fakeCount}</color>";
+				stackText.TrySetup();
+				stackText.isVisible = true;
+				List<int> list = new();
+				stackText.LoadListWithDigitPositions(fakeCount, ref list, 0);
+				list.Add(-6666);
+				stackText.LoadListWithDigitPositions(realCount, ref list, 0);
+				list.Add(-6666);
+				stackText.UpdateSpriteObjectsWithListValues(list, 0);
+				for(int i = 0; i <= stackText.GetTotalDigitPositions(fakeCount); i++) {
+					stackText.imageList[i].color = new(193f/255f, 143f/255f, 224f/255f);
+				}
             }
 		}
 	}
