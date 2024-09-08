@@ -1,5 +1,15 @@
 ﻿# TILER2 Changelog
 
+**7.4.1**
+
+- Fixes for Seekers of the Storm:
+	- Partially fixed FakeInventory item count display text tweak not working. The new method may cause overlapping text.
+	- Prevented an ItemWard prefab waking up during startup (causes errors now).
+	- Updated dependencies for new patch.
+	- Retargeted changed hook signatures (fixes errors preventing mod load, and notably language token failures).
+- Fixed a NullReferenceException while adding node occupation info to spawned objects.
+- Implemented some C#9 features made available by SotS.
+
 **7.4.0**
 
 - Added the CatalogUtil static module, containing `TryGetItemDef` and `TryGetEquipmentDef` methods.

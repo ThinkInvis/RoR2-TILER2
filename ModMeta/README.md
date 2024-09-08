@@ -49,6 +49,16 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.4.1**
+
+- Fixes for Seekers of the Storm:
+	- Partially fixed FakeInventory item count display text tweak not working. The new method may cause overlapping text.
+	- Prevented an ItemWard prefab waking up during startup (causes errors now).
+	- Updated dependencies for new patch.
+	- Retargeted changed hook signatures (fixes errors preventing mod load, and notably language token failures).
+- Fixed a NullReferenceException while adding node occupation info to spawned objects.
+- Implemented some C#9 features made available by SotS.
+
 **7.4.0**
 
 - Added the CatalogUtil static module, containing `TryGetItemDef` and `TryGetEquipmentDef` methods.
@@ -68,11 +78,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - Updated R2API dependency to 5.0.6 (now using split assembly).
 	- Replaced deprecated R2API.CommandHelper with base RoR2's SearchableAttribute.
 - Updated BepInExPack dependency to 5.4.2103.
-
-**7.3.2**
-
-- Various fixes and improvements to ConCmds `ir_sim` and `ir_sqm`:
-	- Fixed hiding the entire model placeholder instead of individual models.
-	- Fixed failing if the model placeholder is inactive but present.
-	- Now searches by internal code name instead of by language token lookup (latter failed inexplicably in some cases).
-- For developers: NuGet config is now localized (building project no longer requires end-user modification of system or directory NuGet config).
