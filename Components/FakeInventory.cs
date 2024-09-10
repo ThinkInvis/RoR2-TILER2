@@ -63,6 +63,10 @@ namespace TILER2 {
 
 		private int[] _itemStacks = ItemCatalog.RequestItemStackArray();
 		public readonly ReadOnlyCollection<int> itemStacks;
+		public Inventory inventory { get; private set; }
+
+		private static Dictionary<Inventory, FakeInventory> instancesByInventory = new();
+		public static ReadOnlyDictionary<Inventory, FakeInventory> readOnlyInstancesByInventory = new(instancesByInventory);
 		
 		///<summary>Items in this HashSet cannot be added to nor removed from a FakeInventory.</summary>
 		public static HashSet<ItemDef> blacklist = new();
@@ -73,6 +77,7 @@ namespace TILER2 {
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
 		private void OnDestroy() {
+			instancesByInventory.Remove(inventory);
 			ItemCatalog.ReturnItemStackArray(_itemStacks);
 		}
 
@@ -111,7 +116,7 @@ namespace TILER2 {
 		}
 
 		public int GetRealItemCount(ItemIndex ind) {
-			return HG.ArrayUtils.GetSafe(GetComponent<Inventory>().itemStacks, (int)ind);
+			return HG.ArrayUtils.GetSafe(inventory.itemStacks, (int)ind);
 		}
 
 		public int GetAdjustedItemCount(ItemIndex ind) {
@@ -164,15 +169,13 @@ namespace TILER2 {
 				//ItemCatalog.ReturnItemStackArray(fakeInv._itemStacks);
 				fakeInv._itemStacks = _itemsToSync;
 
-				var inv = fakeInv.GetComponent<Inventory>();
-				
 				if(NetworkServer.active) {
-					inv.SetDirtyBit(1u);
-					inv.SetDirtyBit(8u);
+					fakeInv.inventory.SetDirtyBit(1u);
+					fakeInv.inventory.SetDirtyBit(8u);
 				}
 
 				//= inventory.onInventoryChanged.Invoke();
-				var multicast = (MulticastDelegate)typeof(Inventory).GetFieldCached(nameof(Inventory.onInventoryChanged)).GetValue(inv);
+				var multicast = (MulticastDelegate)typeof(Inventory).GetFieldCached(nameof(Inventory.onInventoryChanged)).GetValue(fakeInv.inventory);
 				foreach(var del in multicast.GetInvocationList()) {
 					del.Method.Invoke(del.Target, null);
 				}
@@ -186,8 +189,14 @@ namespace TILER2 {
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
 		private void Awake() {
+			inventory = GetComponent<Inventory>();
+			if(instancesByInventory.ContainsKey(inventory)) {
+				TILER2Plugin._logger.LogError($"Inventory on object {inventory.gameObject.name} already has a FakeInventory assigned, can't add another!");
+				Destroy(this);
+				return;
+            }
+			instancesByInventory[inventory] = this;
 			if(NetworkServer.active) {
-				var netId = GetComponent<NetworkIdentity>().netId;
 				if(netId.Value == 0) return;
 				new MsgSyncAll(netId, _itemStacks).Send(R2API.Networking.NetworkDestination.Clients);
 			}
@@ -196,7 +205,6 @@ namespace TILER2 {
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by Unity Engine.")]
 		private void Update() {
 			if(itemsDirty && NetworkServer.active) {
-				var netId = GetComponent<NetworkIdentity>().netId;
 				if(netId.Value == 0) return;
 				new MsgSyncAll(netId, _itemStacks).Send(R2API.Networking.NetworkDestination.Clients);
 				itemsDirty = false;
@@ -387,16 +395,16 @@ namespace TILER2 {
 		private static int On_InvGetItemCountByIndex(On.RoR2.Inventory.orig_GetItemCount_ItemIndex orig, Inventory self, ItemIndex itemIndex) {
 			var origVal = orig(self, itemIndex);
 			if(ignoreFakes > 0 || !self) return origVal;
-			var fakeinv = self.gameObject.GetComponent<FakeInventory>();
-			if(!fakeinv) return origVal;
-			return fakeinv.GetAdjustedItemCount(itemIndex);
+			if(readOnlyInstancesByInventory.TryGetValue(self, out var fakeinv))
+				return fakeinv.GetAdjustedItemCount(itemIndex);
+			else return origVal;
 		}
 
 		private static void On_IIDInventoryChanged(On.RoR2.UI.ItemInventoryDisplay.orig_OnInventoryChanged orig, RoR2.UI.ItemInventoryDisplay self) {
 			orig(self);
-			if(!self || !self.isActiveAndEnabled || !self.inventory) return;
-			var fakeInv = self.inventory.GetComponent<FakeInventory>();
-			if(!fakeInv) return;
+			if(!self || !self.isActiveAndEnabled || !self.inventory
+				|| !readOnlyInstancesByInventory.TryGetValue(self.inventory, out var fakeInv))
+				return;
 			List<ItemIndex> newAcqOrder = self.itemOrder.Take(self.itemOrderCount).ToList();
 			for(int i = 0; i < self.itemStacks.Length; i++) {
 				var aic = fakeInv.GetAdjustedItemCount((ItemIndex)i);
@@ -417,10 +425,9 @@ namespace TILER2 {
         private static void On_IIDUpdateDisplay(On.RoR2.UI.ItemInventoryDisplay.orig_UpdateDisplay orig, RoR2.UI.ItemInventoryDisplay self) {
             orig(self);
             Inventory inv = self.inventory;
-			if(!inv) return;
-            var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
-			if(!fakeInv) return;
-            foreach(var icon in self.itemIcons) {
+			if(!inv || !readOnlyInstancesByInventory.TryGetValue(self.inventory, out var fakeInv))
+				return;
+			foreach(var icon in self.itemIcons) {
 				var realCount = fakeInv.GetRealItemCount(icon.itemIndex);
 				var fakeCount = fakeInv.GetAdjustedItemCount(icon.itemIndex) - realCount;
 				var stackText = icon.spriteAsNumberManager;

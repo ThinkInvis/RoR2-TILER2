@@ -158,34 +158,30 @@ namespace TILER2 {
 			if(stopwatch > updateTickRate) {
 				stopwatch = 0f;
 				trackedInventories.RemoveAll(x => !x || !x.gameObject);
-				var bodies = TeamComponent.GetTeamMembers(currentTeam).Select(tc => tc.GetComponent<CharacterBody>());
+				var bodies = TeamComponent.GetTeamMembers(currentTeam).Select(tc => tc.body);
 				foreach(var body in bodies) {
 					if(!body) continue;
 					if((body.transform.position - transform.position).sqrMagnitude <= radSq)
-						RegObject(body.gameObject);
+						RegBody(body);
 					else
-						DeregObject(body.gameObject);
+						DeregBody(body);
 				}
 			}
 		}
 
-		private void RegObject(GameObject go) {
-			var cb = go.GetComponent<CharacterBody>();
-			if(!cb) return;
+		private void RegBody(CharacterBody cb) {
 			var inv = cb.inventory;
 			if(inv && !trackedInventories.Contains(inv)) {
 				trackedInventories.Add(inv);
-				var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
-				if(!fakeInv) fakeInv = inv.gameObject.AddComponent<FakeInventory>();
-				foreach(var kvp in itemcounts) {
+                if(!FakeInventory.readOnlyInstancesByInventory.TryGetValue(inv, out var fakeInv))
+                    fakeInv = inv.gameObject.AddComponent<FakeInventory>();
+                foreach(var kvp in itemcounts) {
 					fakeInv.GiveItem(kvp.Key, kvp.Value);
 				}
 			}
 		}
 
-		private void DeregObject(GameObject go) {
-			var cb = go.GetComponent<CharacterBody>();
-			if(!cb) return;
+		private void DeregBody(CharacterBody cb) {
 			var inv = cb.inventory;
 			if(!inv) return;
 			DeregInv(inv);
@@ -193,7 +189,10 @@ namespace TILER2 {
 
 		private void DeregInv(Inventory inv) {
 			if(trackedInventories.Contains(inv)) {
-				var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
+				if(!FakeInventory.readOnlyInstancesByInventory.TryGetValue(inv, out var fakeInv)) {
+					TILER2Plugin._logger.LogError($"ItemWard.DeregInv: Inventory on object {inv.gameObject.name} had its FakeInventory unexpectedly removed");
+					return;
+				}
 				foreach(var kvp in itemcounts) {
 					fakeInv.RemoveItem(kvp.Key, kvp.Value);
 				}
@@ -207,11 +206,14 @@ namespace TILER2 {
 			else itemcounts[ind]++;
 			trackedInventories.RemoveAll(x => !x);
 			foreach(var inv in trackedInventories) {
-				var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
+				if(!FakeInventory.readOnlyInstancesByInventory.TryGetValue(inv, out var fakeInv)) {
+					TILER2Plugin._logger.LogError($"ItemWard.ServerAddItem: Inventory on object {inv.gameObject.name} had its FakeInventory unexpectedly removed");
+					continue;
+				}
 				fakeInv.GiveItem(ind);
 			}
 			
-			new MsgDeltaDisplay(GetComponent<NetworkIdentity>().netId, ind, true).Send(R2API.Networking.NetworkDestination.Clients);
+			new MsgDeltaDisplay(netId, ind, true).Send(R2API.Networking.NetworkDestination.Clients);
 		}
 
 		public void ServerRemoveItem(ItemIndex ind) {
@@ -220,11 +222,14 @@ namespace TILER2 {
 			else itemcounts[ind]--;
 			if(itemcounts[ind] == 0) itemcounts.Remove(ind);
 
-			new MsgDeltaDisplay(GetComponent<NetworkIdentity>().netId, ind, false).Send(R2API.Networking.NetworkDestination.Clients);
+			new MsgDeltaDisplay(netId, ind, false).Send(R2API.Networking.NetworkDestination.Clients);
 
 			trackedInventories.RemoveAll(x => !x || !x.gameObject);
 			foreach(var inv in trackedInventories) {
-				var fakeInv = inv.gameObject.GetComponent<FakeInventory>();
+				if(!FakeInventory.readOnlyInstancesByInventory.TryGetValue(inv, out var fakeInv)) {
+					TILER2Plugin._logger.LogError($"ItemWard.ServerRemoveItem: Inventory on object {inv.gameObject.name} had its FakeInventory unexpectedly removed");
+					continue;
+				}
 				fakeInv.RemoveItem(ind);
 			}
 		}
