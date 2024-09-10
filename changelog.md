@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**7.4.2**
+
+- Improved performance of ItemWards.
+
 **7.4.1**
 
 - Fixes for Seekers of the Storm:

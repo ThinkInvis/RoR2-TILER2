@@ -49,6 +49,10 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.4.2**
+
+- Improved performance of ItemWards.
+
 **7.4.1**
 
 - Fixes for Seekers of the Storm:
@@ -71,10 +75,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 
 - CatalogBoilerplate language setup should no longer be able to cause a game-load-halting error if a token requests an unexpected number of sub-tokens.
 - Fixed incorrect assembly version string from last version (kind of a moot point now).
-
-**7.3.3**
-
-- Fixed a potential cascading error while trying to set up language for a CatalogBoilerplate which never received name tokens.
-- Updated R2API dependency to 5.0.6 (now using split assembly).
-	- Replaced deprecated R2API.CommandHelper with base RoR2's SearchableAttribute.
-- Updated BepInExPack dependency to 5.4.2103.
