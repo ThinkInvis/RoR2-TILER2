@@ -51,7 +51,7 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 
 **7.4.2**
 
-- Improved performance of ItemWards.
+- Greatly improved performance of ItemWard and FakeInventory by introducing component caching.
 
 **7.4.1**
 

@@ -2,7 +2,7 @@
 
 **7.4.2**
 
-- Improved performance of ItemWards.
+- Greatly improved performance of ItemWard and FakeInventory by introducing component caching.
 
 **7.4.1**
 
