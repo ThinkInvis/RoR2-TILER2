@@ -3,6 +3,7 @@ using R2API.Networking.Interfaces;
 using RoR2;
 using RoR2.Orbs;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -157,9 +158,9 @@ namespace TILER2 {
 			if(stopwatch > updateTickRate) {
 				stopwatch = 0f;
 				trackedInventories.RemoveAll(x => !x || !x.gameObject);
-				var bodies = (CharacterBody[])UnityEngine.GameObject.FindObjectsOfType<CharacterBody>();
+				var bodies = TeamComponent.GetTeamMembers(currentTeam).Select(tc => tc.GetComponent<CharacterBody>());
 				foreach(var body in bodies) {
-					if(body.teamComponent.teamIndex != currentTeam) continue;
+					if(!body) continue;
 					if((body.transform.position - transform.position).sqrMagnitude <= radSq)
 						RegObject(body.gameObject);
 					else
