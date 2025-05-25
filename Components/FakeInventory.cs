@@ -223,7 +223,7 @@ namespace TILER2 {
 			}
 		}
 
-		private static void StolenInventoryInfo_TakeBackItemsFromLendee(On.RoR2.ItemStealController.StolenInventoryInfo.orig_TakeBackItemsFromLendee orig, object self) {
+		private static void StolenInventoryInfo_TakeBackItemsFromLendee(On.RoR2.ItemStealController.StolenInventoryInfo.orig_TakeBackItemsFromLendee orig, RoR2.ItemStealController.StolenInventoryInfo self) {
 			ignoreFakes++;
 			orig(self);
 			ignoreFakes--;
@@ -235,7 +235,7 @@ namespace TILER2 {
 			ignoreFakes--;
 		}
 
-		private static int StolenInventoryInfo_TakeItemFromLendee(On.RoR2.ItemStealController.StolenInventoryInfo.orig_TakeItemFromLendee orig, object self, ItemIndex itemIndex, int maxStackToTake) {
+		private static int StolenInventoryInfo_TakeItemFromLendee(On.RoR2.ItemStealController.StolenInventoryInfo.orig_TakeItemFromLendee orig, RoR2.ItemStealController.StolenInventoryInfo self, ItemIndex itemIndex, int maxStackToTake) {
 			ignoreFakes++;
 			var retv = orig(self, itemIndex, maxStackToTake);
 			ignoreFakes--;
@@ -313,7 +313,7 @@ namespace TILER2 {
 			return retv;
 		}
 
-		private static int StolenInventoryInfo_StealItem(On.RoR2.ItemStealController.StolenInventoryInfo.orig_StealItem orig, object self, ItemIndex itemIndex, int maxStackToSteal, bool? useOrbOverride) {
+		private static int StolenInventoryInfo_StealItem(On.RoR2.ItemStealController.StolenInventoryInfo.orig_StealItem orig, RoR2.ItemStealController.StolenInventoryInfo self, ItemIndex itemIndex, int maxStackToSteal, bool? useOrbOverride) {
 			ignoreFakes++;
 			var retv = orig(self, itemIndex, maxStackToSteal, useOrbOverride);
 			ignoreFakes--;
