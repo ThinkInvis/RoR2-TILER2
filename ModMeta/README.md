@@ -49,6 +49,10 @@ NetConfig also adds the console commands `ncfg_get`, `ncfg_set`, `ncfg_settemp`,
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-TILER2/blob/master/changelog.md
 
+**7.4.3**
+
+- Recompiled, remapped signatures, and updated dependencies for recent vanilla updates.
+- 
 **7.4.2**
 
 - Greatly improved performance of ItemWard and FakeInventory by introducing component caching.
@@ -70,8 +74,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **7.3.5**
 
 - All stock CatalogBoilerplate implementations (Item, Equipment, Artifact) now add an automatic readonly config entry displaying the relevant content's name token and internal name.
-
-**7.3.4**
-
-- CatalogBoilerplate language setup should no longer be able to cause a game-load-halting error if a token requests an unexpected number of sub-tokens.
-- Fixed incorrect assembly version string from last version (kind of a moot point now).

@@ -1,14 +1,14 @@
 {
   "name": "TILER2",
-  "version_number": "7.4.2",
+  "version_number": "7.4.3",
   "website_url": "https://github.com/ThinkInvis/RoR2-TILER2",
   "description": "ThinkInvisible's Library of Extras for RoR2 -- modularization/boilerplate and multiplayer config sync tools for other mods.",
   "dependencies": [
     "bbepis-BepInExPack-5.4.2103",
-    "RiskofThunder-R2API_Core-5.1.1",
-    "RiskofThunder-R2API_Items-1.0.3",
+    "RiskofThunder-R2API_Core-5.1.5",
+    "RiskofThunder-R2API_Items-1.0.4",
     "RiskofThunder-R2API_Language-1.0.1",
-    "RiskofThunder-R2API_Networking-1.0.2",
+    "RiskofThunder-R2API_Networking-1.0.3",
     "RiskofThunder-R2API_Prefab-1.0.4"
   ]
 }

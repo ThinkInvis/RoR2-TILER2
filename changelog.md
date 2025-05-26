@@ -1,5 +1,9 @@
 ﻿# TILER2 Changelog
 
+**7.4.3**
+
+- Recompiled, remapped signatures, and updated dependencies for recent vanilla updates.
+
 **7.4.2**
 
 - Greatly improved performance of ItemWard and FakeInventory by introducing component caching.
