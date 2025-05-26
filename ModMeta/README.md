@@ -52,7 +52,11 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **7.4.3**
 
 - Recompiled, remapped signatures, and updated dependencies for recent vanilla updates.
-- 
+- Some backend improvements:
+	- Suppressed a harmless (but very annoying) warning on a dependency.
+	- Made BepInEx dependency version static.
+	- Postbuild event can now create the Build folder and project name subfolder if missing (e.g. on a new clone of the repo).
+
 **7.4.2**
 
 - Greatly improved performance of ItemWard and FakeInventory by introducing component caching.
