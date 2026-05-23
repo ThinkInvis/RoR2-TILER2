@@ -4,6 +4,8 @@ A library mod for Risk of Rain 2. Built with BepInEx and R2API.
 
 Contains a bunch of different utilities for my other mods, mostly having to do with items.
 
+Currently deprecated, and split or migrated into other mods as necessary.
+
 ## Installation
 
 Release builds are published to Thunderstore: https://thunderstore.io/package/ThinkInvis/TILER2/
